@@ -44,6 +44,10 @@ export async function convertAmount(amount: number, from: string, to: string) {
   });
 }
 
+export async function updateOperation(id: string, changes: Partial<NewOperation>) {
+  return authRequest<{ _id: string }>(`/operations/${id}`, { method: 'PATCH', body: changes });
+}
+
 export async function createOperation(operation: NewOperation) {
   return authRequest<{ _id: string }>('/operations', { method: 'POST', body: operation });
 }

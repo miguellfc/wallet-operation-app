@@ -3,7 +3,7 @@ import type { Currency } from '@/features/currencies/currency-api';
 
 export type OperationType = 'INCOME' | 'EXPENSE' | 'TRANSFER' | 'OPENING';
 
-type OperationWallet = { id: string; name: string };
+type OperationWallet = { id: string; name: string; currency?: { code: string } };
 
 type CurrencyAmount = { currency: string; amount: number };
 
@@ -13,8 +13,9 @@ export type Operation = {
   description?: string;
   date: string;
   amount: { from?: CurrencyAmount; to?: CurrencyAmount; user: CurrencyAmount };
-  category?: { id: string; name: string };
+  category?: { id: string; name: string; color?: string };
   wallets: { from?: OperationWallet; to?: OperationWallet };
+  debt?: { id: string; action: 'OPENING' | 'PAYMENT' | 'INCREASE'; amount: number };
 };
 
 export type DayOperations = {
@@ -66,4 +67,12 @@ export async function loadDayOperations(day: Date): Promise<DayOperations> {
     expense: cashFlow.periods.reduce((sum, period) => sum + period.expense, 0),
     operations: operations.data,
   };
+}
+
+export async function loadOperation(id: string) {
+  return authRequest<Operation>(`/operations/${id}`);
+}
+
+export async function deleteOperation(id: string) {
+  return authRequest<unknown>(`/operations/${id}`, { method: 'DELETE' });
 }
