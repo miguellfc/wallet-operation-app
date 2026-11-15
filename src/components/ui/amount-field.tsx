@@ -30,6 +30,7 @@ type AmountFieldProps = {
   decimals?: number;
   destination?: { text: string; muted?: boolean };
   placeholder?: string;
+  allowZero?: boolean;
   onChange: (value: string) => void;
 };
 
@@ -40,6 +41,7 @@ export function AmountField({
   decimals,
   destination,
   placeholder,
+  allowZero = false,
   onChange,
 }: AmountFieldProps) {
   const insets = useSafeAreaInsets();
@@ -47,7 +49,8 @@ export function AmountField({
   const [expression, setExpression] = useState('');
   const raw = evaluate(expression);
   const result = raw === null || decimals === undefined ? raw : roundTo(raw, decimals);
-  const invalid = expression !== '' && (result === null || result <= 0);
+  const tooSmall = (value: number) => (allowZero ? value < 0 : value <= 0);
+  const invalid = expression !== '' && (result === null || tooSmall(result));
   const money = (amount: number) => (currencyCode ? formatAmount(amount, currencyCode) : String(amount));
   const shown = value === '' ? null : money(Number(value));
 
@@ -61,7 +64,7 @@ export function AmountField({
   };
 
   const equals = () => {
-    if (result !== null && result > 0) setExpression(String(result));
+    if (result !== null && !tooSmall(result)) setExpression(String(result));
   };
 
   const done = () => {
@@ -72,7 +75,9 @@ export function AmountField({
   const resultText = invalid
     ? result === null
       ? 'Operación no válida'
-      : 'El importe debe ser mayor que 0'
+      : allowZero
+        ? 'El importe no puede ser negativo'
+        : 'El importe debe ser mayor que 0'
     : `= ${money(result ?? 0)}`;
 
   return (

@@ -43,7 +43,7 @@ const GLOWS = [
 const openOperation = (id: string) =>
   router.navigate({ pathname: '/operation-detail', params: { id, at: String(Date.now()) } } as Href);
 
-const countLabel = (count: number) => `${count} ${count === 1 ? 'transacción' : 'transacciones'}`;
+const countLabel = (count: number) => `${count} ${count === 1 ? 'operación' : 'operaciones'}`;
 
 const matches = (operation: Operation, filter: Filter) => filter === 'ALL' || operation.type === filter;
 

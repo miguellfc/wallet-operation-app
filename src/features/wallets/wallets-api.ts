@@ -96,3 +96,64 @@ export async function loadRecurrences(): Promise<RecurrenceItem[]> {
     template: operations.data.find(operation => recurrence.operations.includes(operation._id)),
   }));
 }
+
+export type WalletDocument = {
+  _id: string;
+  name: string;
+  type: 'GENERAL' | 'CREDIT_CARD';
+  icon: string;
+  color: string;
+  excluded: boolean;
+  initAmount: number;
+  currency: { code: string; currency: string; symbol: string; type: CurrencyType };
+};
+
+export type WalletDetail = {
+  wallet: WalletDocument;
+  balance: number;
+  decimals: number;
+  counts: { income: number; expense: number; transfer: number };
+  wallets: { id: string; name: string; currencyCode: string }[];
+  operations: Operation[];
+  hasMore: boolean;
+};
+
+export async function loadWallet(id: string) {
+  return authRequest<WalletDocument>(`/wallets/${id}`);
+}
+
+export async function loadWalletDetail(id: string, size: number): Promise<WalletDetail> {
+  const [wallet, summary, wallets, operations] = await Promise.all([
+    loadWallet(id),
+    authRequest<{ balance: number; counts: WalletDetail['counts'] }>(`/balance/wallet/${id}/summary`),
+    authRequest<Page<{ _id: string; name: string; currency: CurrencyRef }>>('/wallets/search', {
+      method: 'POST',
+      body: { size: PAGE_SIZE, sort: { createdAt: 1 }, projections: { name: 1, currency: 1 } },
+    }),
+    authRequest<Page<Operation>>('/operations/search', {
+      method: 'POST',
+      body: {
+        filters: { $or: [{ 'wallets.from.id': id }, { 'wallets.to.id': id }] },
+        sort: { date: -1 },
+        size: size + 1,
+      },
+    }),
+  ]);
+  return {
+    wallet,
+    balance: summary.balance,
+    decimals: currencyDecimals(wallet.currency.code, wallet.currency.type),
+    counts: summary.counts,
+    wallets: wallets.data.map(item => ({ id: item._id, name: item.name, currencyCode: item.currency.code })),
+    operations: operations.data.slice(0, size),
+    hasMore: operations.data.length > size,
+  };
+}
+
+export async function adjustWalletBalance(id: string, balance: number, date: string) {
+  return authRequest<{ _id: string }>(`/wallets/${id}/adjust`, { method: 'POST', body: { balance, date } });
+}
+
+export async function updateWallet(id: string, changes: Record<string, unknown>) {
+  return authRequest<{ _id: string }>(`/wallets/${id}`, { method: 'PATCH', body: changes });
+}

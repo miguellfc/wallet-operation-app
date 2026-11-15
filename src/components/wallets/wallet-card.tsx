@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { WalletIcon } from '@/components/wallets/wallet-icon';
 import { softColor } from '@/features/wallets/wallet-options';
@@ -11,12 +11,18 @@ type WalletCardProps = {
   excluded: boolean;
   icon: string;
   color: string;
+  onPress?: () => void;
 };
 
-export function WalletCard({ name, amount, currencyCode, excluded, icon, color }: WalletCardProps) {
+export function WalletCard({ name, amount, currencyCode, excluded, icon, color, onPress }: WalletCardProps) {
   const description = `${name}, ${amount} ${currencyCode}${excluded ? ', excluida del balance' : ''}`;
   return (
-    <View style={[styles.card, excluded && styles.excluded]} accessible accessibilityLabel={description}>
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={description}
+      style={({ pressed }) => [styles.card, excluded && styles.excluded, pressed && styles.pressed]}>
       <View style={[styles.icon, excluded && styles.faded, { backgroundColor: softColor(color) }]}>
         <WalletIcon name={icon} color={color} size={18} />
       </View>
@@ -34,7 +40,7 @@ export function WalletCard({ name, amount, currencyCode, excluded, icon, color }
           <Text style={styles.badgeLabel}>Excluida del saldo</Text>
         </View>
       )}
-    </View>
+    </Pressable>
   );
 }
 
@@ -52,6 +58,7 @@ const styles = StyleSheet.create({
   },
   excluded: { borderWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(254, 252, 105, 0.35)' },
   faded: { opacity: 0.6 },
+  pressed: { opacity: 0.85 },
   icon: {
     width: 34,
     height: 34,

@@ -19,7 +19,8 @@ const GLOWS = [
 const openOperationForm = () =>
   router.navigate({ pathname: '/add-operation', params: { at: String(Date.now()) } } as Href);
 
-const openWalletForm = () => router.navigate('/add-wallet' as Href);
+const openWalletForm = () =>
+  router.navigate({ pathname: '/add-wallet', params: { at: String(Date.now()) } } as Href);
 
 const openDebtForm = () => router.navigate('/add-debt' as Href);
 

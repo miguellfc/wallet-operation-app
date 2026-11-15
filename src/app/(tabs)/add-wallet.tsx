@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
-import { router, type Href } from 'expo-router';
-import { useState, type ReactNode } from 'react';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
+import { useCallback, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -17,6 +17,7 @@ import { WalletIcon } from '@/components/wallets/wallet-icon';
 import type { Currency } from '@/features/currencies/currency-api';
 import { CurrencySheet } from '@/features/currencies/currency-sheet';
 import { createWallet, loadWalletForm } from '@/features/wallets/wallet-form-api';
+import { loadWallet, updateWallet } from '@/features/wallets/wallets-api';
 import {
   DEFAULT_WALLET_COLOR,
   DEFAULT_WALLET_ICON,
@@ -42,6 +43,8 @@ const GLOWS = [
 function saveErrorMessage(error: unknown, currency: string) {
   if (!(error instanceof ApiError)) return 'No se pudo conectar con el servidor. Revisa tu conexión y vuelve a intentarlo.';
   if (error.reference === 'EXCHANGE_RATE_REQUIRED') return `Falta la tasa de cambio de ${currency}.`;
+  if (error.reference === 'WALLET_HAS_OPERATIONS')
+    return 'No puedes cambiar la moneda: la billetera ya tiene operaciones.';
   if (error.reference === 'AMOUNT_DECIMALS_EXCEEDED')
     return `El saldo inicial tiene más decimales de los que admite ${currency}.`;
   return 'No se pudo guardar la billetera. Vuelve a intentarlo.';
@@ -70,7 +73,12 @@ function PickerBox({ label, value, onPress, children }: PickerBoxProps) {
 
 export default function AddWalletScreen() {
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{ edit?: string; at?: string }>();
+  const editId = params.edit;
   const { data, error: loadError, retry } = useApiData(loadWalletForm);
+  const loadEditing = useCallback(() => (editId ? loadWallet(editId) : Promise.resolve(null)), [editId]);
+  const { data: editingData, error: editError, retry: retryEditing } = useApiData(loadEditing);
+  const editing = editId && editingData?._id === editId ? editingData : null;
 
   const [name, setName] = useState('');
   const [type, setType] = useState<WalletType>('GENERAL');
@@ -83,6 +91,33 @@ export default function AddWalletScreen() {
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [opened, setOpened] = useState<string>();
+
+  const request = `${editId ?? ''}:${params.at ?? ''}`;
+  if (request !== opened && (!editId || editing)) {
+    setOpened(request);
+    if (editing) {
+      setName(editing.name);
+      setType(editing.type);
+      setCurrency(editing.currency);
+      setInitAmount(editing.initAmount ? String(editing.initAmount) : '');
+      setRate('');
+      setColor(editing.color);
+      setIcon(editing.icon);
+      setExcluded(editing.excluded);
+      setError(null);
+    } else if (opened !== undefined) {
+      setName('');
+      setType('GENERAL');
+      setCurrency(undefined);
+      setInitAmount('');
+      setRate('');
+      setColor(DEFAULT_WALLET_COLOR);
+      setIcon(DEFAULT_WALLET_ICON);
+      setExcluded(false);
+      setError(null);
+    }
+  }
 
   const userCode = data?.userCurrency.code ?? '';
   const selectedCurrency = currency ?? data?.userCurrency;
@@ -128,6 +163,24 @@ export default function AddWalletScreen() {
     setSaving(true);
     setError(null);
     try {
+      if (editing) {
+        const currencyChanged = selectedCurrency.code !== editing.currency.code;
+        await updateWallet(editing._id, {
+          name: name.trim(),
+          type,
+          initAmount: initAmount === '' ? 0 : Number(initAmount),
+          color,
+          icon,
+          excluded,
+          ...(currencyChanged && {
+            currency: selectedCurrency.code,
+            currencyType: selectedCurrency.type,
+            exchangeRate: rateNeeded ? parsedRate : undefined,
+          }),
+        });
+        router.navigate({ pathname: '/wallet-detail', params: { id: editing._id, at: String(Date.now()) } } as Href);
+        return;
+      }
       await createWallet({
         name: name.trim(),
         type,
@@ -154,15 +207,15 @@ export default function AddWalletScreen() {
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}>
-        <AddHeader title="Añadir billetera" />
-        {!data ? (
+        <AddHeader title={editId ? 'Editar billetera' : 'Añadir billetera'} />
+        {!data || (editId && !editing) ? (
           <View style={styles.state}>
-            {loadError ? (
+            {loadError || (editId && editError) ? (
               <>
                 <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadErrorMessage(loadError)}
+                  {loadError ? loadErrorMessage(loadError) : 'No se pudo cargar la billetera. Vuelve a intentarlo.'}
                 </Text>
-                <Button label="Reintentar" onPress={retry} />
+                <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
               </>
             ) : (
               <ActivityIndicator color={colors.brand} />
