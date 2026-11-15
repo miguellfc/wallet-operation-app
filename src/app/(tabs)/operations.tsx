@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,6 +39,9 @@ const GLOWS = [
   { left: '8%', top: '58%' },
   { left: '94%', top: '78%' },
 ] as const;
+
+const openOperation = (id: string) =>
+  router.navigate({ pathname: '/operation-detail', params: { id, at: String(Date.now()) } } as Href);
 
 const countLabel = (count: number) => `${count} ${count === 1 ? 'transacción' : 'transacciones'}`;
 
@@ -130,7 +133,9 @@ export default function OperationsScreen() {
           {visible.length === 0 ? (
             <Text style={styles.empty}>{EMPTY[filter]}</Text>
           ) : (
-            visible.map(operation => <OperationRow key={operation._id} operation={operation} />)
+            visible.map(operation => (
+              <OperationRow key={operation._id} operation={operation} onPress={() => openOperation(operation._id)} />
+            ))
           )}
         </View>
       </ScrollView>

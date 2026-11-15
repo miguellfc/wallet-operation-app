@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { CategoryIcon } from '@/components/ui/category-icon';
 import { colors, radius, spacing, typography } from '@/theme';
@@ -12,11 +12,27 @@ type InfoRowProps = {
   amount: string;
   caption?: string;
   accessibilityLabel: string;
+  onPress?: () => void;
 };
 
-export function InfoRow({ icon, iconColor, iconBackground, title, detail, amount, caption, accessibilityLabel }: InfoRowProps) {
+export function InfoRow({
+  icon,
+  iconColor,
+  iconBackground,
+  title,
+  detail,
+  amount,
+  caption,
+  accessibilityLabel,
+  onPress,
+}: InfoRowProps) {
   return (
-    <View style={styles.row} accessible accessibilityLabel={accessibilityLabel}>
+    <Pressable
+      disabled={!onPress}
+      onPress={onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={accessibilityLabel}
+      style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
       <View style={[styles.iconBox, { backgroundColor: iconBackground }]}>
         <CategoryIcon name={icon} color={iconColor} />
       </View>
@@ -34,7 +50,7 @@ export function InfoRow({ icon, iconColor, iconBackground, title, detail, amount
         </Text>
         {caption && <Text style={styles.detail}>{caption}</Text>}
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -49,6 +65,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
+  pressed: { opacity: 0.85 },
   iconBox: { width: 36, height: 36, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   content: { flex: 1, gap: 2 },
   title: { ...typography.bodyMedium, color: colors.textPrimary },

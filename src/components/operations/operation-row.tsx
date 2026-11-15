@@ -34,7 +34,7 @@ export function operationSign(type: Operation['type']) {
   return KIND[type].sign;
 }
 
-export function OperationRow({ operation }: { operation: Operation }) {
+export function OperationRow({ operation, onPress }: { operation: Operation; onPress?: () => void }) {
   const kind = KIND[operation.type];
   const { title, icon, detail } = describe(operation);
   const { amount: value, currency } = walletAmount(operation);
@@ -51,6 +51,7 @@ export function OperationRow({ operation }: { operation: Operation }) {
       amount={amount}
       caption={time}
       accessibilityLabel={`${title}, ${kind.label}, ${amount}, ${time}, ${detail}`}
+      onPress={onPress}
     />
   );
 }

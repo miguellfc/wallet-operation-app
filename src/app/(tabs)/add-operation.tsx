@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
-import { router, type Href } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -17,9 +17,11 @@ import {
   convertAmount,
   createOperation,
   loadOperationForm,
+  updateOperation,
   type FormOperationType,
   type FormWallet,
 } from '@/features/operations/operation-form-api';
+import { loadOperation, type Operation } from '@/features/operations/operations-api';
 import { ApiError } from '@/lib/api';
 import { formatAmount, roundTo } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
@@ -55,6 +57,18 @@ const toUtcInstant = (date: Date) =>
   ).toISOString();
 
 const walletBalance = (wallet: FormWallet) => formatAmount(wallet.balance, wallet.currencyCode);
+
+const fromUtcWallTime = (iso: string) => {
+  const date = new Date(iso);
+  return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes());
+};
+
+function balanceWithout(wallet: FormWallet, operation?: Operation | null) {
+  if (!operation) return wallet.balance;
+  const added = operation.wallets.to?.id === wallet.id ? (operation.amount.to?.amount ?? 0) : 0;
+  const spent = operation.wallets.from?.id === wallet.id ? (operation.amount.from?.amount ?? 0) : 0;
+  return roundTo(wallet.balance - added + spent, wallet.decimals);
+}
 
 const walletLabel = (wallet?: FormWallet) => wallet && `${wallet.name} · ${walletBalance(wallet)}`;
 
@@ -119,7 +133,12 @@ function useDestination(amount: number | null, from?: FormWallet, to?: FormWalle
 
 export default function AddOperationScreen() {
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{ edit?: string; at?: string }>();
+  const editId = params.edit;
   const { data, error: loadError, retry } = useApiData(loadOperationForm);
+  const loadEditing = useCallback(() => (editId ? loadOperation(editId) : Promise.resolve(null)), [editId]);
+  const { data: editingData, error: editError, retry: retryEditing } = useApiData(loadEditing);
+  const editing = editId && editingData?._id === editId ? editingData : null;
 
   const [type, setType] = useState<FormOperationType>('INCOME');
   const [date, setDate] = useState(() => new Date());
@@ -131,13 +150,42 @@ export default function AddOperationScreen() {
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [opened, setOpened] = useState<string>();
 
+  const request = `${editId ?? ''}:${params.at ?? ''}`;
+  if (request !== opened && (!editId || editing)) {
+    setOpened(request);
+    if (editing) {
+      setType(editing.type === 'OPENING' ? 'INCOME' : editing.type);
+      setDate(fromUtcWallTime(editing.date));
+      const source = editing.type === 'INCOME' ? editing.amount.to : editing.amount.from;
+      setAmount(source ? String(source.amount) : '');
+      setDescription(editing.description ?? '');
+      setCategory(editing.category?.id);
+      setWallet(editing.type === 'INCOME' ? editing.wallets.to?.id : editing.wallets.from?.id);
+      setTarget(editing.type === 'TRANSFER' ? editing.wallets.to?.id : undefined);
+      setError(null);
+    } else if (opened !== undefined) {
+      setType('INCOME');
+      setDate(new Date());
+      setAmount('');
+      setDescription('');
+      setCategory(undefined);
+      setWallet(undefined);
+      setTarget(undefined);
+      setError(null);
+    }
+  }
+
+  const debtLocked = !!editing?.debt;
   const transfer = type === 'TRANSFER';
   const wallets = data?.wallets ?? [];
   const categories = (data?.categories ?? []).filter(item => item.type === type);
   const selectedWallet = wallets.find(item => item.id === wallet);
   const selectedTarget = wallets.find(item => item.id === target);
   const selectedCategory = categories.find(item => item.id === category);
+  const categoryName = selectedCategory?.name ?? (debtLocked ? editing?.category?.name : undefined);
+  const available = selectedWallet ? balanceWithout(selectedWallet, editing) : 0;
 
   const parsedAmount = Number(amount);
   const validAmount = amount !== '' && Number.isFinite(parsedAmount) && parsedAmount > 0;
@@ -146,7 +194,7 @@ export default function AddOperationScreen() {
     type !== 'INCOME' &&
     validAmount &&
     !!selectedWallet &&
-    roundTo(parsedAmount - selectedWallet.balance, selectedWallet.decimals) > 0;
+    roundTo(parsedAmount - available, selectedWallet.decimals) > 0;
   const destination = useDestination(
     transfer && validAmount ? parsedAmount : null,
     selectedWallet,
@@ -157,16 +205,17 @@ export default function AddOperationScreen() {
     !!selectedWallet &&
     !insufficient &&
     !destination?.rateMissing &&
-    (transfer ? !!selectedTarget && !sameWallet : !!selectedCategory);
+    (transfer ? !!selectedTarget && !sameWallet : debtLocked || !!selectedCategory);
   const warning = sameWallet
     ? 'Elige dos billeteras distintas.'
     : insufficient && selectedWallet
-      ? `No hay saldo suficiente en ${selectedWallet.name}: tiene ${walletBalance(selectedWallet)}.`
+      ? `No hay saldo suficiente en ${selectedWallet.name}: tiene ${formatAmount(available, selectedWallet.currencyCode)}.`
       : destination?.rateMissing && selectedWallet && selectedTarget
         ? `Falta una tasa de cambio para convertir de ${selectedWallet.currencyCode} a ${selectedTarget.currencyCode}.`
         : null;
 
   const changeType = (next: FormOperationType) => {
+    if (debtLocked) return;
     setType(next);
     setCategory(undefined);
     setError(null);
@@ -186,6 +235,18 @@ export default function AddOperationScreen() {
     setSaving(true);
     setError(null);
     try {
+      if (editing) {
+        await updateOperation(editing._id, {
+          ...(debtLocked ? {} : { type, category: transfer ? undefined : category }),
+          date: toUtcInstant(date),
+          amount: parsedAmount,
+          description: description.trim(),
+          from: type === 'INCOME' ? undefined : wallet,
+          to: type === 'INCOME' ? wallet : transfer ? target : undefined,
+        });
+        router.navigate({ pathname: '/operation-detail', params: { id: editing._id, at: String(Date.now()) } } as Href);
+        return;
+      }
       await createOperation({
         type,
         date: toUtcInstant(date),
@@ -229,15 +290,15 @@ export default function AddOperationScreen() {
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}>
-        <AddHeader title="Añadir operación" />
-        {!data ? (
+        <AddHeader title={editId ? 'Editar operación' : 'Añadir operación'} />
+        {!data || (editId && !editing) ? (
           <View style={styles.state}>
-            {loadError ? (
+            {loadError || (editId && editError) ? (
               <>
                 <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadErrorMessage(loadError)}
+                  {loadError ? loadErrorMessage(loadError) : 'No se pudo cargar la operación. Vuelve a intentarlo.'}
                 </Text>
-                <Button label="Reintentar" onPress={retry} />
+                <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
               </>
             ) : (
               <ActivityIndicator color={colors.brand} />
@@ -245,11 +306,13 @@ export default function AddOperationScreen() {
           </View>
         ) : (
           <View style={styles.form}>
-            <SegmentedControl options={TYPES} value={type} onChange={changeType} activeColor={colors.brand} compact />
+            {!debtLocked && (
+              <SegmentedControl options={TYPES} value={type} onChange={changeType} activeColor={colors.brand} compact />
+            )}
             <View style={styles.row}>
               <DateTimeField label="Fecha" mode="date" value={date} onChange={setDate} />
               <DateTimeField label="Hora" mode="time" value={date} onChange={setDate} />
-              {!transfer && (
+              {!transfer && !editId && (
                 <Pressable
                   disabled
                   accessibilityRole="button"
@@ -283,9 +346,9 @@ export default function AddOperationScreen() {
             {!transfer && (
               <SelectField
                 label="Categoría"
-                value={selectedCategory?.name}
+                value={categoryName}
                 placeholder="Selecciona una categoría"
-                onPress={() => setSheet('category')}
+                onPress={() => !debtLocked && setSheet('category')}
               />
             )}
             <SelectField
