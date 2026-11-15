@@ -12,6 +12,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 
+import { ConfirmDialogHost } from '@/components/ui/confirm-dialog';
 import { restoreSession } from '@/features/auth/session';
 import { colors, fonts } from '@/theme';
 
@@ -46,6 +47,7 @@ export default function RootLayout() {
     <>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bgApp } }} />
+      <ConfirmDialogHost />
     </>
   );
 }

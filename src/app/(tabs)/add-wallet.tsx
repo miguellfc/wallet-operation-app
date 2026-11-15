@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AddHeader } from '@/components/add/add-header';
 import { AmountField } from '@/components/ui/amount-field';
 import { Button } from '@/components/ui/button';
+import { ColorField } from '@/components/ui/color-field';
 import { GridSheet } from '@/components/ui/grid-sheet';
 import { OptionSheet } from '@/components/ui/option-sheet';
 import { ScreenBackground } from '@/components/ui/screen-background';
@@ -20,7 +21,6 @@ import {
   DEFAULT_WALLET_COLOR,
   DEFAULT_WALLET_ICON,
   softColor,
-  WALLET_COLORS,
   WALLET_ICON_OPTIONS,
   WALLET_TYPES,
   type WalletType,
@@ -30,7 +30,7 @@ import { currencyDecimals, roundTo } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
 import { colors, layout, radius, spacing, typography } from '@/theme';
 
-type Sheet = 'type' | 'currency' | 'color' | 'icon';
+type Sheet = 'type' | 'currency' | 'icon';
 
 const GLOWS = [
   { left: '47%', top: '19%' },
@@ -102,7 +102,6 @@ export default function AddWalletScreen() {
       : `Cuántos ${code} equivalen a 1 ${userCode}.`;
 
   const typeLabel = WALLET_TYPES.find(item => item.value === type)?.label;
-  const colorLabel = WALLET_COLORS.find(item => item.value === color)?.label ?? color;
   const iconLabel = WALLET_ICON_OPTIONS.find(item => item.value === icon)?.label ?? icon;
 
   const chooseCurrency = (next: Currency) => {
@@ -200,26 +199,24 @@ export default function AddWalletScreen() {
                   }}
                 />
               </View>
-              <View style={styles.half}>
-                <AmountField
-                  label="Tasa de cambio"
-                  value={existingRate !== undefined ? String(existingRate) : rate}
-                  placeholder={sameCurrency ? 'No hace falta' : 'Obligatoria'}
-                  disabled={!rateNeeded}
-                  onChange={value => {
-                    setRate(value);
-                    setError(null);
-                  }}
-                />
-              </View>
+              {rateNeeded && (
+                <View style={styles.half}>
+                  <AmountField
+                    label="Tasa de cambio"
+                    value={rate}
+                    placeholder="Obligatoria"
+                    onChange={value => {
+                      setRate(value);
+                      setError(null);
+                    }}
+                  />
+                </View>
+              )}
             </View>
             {rateHint && <Text style={styles.hint}>{rateHint}</Text>}
             <View style={styles.row}>
               <View style={styles.colorColumn}>
-                <Text style={styles.label}>Color</Text>
-                <PickerBox label="Color" value={colorLabel} onPress={() => setSheet('color')}>
-                  <View style={[styles.swatch, { backgroundColor: color }]} />
-                </PickerBox>
+                <ColorField label="Color" value={color} onChange={setColor} />
               </View>
               <View style={styles.iconColumn}>
                 <Text style={styles.label}>Ícono</Text>
@@ -274,15 +271,6 @@ export default function AddWalletScreen() {
         onClose={() => setSheet(null)}
       />
       <GridSheet
-        visible={sheet === 'color'}
-        title="Color"
-        items={WALLET_COLORS}
-        selected={color}
-        renderItem={item => <View style={[styles.colorDot, { backgroundColor: item.value }]} />}
-        onSelect={setColor}
-        onClose={() => setSheet(null)}
-      />
-      <GridSheet
         visible={sheet === 'icon'}
         title="Ícono"
         items={WALLET_ICON_OPTIONS}
@@ -324,9 +312,7 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.85 },
   chevron: { width: 11.5, height: 5.5, marginRight: 4 },
-  swatch: { flex: 1, maxWidth: 89, height: 22, borderRadius: 5 },
   iconBox: { width: 36, height: 36, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
-  colorDot: { width: '60%', aspectRatio: 1, borderRadius: radius.full },
   toggleRow: { flexDirection: 'row', alignItems: 'center', gap: 20, marginTop: 10, minHeight: layout.minTouchTarget },
   track: { width: 42, height: 15, borderRadius: radius.md, backgroundColor: 'rgba(255, 255, 255, 0.12)', justifyContent: 'center' },
   trackOn: { backgroundColor: 'rgba(151, 161, 249, 0.35)' },

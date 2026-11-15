@@ -34,7 +34,12 @@
         }
       ],
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Cashen usa tus contactos solo para rellenar el nombre de una deuda."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

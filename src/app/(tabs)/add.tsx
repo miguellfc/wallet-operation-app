@@ -20,6 +20,8 @@ const openOperationForm = () => router.navigate('/add-operation' as Href);
 
 const openWalletForm = () => router.navigate('/add-wallet' as Href);
 
+const openDebtForm = () => router.navigate('/add-debt' as Href);
+
 const OPTIONS = [
   {
     label: 'Operaciones',
@@ -35,7 +37,13 @@ const OPTIONS = [
     height: 27,
     onPress: openWalletForm,
   },
-  { label: 'Deudas', icon: require('@/assets/icons/add-debt.svg'), width: 24, height: 24 },
+  {
+    label: 'Deudas',
+    icon: require('@/assets/icons/add-debt.svg'),
+    width: 24,
+    height: 24,
+    onPress: openDebtForm,
+  },
   { label: 'Recurrentes', icon: require('@/assets/icons/add-recurrence.svg'), width: 24, height: 24 },
 ];
 

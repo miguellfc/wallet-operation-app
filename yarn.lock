@@ -1354,13 +1354,6 @@
   resolved "https://nexus.dofleinisoftware.com/repository/npm/@radix-ui/react-use-layout-effect/-/react-use-layout-effect-1.1.4.tgz#51a0bbc342315070983383b3f8f00061083782a8"
   integrity sha512-K20DkRkUwDnxEYMBPcg3Y6voLkEy5p5QQmszZgLngKKiC7dzBR/aEuK3w1qlx2JWDUNH6FluahYdgR3BP+QbYw==
 
-"@react-native-community/datetimepicker@9.2.1":
-  version "9.2.1"
-  resolved "https://nexus.dofleinisoftware.com/repository/npm/@react-native-community/datetimepicker/-/datetimepicker-9.2.1.tgz#eeeb3ae522d18345e4472be85a94f3c0689bf2dd"
-  integrity sha512-P2dir8EcPYuS6g7N/E4jImugB99h2+e1kzNX6Ihg+2T2v5IZ5dB+4afLisG6rdua4YZ1mADYCZ2iqI34sPjIKA==
-  dependencies:
-    invariant "^2.2.4"
-
 "@react-native-masked-view/masked-view@^0.3.2":
   version "0.3.2"
   resolved "https://nexus.dofleinisoftware.com/repository/npm/@react-native-masked-view/masked-view/-/masked-view-0.3.2.tgz#7064533a573e3539ec912f59c1f457371bf49dd9"
@@ -2986,6 +2979,11 @@ expo-constants@~58.0.15:
   dependencies:
     "@expo/env" "~2.5.4"
     "@expo/require-utils" "^58.0.5"
+
+expo-contacts@~58.0.10:
+  version "58.0.10"
+  resolved "https://nexus.dofleinisoftware.com/repository/npm/expo-contacts/-/expo-contacts-58.0.10.tgz#f41e31b51fa6c324425798de5d0c176d91d524ca"
+  integrity sha512-x/3o/ykm1FQrAlS0d0JK0MSGP3Yrw3i+0p1fQtBzULA1sfnsLlr+j6WI/P5iP4lUrvBhjWUDnifYl/YuFm1ClA==
 
 expo-device@~58.0.5:
   version "58.0.5"

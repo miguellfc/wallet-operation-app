@@ -17,19 +17,23 @@ export function WalletCard({ name, amount, currencyCode, excluded, icon, color }
   const description = `${name}, ${amount} ${currencyCode}${excluded ? ', excluida del balance' : ''}`;
   return (
     <View style={[styles.card, excluded && styles.excluded]} accessible accessibilityLabel={description}>
-      <View style={[styles.icon, { backgroundColor: softColor(color) }]}>
+      <View style={[styles.icon, excluded && styles.faded, { backgroundColor: softColor(color) }]}>
         <WalletIcon name={icon} color={color} size={18} />
       </View>
-      <Text style={styles.name} numberOfLines={1}>
+      <Text style={[styles.name, excluded && styles.faded]} numberOfLines={1}>
         {name}
       </Text>
-      <View style={styles.amountRow}>
+      <View style={[styles.amountRow, excluded && styles.faded]}>
         <Text style={[styles.amount, styles.value]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
           {amount}
         </Text>
         <Text style={styles.amount}>{currencyCode}</Text>
       </View>
-      {excluded && <Text style={styles.tag}>Excluida</Text>}
+      {excluded && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeLabel}>Excluida del saldo</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -46,7 +50,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 2,
   },
-  excluded: { opacity: 0.55 },
+  excluded: { borderWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(254, 252, 105, 0.35)' },
+  faded: { opacity: 0.6 },
   icon: {
     width: 34,
     height: 34,
@@ -61,5 +66,12 @@ const styles = StyleSheet.create({
   amountRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.xs, maxWidth: '100%' },
   value: { flexShrink: 1 },
   amount: { ...typography.bodyMedium, fontFamily: typography.titleSection.fontFamily, color: colors.textPrimary },
-  tag: { ...typography.caption, color: colors.textMuted },
+  badge: {
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radius.full,
+    backgroundColor: colors.expenseSoft,
+  },
+  badgeLabel: { ...typography.labelLegend, color: colors.expense },
 });

@@ -30,7 +30,6 @@ type AmountFieldProps = {
   decimals?: number;
   destination?: { text: string; muted?: boolean };
   placeholder?: string;
-  disabled?: boolean;
   onChange: (value: string) => void;
 };
 
@@ -41,7 +40,6 @@ export function AmountField({
   decimals,
   destination,
   placeholder,
-  disabled = false,
   onChange,
 }: AmountFieldProps) {
   const insets = useSafeAreaInsets();
@@ -86,10 +84,8 @@ export function AmountField({
         accessibilityValue={{
           text: shown ? (destination ? `Origen ${shown}, destino ${destination.text}` : shown) : (placeholder ?? 'Sin importe'),
         }}
-        accessibilityState={{ disabled }}
-        disabled={disabled}
         onPress={start}
-        style={({ pressed }) => [styles.field, disabled && styles.disabled, pressed && styles.pressed]}>
+        style={({ pressed }) => [styles.field, pressed && styles.pressed]}>
         {shown && destination ? (
           <View style={styles.lines}>
             <View style={styles.line}>
@@ -177,7 +173,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pressed: { opacity: 0.85 },
-  disabled: { opacity: 0.6 },
   value: { ...typography.bodyMedium, flexShrink: 1, color: colors.textPrimary },
   lines: { paddingVertical: spacing.md, gap: spacing.xs },
   line: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
