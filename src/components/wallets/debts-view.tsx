@@ -1,3 +1,4 @@
+import { router, type Href } from 'expo-router';
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -7,6 +8,9 @@ import { loadDebts, type Debt } from '@/features/wallets/wallets-api';
 import { formatAmount } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
 import { colors, spacing } from '@/theme';
+
+const openDebt = (id: string) =>
+  router.navigate({ pathname: '/debt-detail', params: { id, at: String(Date.now()) } } as Href);
 
 function describe(debt: Debt) {
   const lent = debt.type === 'LENT';
@@ -45,6 +49,7 @@ export function DebtsView({ header }: { header: ReactNode }) {
               detail={row.detail}
               amount={amount}
               accessibilityLabel={`${row.title}, ${row.detail}, pendiente ${amount}`}
+              onPress={() => openDebt(debt._id)}
             />
           );
         })}

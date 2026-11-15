@@ -22,7 +22,8 @@ const openOperationForm = () =>
 const openWalletForm = () =>
   router.navigate({ pathname: '/add-wallet', params: { at: String(Date.now()) } } as Href);
 
-const openDebtForm = () => router.navigate('/add-debt' as Href);
+const openDebtForm = () =>
+  router.navigate({ pathname: '/add-debt', params: { at: String(Date.now()) } } as Href);
 
 const OPTIONS = [
   {

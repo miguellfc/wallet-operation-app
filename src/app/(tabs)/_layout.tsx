@@ -23,6 +23,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="add-debt" />
       <Tabs.Screen name="operation-detail" />
       <Tabs.Screen name="wallet-detail" />
+      <Tabs.Screen name="debt-detail" />
     </Tabs>
   );
 }
