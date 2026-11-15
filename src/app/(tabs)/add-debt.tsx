@@ -1,5 +1,5 @@
-import { router, type Href } from 'expo-router';
-import { useState } from 'react';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
@@ -14,7 +14,16 @@ import { ScreenBackground } from '@/components/ui/screen-background';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { SelectField } from '@/components/ui/select-field';
 import { TextField } from '@/components/ui/text-field';
-import { canPickContact, createDebt, pickContactName, type DebtType } from '@/features/debts/debt-form-api';
+import {
+  canPickContact,
+  createDebt,
+  loadDebtEditing,
+  pickContactName,
+  updateDebt,
+  type DebtEditing,
+  type DebtType,
+} from '@/features/debts/debt-form-api';
+import { updateOperation } from '@/features/operations/operation-form-api';
 import { DEFAULT_WALLET_COLOR } from '@/features/wallets/wallet-options';
 import { loadWallets, type WalletSummary } from '@/features/wallets/wallets-api';
 import { ApiError } from '@/lib/api';
@@ -45,6 +54,23 @@ const toUtcInstant = (date: Date) =>
 const openDebts = () =>
   router.navigate({ pathname: '/wallets', params: { section: 'DEBTS', at: String(Date.now()) } } as Href);
 
+const openDebt = (id: string) =>
+  router.navigate({ pathname: '/debt-detail', params: { id, at: String(Date.now()) } } as Href);
+
+const fromUtcWallTime = (iso: string) => {
+  const date = new Date(iso);
+  return new Date(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+    date.getUTCHours(),
+    date.getUTCMinutes(),
+  );
+};
+
+const openingAmount = ({ debt, opening }: DebtEditing) =>
+  (debt.type === 'LENT' ? opening.amount.from : opening.amount.to)?.amount ?? 0;
+
 const walletBalance = (wallet: WalletSummary) => formatAmount(wallet.balance, wallet.currencyCode);
 
 function saveErrorMessage(error: unknown) {
@@ -53,18 +79,27 @@ function saveErrorMessage(error: unknown) {
   if (error.reference === 'AMOUNT_DECIMALS_EXCEEDED')
     return 'El importe tiene más decimales de los que admite la moneda de la billetera.';
   if (error.reference === 'LOAN_CATEGORY_NOT_FOUND') return 'Falta la categoría Préstamo de tu cuenta.';
+  if (error.reference === 'DEBT_PENDING_NEGATIVE')
+    return 'El importe no puede ser menor que lo que ya se ha pagado de la deuda.';
+  if (error.reference === 'DEBT_WALLET_CURRENCY_MISMATCH') return 'La billetera debe tener la moneda de la deuda.';
   if (error.status === 404) return 'La billetera ya no existe. Elige otra.';
   return 'No se pudo guardar la deuda. Vuelve a intentarlo.';
 }
 
 function loadErrorMessage(error: unknown) {
   if (!(error instanceof ApiError)) return 'No se pudo conectar con el servidor. Revisa tu conexión y vuelve a intentarlo.';
+  if (error.status === 404) return 'Esta deuda ya no existe.';
   return 'El servidor no pudo cargar tus billeteras. Vuelve a intentarlo en un momento.';
 }
 
 export default function AddDebtScreen() {
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{ edit?: string; at?: string }>();
+  const editId = params.edit;
   const { data, error: loadError, retry } = useApiData(loadWallets);
+  const loadEditing = useCallback(() => (editId ? loadDebtEditing(editId) : Promise.resolve(null)), [editId]);
+  const { data: editingData, error: editError, retry: retryEditing } = useApiData(loadEditing);
+  const editing = editId && editingData?.debt._id === editId ? editingData : null;
 
   const [type, setType] = useState<DebtType>('LENT');
   const [person, setPerson] = useState('');
@@ -76,17 +111,48 @@ export default function AddDebtScreen() {
   const [walletSheet, setWalletSheet] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [opened, setOpened] = useState<string>();
+
+  const request = `${editId ?? ''}:${params.at ?? ''}`;
+  if (request !== opened && (!editId || editing)) {
+    setOpened(request);
+    if (editing) {
+      setType(editing.debt.type);
+      setPerson(editing.debt.person);
+      setAmount(String(openingAmount(editing)));
+      setDate(fromUtcWallTime(editing.debt.date));
+      setColor(editing.debt.color ?? DEFAULT_WALLET_COLOR);
+      setDescription(editing.debt.description ?? '');
+      setWallet(editing.debt.wallet.id);
+      setError(null);
+    } else if (opened !== undefined) {
+      setType('LENT');
+      setPerson('');
+      setAmount('');
+      setDate(new Date());
+      setColor(DEFAULT_WALLET_COLOR);
+      setDescription('');
+      setWallet(undefined);
+      setError(null);
+    }
+  }
 
   const lent = type === 'LENT';
-  const wallets = data?.wallets ?? [];
+  const wallets = (data?.wallets ?? []).filter(
+    item => !editing || item.currencyCode === editing.debt.currency.code,
+  );
   const selectedWallet = wallets.find(item => item.id === wallet);
   const parsedAmount = Number(amount);
   const validAmount = amount !== '' && Number.isFinite(parsedAmount) && parsedAmount > 0;
+  const available =
+    selectedWallet && editing && selectedWallet.id === editing.debt.wallet.id
+      ? selectedWallet.balance + openingAmount(editing)
+      : (selectedWallet?.balance ?? 0);
   const insufficient =
     lent &&
     validAmount &&
     !!selectedWallet &&
-    roundTo(parsedAmount - selectedWallet.balance, selectedWallet.decimals) > 0;
+    roundTo(parsedAmount - available, selectedWallet.decimals) > 0;
   const complete = person.trim() !== '' && validAmount && !!selectedWallet && !insufficient;
   const warning =
     insufficient && selectedWallet
@@ -121,6 +187,23 @@ export default function AddDebtScreen() {
     setSaving(true);
     setError(null);
     try {
+      if (editing) {
+        const walletChanged = selectedWallet.id !== editing.debt.wallet.id;
+        if (walletChanged || parsedAmount !== openingAmount(editing)) {
+          await updateOperation(editing.opening._id, {
+            amount: parsedAmount,
+            ...(lent ? { from: selectedWallet.id } : { to: selectedWallet.id }),
+          });
+        }
+        await updateDebt(editing.debt._id, {
+          person: person.trim(),
+          date: toUtcInstant(date),
+          color,
+          description: description.trim(),
+        });
+        openDebt(editing.debt._id);
+        return;
+      }
       await createDebt({
         person: person.trim(),
         type,
@@ -145,15 +228,15 @@ export default function AddDebtScreen() {
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}>
-        <AddHeader title="Añadir deuda" />
-        {!data ? (
+        <AddHeader title={editId ? 'Editar deuda' : 'Añadir deuda'} />
+        {!data || (editId && !editing) ? (
           <View style={styles.state}>
-            {loadError ? (
+            {loadError || (editId && editError) ? (
               <>
                 <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadErrorMessage(loadError)}
+                  {loadErrorMessage(loadError ?? editError)}
                 </Text>
-                <Button label="Reintentar" onPress={retry} />
+                <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
               </>
             ) : (
               <ActivityIndicator color={colors.brand} />
@@ -161,16 +244,18 @@ export default function AddDebtScreen() {
           </View>
         ) : (
           <View style={styles.form}>
-            <SegmentedControl
-              options={TYPES}
-              value={type}
-              onChange={next => {
-                setType(next);
-                clearError();
-              }}
-              activeColor={colors.brand}
-              compact
-            />
+            {!editing && (
+              <SegmentedControl
+                options={TYPES}
+                value={type}
+                onChange={next => {
+                  setType(next);
+                  clearError();
+                }}
+                activeColor={colors.brand}
+                compact
+              />
+            )}
             <TextField
               label="Nombre"
               value={person}
