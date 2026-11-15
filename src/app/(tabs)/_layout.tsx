@@ -20,6 +20,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="operations" />
       <Tabs.Screen name="add-operation" />
       <Tabs.Screen name="add-wallet" />
+      <Tabs.Screen name="add-debt" />
     </Tabs>
   );
 }

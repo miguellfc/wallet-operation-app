@@ -5,6 +5,7 @@ import { CategoryRow } from '@/components/ui/category-row';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { SegmentedProgress } from '@/components/ui/segmented-progress';
 import type { CategoryTotal, OperationKind } from '@/features/home/home-api';
+import { softColor } from '@/features/wallets/wallet-options';
 import { formatAmount } from '@/lib/format';
 import { colors, radius, spacing, typography } from '@/theme';
 
@@ -21,6 +22,7 @@ export function CategoryBreakdown({ categories, currencyCode }: CategoryBreakdow
   const color = income ? colors.income : colors.expense;
   const rows = categories.filter(item => item.type === kind);
   const total = rows.reduce((sum, item) => sum + item.total, 0);
+  const colorOf = (item: CategoryTotal) => (/^#[0-9a-f]{3,8}$/i.test(item.category.color) ? item.category.color : color);
 
   return (
     <View style={styles.section}>
@@ -29,7 +31,7 @@ export function CategoryBreakdown({ categories, currencyCode }: CategoryBreakdow
         <Text style={styles.empty}>{income ? 'Aún no hay ingresos registrados' : 'Aún no hay gastos registrados'}</Text>
       ) : (
         <>
-          <SegmentedProgress values={rows.map(item => item.total)} color={color} />
+          <SegmentedProgress segments={rows.map(item => ({ value: item.total, color: colorOf(item) }))} />
           <View style={styles.list}>
             {rows.map(item => (
               <CategoryRow
@@ -37,8 +39,8 @@ export function CategoryBreakdown({ categories, currencyCode }: CategoryBreakdow
                 name={item.category.name}
                 amount={formatAmount(item.total, currencyCode)}
                 percent={`${Math.round((item.total / total) * 100)}%`}
-                color={color}
-                iconBackground={income ? colors.categoryIconIncome : colors.categoryIcon}
+                color={colorOf(item)}
+                iconBackground={softColor(colorOf(item), 0.1)}
               />
             ))}
           </View>

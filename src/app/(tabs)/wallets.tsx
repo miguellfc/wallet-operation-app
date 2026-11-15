@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -27,7 +28,16 @@ const GLOWS = [
 ] as const;
 
 export default function WalletsScreen() {
+  const params = useLocalSearchParams<{ section?: string; at?: string }>();
   const [section, setSection] = useState<Section>('WALLETS');
+  const [opened, setOpened] = useState<string>();
+
+  const request = `${params.section}:${params.at}`;
+  const requested = SECTIONS.find(item => item.value === params.section)?.value;
+  if (requested && request !== opened) {
+    setOpened(request);
+    setSection(requested);
+  }
   const { data: profile } = useApiData(loadProfile);
 
   const header = (

@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 
 import { colors, radius, spacing, typography } from '@/theme';
@@ -7,9 +7,10 @@ import { colors, radius, spacing, typography } from '@/theme';
 type TextFieldProps = Omit<TextInputProps, 'style' | 'secureTextEntry'> & {
   label: string;
   secure?: boolean;
+  accessory?: ReactNode;
 };
 
-export function TextField({ label, secure = false, ...inputProps }: TextFieldProps) {
+export function TextField({ label, secure = false, accessory, ...inputProps }: TextFieldProps) {
   const [hidden, setHidden] = useState(secure);
   return (
     <View style={styles.container}>
@@ -36,6 +37,7 @@ export function TextField({ label, secure = false, ...inputProps }: TextFieldPro
             />
           </Pressable>
         )}
+        {accessory}
       </View>
     </View>
   );

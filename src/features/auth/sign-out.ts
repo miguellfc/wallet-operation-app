@@ -1,4 +1,4 @@
-import { Alert, Platform } from 'react-native';
+import { showConfirm } from '@/components/ui/confirm-dialog';
 
 import { logout } from './auth-api';
 import { clearSession, getSession } from './session';
@@ -10,14 +10,10 @@ async function signOut() {
 }
 
 export function confirmSignOut() {
-  const message = '¿Quieres cerrar la sesión?';
-  if (Platform.OS === 'web') {
-    const browser = globalThis as { confirm?: (text: string) => boolean };
-    if (browser.confirm?.(message)) signOut();
-    return;
-  }
-  Alert.alert('Cerrar sesión', message, [
-    { text: 'Cancelar', style: 'cancel' },
-    { text: 'Cerrar sesión', style: 'destructive', onPress: signOut },
-  ]);
+  showConfirm({
+    title: 'Cerrar sesión',
+    message: '¿Quieres cerrar la sesión?',
+    confirmLabel: 'Cerrar sesión',
+    onConfirm: signOut,
+  });
 }
