@@ -143,7 +143,7 @@ export default function OperationDetailScreen() {
   return (
     <ScreenBackground glows={[...GLOWS]}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}>
-        <AddHeader title="Transacción" />
+        <AddHeader title="Operación" />
         {!current ? (
           <View style={styles.state}>
             {loadError ? (

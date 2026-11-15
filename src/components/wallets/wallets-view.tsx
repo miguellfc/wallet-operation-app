@@ -1,3 +1,4 @@
+import { router, type Href } from 'expo-router';
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -10,6 +11,9 @@ import { useApiData } from '@/lib/use-api-data';
 import { colors, spacing, typography } from '@/theme';
 
 const GRID_GAP = 15;
+
+const openWallet = (id: string) =>
+  router.navigate({ pathname: '/wallet-detail', params: { id, at: String(Date.now()) } } as Href);
 
 function pairs(wallets: WalletSummary[]) {
   const rows: WalletSummary[][] = [];
@@ -47,6 +51,7 @@ export function WalletsView({ header }: { header: ReactNode }) {
                     excluded={wallet.excluded}
                     icon={wallet.icon}
                     color={wallet.color}
+                    onPress={() => openWallet(wallet.id)}
                   />
                 ))}
                 {row.length === 1 && <View style={styles.spacer} />}
