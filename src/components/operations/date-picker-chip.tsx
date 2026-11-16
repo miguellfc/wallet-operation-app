@@ -3,21 +3,22 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { CalendarSheet } from '@/components/ui/calendar-sheet';
 import { CategoryIcon } from '@/components/ui/category-icon';
-import { dayLabel } from '@/lib/format';
+import type { OperationsRange } from '@/features/operations/operations-api';
+import { rangeLabel } from '@/lib/format';
 import { colors, radius, spacing, typography } from '@/theme';
 
-type DatePickerChipProps = { value: Date; onChange: (date: Date) => void };
+type DatePickerChipProps = { value: OperationsRange; onChange: (range: OperationsRange) => void };
 
 export function DatePickerChip({ value, onChange }: DatePickerChipProps) {
   const [open, setOpen] = useState(false);
-  const label = dayLabel(value);
+  const label = rangeLabel(value.from, value.to);
 
   return (
     <>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Fecha: ${label}`}
-        accessibilityHint="Cambia el día que se muestra"
+        accessibilityHint="Cambia el día o el rango de fechas que se muestra"
         hitSlop={{ top: 10, bottom: 10 }}
         onPress={() => setOpen(true)}
         style={({ pressed }) => [styles.chip, pressed && styles.pressed]}>
@@ -28,10 +29,12 @@ export function DatePickerChip({ value, onChange }: DatePickerChipProps) {
       </Pressable>
       <CalendarSheet
         visible={open}
-        title="Día"
-        value={value}
+        title="Fechas"
+        value={value.from}
+        rangeEnd={value.to}
         maximumDate={new Date()}
-        onConfirm={onChange}
+        onConfirm={day => onChange({ from: day, to: day })}
+        onConfirmRange={(from, to) => onChange({ from, to })}
         onClose={() => setOpen(false)}
       />
     </>
