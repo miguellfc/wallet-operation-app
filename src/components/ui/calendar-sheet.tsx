@@ -36,7 +36,9 @@ type CalendarSheetProps = {
   title: string;
   value: Date;
   maximumDate?: Date;
+  rangeEnd?: Date;
   onConfirm: (date: Date) => void;
+  onConfirmRange?: (from: Date, to: Date) => void;
   onClose: () => void;
 };
 
@@ -53,16 +55,30 @@ function monthCells(month: Date) {
   return cells;
 }
 
-export function CalendarSheet({ visible, title, value, maximumDate, onConfirm, onClose }: CalendarSheetProps) {
+export function CalendarSheet({
+  visible,
+  title,
+  value,
+  maximumDate,
+  rangeEnd,
+  onConfirm,
+  onConfirmRange,
+  onClose,
+}: CalendarSheetProps) {
+  const ranged = !!onConfirmRange;
   const [shown, setShown] = useState(false);
   const [draft, setDraft] = useState(value);
+  const [draftEnd, setDraftEnd] = useState<Date | null>(null);
+  const [picking, setPicking] = useState(false);
   const [month, setMonth] = useState(() => startOfMonth(value));
 
   if (visible !== shown) {
     setShown(visible);
     if (visible) {
       setDraft(value);
-      setMonth(startOfMonth(value));
+      setDraftEnd(rangeEnd && dayKey(rangeEnd) !== dayKey(value) ? rangeEnd : null);
+      setPicking(false);
+      setMonth(startOfMonth(rangeEnd ?? value));
     }
   }
 
@@ -73,7 +89,40 @@ export function CalendarSheet({ visible, title, value, maximumDate, onConfirm, o
   const cells = monthCells(month);
   const weeks = Array.from({ length: cells.length / 7 }, (_, index) => cells.slice(index * 7, index * 7 + 7));
 
+  const start = dayKey(draft);
+  const end = draftEnd ? dayKey(draftEnd) : start;
+
+  const pick = (cell: Date) => {
+    if (!ranged) {
+      setDraft(cell);
+      return;
+    }
+    if (!picking) {
+      setDraft(cell);
+      setDraftEnd(null);
+      setPicking(true);
+      return;
+    }
+    const key = dayKey(cell);
+    if (key < start) {
+      setDraftEnd(draft);
+      setDraft(cell);
+    } else if (key > start) {
+      setDraftEnd(cell);
+    }
+    setPicking(false);
+  };
+
   const confirm = () => {
+    if (onConfirmRange) {
+      const last = draftEnd ?? draft;
+      onConfirmRange(
+        new Date(draft.getFullYear(), draft.getMonth(), draft.getDate()),
+        new Date(last.getFullYear(), last.getMonth(), last.getDate()),
+      );
+      onClose();
+      return;
+    }
     onConfirm(new Date(draft.getFullYear(), draft.getMonth(), draft.getDate(), value.getHours(), value.getMinutes()));
     onClose();
   };
@@ -103,6 +152,7 @@ export function CalendarSheet({ visible, title, value, maximumDate, onConfirm, o
           <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} style={[styles.chevron, styles.right]} />
         </Pressable>
       </View>
+      {ranged && <Text style={styles.hint}>Toca el día de inicio y luego el de fin, o un solo día.</Text>}
       <View style={styles.grid}>
         <View style={styles.week}>
           {WEEKDAYS.map(day => (
@@ -116,7 +166,8 @@ export function CalendarSheet({ visible, title, value, maximumDate, onConfirm, o
             {week.map((cell, index) => {
               if (!cell) return <View key={`empty-${index}`} style={styles.cell} />;
               const key = dayKey(cell);
-              const selected = key === dayKey(draft);
+              const selected = key === start || key === end;
+              const inRange = key > start && key < end;
               const disabled = key > limit;
               return (
                 <Pressable
@@ -125,11 +176,12 @@ export function CalendarSheet({ visible, title, value, maximumDate, onConfirm, o
                   accessibilityLabel={`${cell.getDate()} de ${MONTHS[cell.getMonth()].toLowerCase()}`}
                   accessibilityState={{ selected, disabled }}
                   disabled={disabled}
-                  onPress={() => setDraft(cell)}
+                  onPress={() => pick(cell)}
                   style={({ pressed }) => [
                     styles.cell,
                     styles.day,
                     key === today && styles.today,
+                    inRange && styles.inRange,
                     selected && styles.selected,
                     pressed && styles.pressed,
                   ]}>
@@ -170,6 +222,8 @@ const styles = StyleSheet.create({
   day: { borderRadius: radius.full, borderWidth: 1, borderColor: 'transparent' },
   today: { borderColor: colors.brand },
   selected: { backgroundColor: colors.brand, borderColor: colors.brand },
+  inRange: { backgroundColor: colors.incomeSoft, borderColor: colors.incomeSoft },
+  hint: { ...typography.bodyMedium, fontSize: 13, color: colors.textSecondary },
   dayLabel: { ...typography.bodyMedium, color: colors.textPrimary },
   dayDisabled: { color: colors.textMuted, opacity: 0.5 },
   dayLabelSelected: { color: colors.textOnBrand, fontFamily: typography.titleSection.fontFamily },

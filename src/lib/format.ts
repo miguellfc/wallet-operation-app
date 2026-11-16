@@ -16,6 +16,31 @@ export function monthLabel(isoDate: string) {
   return MONTHS[new Date(isoDate).getUTCMonth()];
 }
 
+type Interval = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
+
+const SHORT_WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+export function periodLabel(isoDate: string, interval: Interval) {
+  const date = new Date(isoDate);
+  if (interval === 'DAY') return SHORT_WEEKDAYS[date.getUTCDay()];
+  if (interval === 'WEEK') return `${date.getUTCDate()}/${date.getUTCMonth() + 1}`;
+  if (interval === 'MONTH') return MONTHS[date.getUTCMonth()];
+  return String(date.getUTCFullYear());
+}
+
+export function utcDateLabel(isoDate: string) {
+  const date = new Date(isoDate);
+  return `${date.getUTCDate()} ${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+}
+
+export function periodTitle(isoDate: string, interval: Interval) {
+  const date = new Date(isoDate);
+  if (interval === 'DAY') return utcDateLabel(isoDate);
+  if (interval === 'WEEK') return `Semana del ${utcDateLabel(isoDate)}`;
+  if (interval === 'MONTH') return `${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+  return String(date.getUTCFullYear());
+}
+
 const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 const sameDay = (a: Date, b: Date) =>
@@ -25,6 +50,13 @@ export function dayLabel(day: Date, now = new Date()) {
   const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
   const prefix = sameDay(day, now) ? 'Hoy' : sameDay(day, yesterday) ? 'Ayer' : WEEKDAYS[day.getDay()];
   return `${prefix}, ${day.getDate()} ${MONTHS[day.getMonth()]}`;
+}
+
+export function rangeLabel(from: Date, to: Date, now = new Date()) {
+  if (sameDay(from, to)) return dayLabel(from, now);
+  const withYear = from.getFullYear() !== to.getFullYear() || to.getFullYear() !== now.getFullYear();
+  const part = (date: Date) => `${date.getDate()} ${MONTHS[date.getMonth()]}${withYear ? ` ${date.getFullYear()}` : ''}`;
+  return `${part(from)} – ${part(to)}`;
 }
 
 const LONG_WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];

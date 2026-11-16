@@ -6,13 +6,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HomeHeader } from '@/components/home/home-header';
 import { DatePickerChip } from '@/components/operations/date-picker-chip';
 import { DayBalanceCard } from '@/components/operations/day-balance-card';
+import { OperationDayList } from '@/components/operations/operation-day-list';
 import { OperationRow } from '@/components/operations/operation-row';
 import { Button } from '@/components/ui/button';
 import { FilterChips } from '@/components/ui/filter-chips';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { confirmSignOut } from '@/features/auth/sign-out';
-import { loadDayOperations, type Operation } from '@/features/operations/operations-api';
+import { loadRangeOperations, type Operation, type OperationsRange } from '@/features/operations/operations-api';
 import { ApiError } from '@/lib/api';
 import { formatAmount } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
@@ -28,11 +29,21 @@ const FILTERS: { value: Filter; label: string }[] = [
 ];
 
 const EMPTY: Record<Filter, string> = {
-  ALL: 'No hay movimientos este día',
-  EXPENSE: 'No hay gastos este día',
-  INCOME: 'No hay ingresos este día',
-  TRANSFER: 'No hay transferencias este día',
+  ALL: 'No hay movimientos',
+  EXPENSE: 'No hay gastos',
+  INCOME: 'No hay ingresos',
+  TRANSFER: 'No hay transferencias',
 };
+
+const PAGE = 100;
+
+const today = (): OperationsRange => {
+  const now = new Date();
+  const day = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return { from: day, to: day };
+};
+
+const sameDay = (a: Date, b: Date) => a.getTime() === b.getTime();
 
 const GLOWS = [
   { left: '82%', top: '30%' },
@@ -55,7 +66,8 @@ function loadErrorMessage(error: unknown) {
 export default function OperationsScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ day?: string; at?: string }>();
-  const [day, setDay] = useState(() => new Date());
+  const [range, setRange] = useState(today);
+  const [size, setSize] = useState(PAGE);
   const [filter, setFilter] = useState<Filter>('ALL');
   const [opened, setOpened] = useState<string>();
 
@@ -63,10 +75,17 @@ export default function OperationsScreen() {
   const match = params.day?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (match && request !== opened) {
     setOpened(request);
-    setDay(new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+    const day = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    setRange({ from: day, to: day });
+    setSize(PAGE);
     setFilter('ALL');
   }
-  const load = useCallback(() => loadDayOperations(day), [day]);
+  const changeRange = (next: OperationsRange) => {
+    setRange(next);
+    setSize(PAGE);
+  };
+  const singleDay = sameDay(range.from, range.to);
+  const load = useCallback(() => loadRangeOperations(range, size), [range, size]);
   const { data, error, retry, refresh, refreshing } = useApiData(load);
 
   if (!data) {
@@ -110,10 +129,15 @@ export default function OperationsScreen() {
           <HomeHeader name={data.firstName} onProfilePress={confirmSignOut} />
           <View style={styles.subheader}>
             <Text style={styles.overline}>Cierre en tiempo real</Text>
-            <DatePickerChip value={day} onChange={setDay} />
+            <DatePickerChip value={range} onChange={changeRange} />
           </View>
         </View>
-        <DayBalanceCard amount={formatAmount(data.closingBalance, code)} income={data.income} expense={data.expense} />
+        <DayBalanceCard
+          label={singleDay ? 'Balance del día' : 'Balance al cierre'}
+          amount={formatAmount(data.closingBalance, code)}
+          income={data.income}
+          expense={data.expense}
+        />
         <View style={styles.totals}>
           <SummaryCard
             kind="INCOME"
@@ -131,11 +155,20 @@ export default function OperationsScreen() {
         <FilterChips options={FILTERS} value={filter} onChange={setFilter} />
         <View style={styles.list}>
           {visible.length === 0 ? (
-            <Text style={styles.empty}>{EMPTY[filter]}</Text>
-          ) : (
+            <Text style={styles.empty}>{`${EMPTY[filter]} ${singleDay ? 'este día' : 'en estas fechas'}`}</Text>
+          ) : singleDay ? (
             visible.map(operation => (
               <OperationRow key={operation._id} operation={operation} onPress={() => openOperation(operation._id)} />
             ))
+          ) : (
+            <OperationDayList operations={visible} onPress={operation => openOperation(operation._id)} />
+          )}
+          {data.hasMore && (
+            <Button
+              label="Ver más"
+              onPress={() => setSize(current => current + PAGE)}
+              loading={data.operations.length < size}
+            />
           )}
         </View>
       </ScrollView>

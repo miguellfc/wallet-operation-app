@@ -12,6 +12,10 @@ export type CategoryTotal = {
 
 export type CashFlowPeriod = { period: string; income: number; expense: number; net: number };
 
+export type CashFlowInterval = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
+
+export type CashFlowData = { interval: CashFlowInterval; periods: CashFlowPeriod[] };
+
 type Profile = { firstName: string; lastName: string };
 
 export type HomeData = {
@@ -19,31 +23,48 @@ export type HomeData = {
   currency: Currency;
   balance: number;
   categories: CategoryTotal[];
-  cashFlow: CashFlowPeriod[];
 };
 
-const MONTHS_IN_CHART = 6;
+const PERIODS_IN_CHART: Record<CashFlowInterval, number> = { DAY: 7, WEEK: 8, MONTH: 6, YEAR: 5 };
 
-function chartStart() {
+function chartEnd() {
   const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (MONTHS_IN_CHART - 1), 1));
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999));
+}
+
+function chartStart(interval: CashFlowInterval) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const day = now.getDate();
+  const back = PERIODS_IN_CHART[interval] - 1;
+  if (interval === 'DAY') return new Date(Date.UTC(year, month, day - back));
+  if (interval === 'WEEK') {
+    const monday = day - ((now.getDay() + 6) % 7);
+    return new Date(Date.UTC(year, month, monday - back * 7));
+  }
+  if (interval === 'MONTH') return new Date(Date.UTC(year, month - back, 1));
+  return new Date(Date.UTC(year - back, 0, 1));
+}
+
+export async function loadCashFlow(interval: CashFlowInterval): Promise<CashFlowData> {
+  const cashFlow = await authRequest<{ periods: CashFlowPeriod[] }>('/statistics/cash-flow', {
+    method: 'POST',
+    body: { from: chartStart(interval).toISOString(), to: chartEnd().toISOString(), interval },
+  });
+  return { interval, periods: cashFlow.periods.slice(-PERIODS_IN_CHART[interval]) };
 }
 
 export async function loadHome(): Promise<HomeData> {
-  const [profile, balance, categories, cashFlow] = await Promise.all([
+  const [profile, balance, categories] = await Promise.all([
     authRequest<Profile>('/users'),
     authRequest<{ currency: Currency; balance: number }>('/balance'),
     authRequest<{ categories: CategoryTotal[] }>('/statistics/categories', { method: 'POST', body: {} }),
-    authRequest<{ periods: CashFlowPeriod[] }>('/statistics/cash-flow', {
-      method: 'POST',
-      body: { from: chartStart().toISOString(), interval: 'MONTH' },
-    }),
   ]);
   return {
     firstName: profile.firstName,
     currency: balance.currency,
     balance: balance.balance,
     categories: categories.categories,
-    cashFlow: cashFlow.periods.slice(-MONTHS_IN_CHART),
   };
 }

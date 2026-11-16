@@ -3,15 +3,15 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, fonts, radius, spacing, typography } from '@/theme';
 
-type DayBalanceCardProps = { amount: string; income: number; expense: number };
+type DayBalanceCardProps = { label: string; amount: string; income: number; expense: number };
 
-export function DayBalanceCard({ amount, income, expense }: DayBalanceCardProps) {
+export function DayBalanceCard({ label, amount, income, expense }: DayBalanceCardProps) {
   const total = income + expense;
   return (
-    <View style={styles.card} accessible accessibilityRole="summary" accessibilityLabel={`Balance del día ${amount}`}>
+    <View style={styles.card} accessible accessibilityRole="summary" accessibilityLabel={`${label} ${amount}`}>
       <Image contentFit="contain" source={require('@/assets/icons/logo.svg')} style={styles.badge} />
       <Text style={styles.label} maxFontSizeMultiplier={1.4}>
-        Balance del día
+        {label}
       </Text>
       <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
         {amount}

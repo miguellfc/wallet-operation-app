@@ -1,9 +1,10 @@
 import { useId, useState } from 'react';
-import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 
-import type { CashFlowPeriod } from '@/features/home/home-api';
-import { formatAmount, monthLabel } from '@/lib/format';
+import { FilterChips } from '@/components/ui/filter-chips';
+import type { CashFlowInterval, CashFlowPeriod } from '@/features/home/home-api';
+import { formatAmount, periodLabel, periodTitle } from '@/lib/format';
 import { colors, radius, spacing, typography } from '@/theme';
 
 type Point = { x: number; y: number };
@@ -38,9 +39,45 @@ function areaPath(points: Point[]) {
   return `${smoothPath(points)} L${last.x},${CHART_HEIGHT} L${first.x},${CHART_HEIGHT} Z`;
 }
 
-type CashFlowChartProps = { periods: CashFlowPeriod[]; currencyCode: string };
+const INTERVALS: { value: CashFlowInterval; label: string }[] = [
+  { value: 'DAY', label: 'Día' },
+  { value: 'WEEK', label: 'Semana' },
+  { value: 'MONTH', label: 'Mes' },
+  { value: 'YEAR', label: 'Año' },
+];
 
-export function CashFlowChart({ periods, currencyCode }: CashFlowChartProps) {
+type CashFlowChartProps = {
+  periods: CashFlowPeriod[] | undefined;
+  interval: CashFlowInterval;
+  currencyCode: string;
+  onIntervalChange: (interval: CashFlowInterval) => void;
+};
+
+export function CashFlowChart({ periods, interval, currencyCode, onIntervalChange }: CashFlowChartProps) {
+  return (
+    <View style={styles.card}>
+      <Text style={styles.title}>Flujo Financiero</Text>
+      <View style={styles.intervals}>
+        <FilterChips options={INTERVALS} value={interval} onChange={onIntervalChange} />
+      </View>
+      <View style={styles.legend}>
+        <LegendItem color={colors.income} label="Ingresos" />
+        <LegendItem color={colors.expense} label="Gastos" />
+      </View>
+      {periods ? (
+        <Chart key={interval} periods={periods} interval={interval} currencyCode={currencyCode} />
+      ) : (
+        <View style={styles.loading}>
+          <ActivityIndicator color={colors.brand} />
+        </View>
+      )}
+    </View>
+  );
+}
+
+type ChartProps = { periods: CashFlowPeriod[]; interval: CashFlowInterval; currencyCode: string };
+
+function Chart({ periods, interval, currencyCode }: ChartProps) {
   const id = useId();
   const [width, setWidth] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
@@ -61,12 +98,7 @@ export function CashFlowChart({ periods, currencyCode }: CashFlowChartProps) {
   const onLayout = (event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width);
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.title}>Flujo Financiero</Text>
-      <View style={styles.legend}>
-        <LegendItem color={colors.income} label="Ingresos" />
-        <LegendItem color={colors.expense} label="Gastos" />
-      </View>
+    <>
       <View style={styles.chart} onLayout={onLayout}>
         {width > 0 && periods.length > 0 && (
           <>
@@ -109,7 +141,7 @@ export function CashFlowChart({ periods, currencyCode }: CashFlowChartProps) {
                     key={period.period}
                     style={styles.hit}
                     accessibilityRole="button"
-                    accessibilityLabel={`${monthLabel(period.period)}: ingresos ${formatAmount(period.income, currencyCode)}, gastos ${formatAmount(period.expense, currencyCode)}`}
+                    accessibilityLabel={`${periodTitle(period.period, interval)}: ingresos ${formatAmount(period.income, currencyCode)}, gastos ${formatAmount(period.expense, currencyCode)}`}
                     onPress={() => setPicked(index)}
                   />
                 ))}
@@ -124,11 +156,11 @@ export function CashFlowChart({ periods, currencyCode }: CashFlowChartProps) {
             <Text
               key={period.period}
               style={[styles.axisLabel, { left: Math.min(Math.max(xAt(index) - 16, 0), width - 32) }]}>
-              {monthLabel(period.period)}
+              {periodLabel(period.period, interval)}
             </Text>
           ))}
       </View>
-    </View>
+    </>
   );
 }
 
@@ -163,7 +195,9 @@ const styles = StyleSheet.create({
     paddingBottom: 21,
   },
   title: { ...typography.titleSection, color: colors.textPrimary },
-  legend: { flexDirection: 'row', gap: spacing.lg, marginTop: 8 },
+  intervals: { marginTop: 12 },
+  loading: { height: CHART_HEIGHT + 30, alignItems: 'center', justifyContent: 'center' },
+  legend: { flexDirection: 'row', gap: spacing.lg, marginTop: 12 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendSwatch: { width: 10, height: 10, borderRadius: 2 },
   legendLabel: { ...typography.labelLegend, color: colors.textSecondary },

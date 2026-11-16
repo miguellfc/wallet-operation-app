@@ -47,7 +47,6 @@ const OPTIONS = [
     height: 24,
     onPress: openDebtForm,
   },
-  { label: 'Recurrentes', icon: require('@/assets/icons/add-recurrence.svg'), width: 24, height: 24 },
 ];
 
 export default function AddScreen() {
@@ -66,7 +65,7 @@ export default function AddScreen() {
               icon={option.icon}
               iconWidth={option.width}
               iconHeight={option.height}
-              onPress={'onPress' in option ? option.onPress : undefined}
+              onPress={option.onPress}
             />
           ))}
         </View>

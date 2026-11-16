@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { confirmSignOut } from '@/features/auth/sign-out';
-import { loadHome, type CategoryTotal } from '@/features/home/home-api';
+import { loadCashFlow, loadHome, type CashFlowInterval, type CategoryTotal } from '@/features/home/home-api';
 import { formatAmount } from '@/lib/format';
 import { ApiError } from '@/lib/api';
 import { useApiData } from '@/lib/use-api-data';
@@ -33,6 +34,10 @@ function loadErrorMessage(error: unknown) {
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { data, error, retry, refresh, refreshing } = useApiData(loadHome);
+  const [interval, setInterval] = useState<CashFlowInterval>('MONTH');
+  const loadFlow = useCallback(() => loadCashFlow(interval), [interval]);
+  const { data: flow, refresh: refreshFlow } = useApiData(loadFlow);
+  const periods = flow?.interval === interval ? flow.periods : undefined;
 
   if (!data) {
     return (
@@ -62,7 +67,10 @@ export default function HomeScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={refresh}
+            onRefresh={() => {
+              refresh();
+              refreshFlow();
+            }}
             tintColor={colors.brand}
             colors={[colors.brand]}
             progressBackgroundColor={colors.bgApp}
@@ -75,7 +83,7 @@ export default function HomeScreen() {
             <SummaryCard kind="INCOME" label="Ingresos" amount={formatAmount(totalOf(data.categories, 'INCOME'), code)} />
             <SummaryCard kind="EXPENSE" label="Gastos" amount={formatAmount(totalOf(data.categories, 'EXPENSE'), code)} />
           </View>
-          <CashFlowChart periods={data.cashFlow} currencyCode={code} />
+          <CashFlowChart periods={periods} interval={interval} currencyCode={code} onIntervalChange={setInterval} />
           <CategoryBreakdown categories={data.categories} currencyCode={code} />
         </View>
       </ScrollView>

@@ -4,7 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddHeader } from '@/components/add/add-header';
-import { OperationRow } from '@/components/operations/operation-row';
+import { OperationDayList } from '@/components/operations/operation-day-list';
 import { AmountField } from '@/components/ui/amount-field';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
@@ -389,9 +389,7 @@ export default function DebtDetailScreen() {
               Operaciones
             </Text>
             <View style={styles.list}>
-              {detail.operations.map(operation => (
-                <OperationRow key={operation._id} operation={operation} onPress={() => openOperation(operation._id)} />
-              ))}
+              <OperationDayList operations={detail.operations} onPress={operation => openOperation(operation._id)} />
               {detail.hasMore && (
                 <Button label="Ver más" onPress={() => setSize(current => current + PAGE)} loading={loadingMore} />
               )}

@@ -18,43 +18,42 @@ export type Operation = {
   debt?: { id: string; action: 'OPENING' | 'PAYMENT' | 'INCREASE'; amount: number };
 };
 
-export type DayOperations = {
+export type OperationsRange = { from: Date; to: Date };
+
+export type RangeOperations = {
   firstName: string;
   currency: Currency;
   closingBalance: number;
   income: number;
   expense: number;
   operations: Operation[];
+  hasMore: boolean;
 };
 
-type Range = { from: string; to: string };
-
-const DAY_PAGE_SIZE = 200;
-
-function dayRange(day: Date): Range {
-  const start = Date.UTC(day.getFullYear(), day.getMonth(), day.getDate());
-  const end = Date.UTC(day.getFullYear(), day.getMonth(), day.getDate(), 23, 59, 59, 999);
+function utcRange({ from, to }: OperationsRange) {
+  const start = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate());
+  const end = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59, 999);
   return { from: new Date(start).toISOString(), to: new Date(end).toISOString() };
 }
 
-export async function loadDayOperations(day: Date): Promise<DayOperations> {
-  const range = dayRange(day);
+export async function loadRangeOperations(range: OperationsRange, size: number): Promise<RangeOperations> {
+  const bounds = utcRange(range);
   const [profile, evolution, cashFlow, operations] = await Promise.all([
     authRequest<{ firstName: string }>('/users'),
     authRequest<{ currency: Currency; periods: { balance: number }[] }>('/statistics/evolution', {
       method: 'POST',
-      body: { ...range, interval: 'DAY' },
+      body: { ...bounds, interval: 'YEAR' },
     }),
     authRequest<{ periods: { income: number; expense: number }[] }>('/statistics/cash-flow', {
       method: 'POST',
-      body: { ...range, interval: 'DAY' },
+      body: { ...bounds, interval: 'YEAR' },
     }),
     authRequest<{ data: Operation[] }>('/operations/search', {
       method: 'POST',
       body: {
-        filters: { date: { $gte: range.from, $lte: range.to } },
+        filters: { date: { $gte: bounds.from, $lte: bounds.to } },
         sort: { date: -1 },
-        size: DAY_PAGE_SIZE,
+        size: size + 1,
       },
     }),
   ]);
@@ -65,7 +64,8 @@ export async function loadDayOperations(day: Date): Promise<DayOperations> {
     closingBalance: evolution.periods.at(-1)?.balance ?? 0,
     income: cashFlow.periods.reduce((sum, period) => sum + period.income, 0),
     expense: cashFlow.periods.reduce((sum, period) => sum + period.expense, 0),
-    operations: operations.data,
+    operations: operations.data.slice(0, size),
+    hasMore: operations.data.length > size,
   };
 }
 
