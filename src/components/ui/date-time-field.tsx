@@ -6,9 +6,15 @@ import { ClockSheet } from '@/components/ui/clock-sheet';
 import { clockLabel, shortDateLabel } from '@/lib/format';
 import { colors, radius, spacing, typography } from '@/theme';
 
-type DateTimeFieldProps = { label: string; mode: 'date' | 'time'; value: Date; onChange: (date: Date) => void };
+type DateTimeFieldProps = {
+  label: string;
+  mode: 'date' | 'time';
+  value: Date;
+  allowFuture?: boolean;
+  onChange: (date: Date) => void;
+};
 
-export function DateTimeField({ label, mode, value, onChange }: DateTimeFieldProps) {
+export function DateTimeField({ label, mode, value, allowFuture = false, onChange }: DateTimeFieldProps) {
   const [open, setOpen] = useState(false);
   const text = mode === 'date' ? shortDateLabel(value) : clockLabel(value);
 
@@ -29,7 +35,7 @@ export function DateTimeField({ label, mode, value, onChange }: DateTimeFieldPro
           visible={open}
           title={label}
           value={value}
-          maximumDate={new Date()}
+          maximumDate={allowFuture ? undefined : new Date()}
           onConfirm={onChange}
           onClose={() => setOpen(false)}
         />

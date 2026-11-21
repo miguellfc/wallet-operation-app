@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddHeader } from '@/components/add/add-header';
+import { RecurrenceSheet } from '@/components/operations/recurrence-sheet';
 import { AmountField } from '@/components/ui/amount-field';
 import { Button } from '@/components/ui/button';
 import { DateTimeField } from '@/components/ui/date-time-field';
@@ -22,6 +23,12 @@ import {
   type FormWallet,
 } from '@/features/operations/operation-form-api';
 import { loadOperation, type Operation } from '@/features/operations/operations-api';
+import {
+  createRecurrence,
+  recurrenceShortLabel,
+  recurrenceSummary,
+  type RecurrenceDraft,
+} from '@/features/operations/recurrence-form-api';
 import { ApiError } from '@/lib/api';
 import { formatAmount, roundTo } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
@@ -88,6 +95,12 @@ function saveErrorMessage(error: unknown) {
   return 'No se pudo guardar la operación. Vuelve a intentarlo.';
 }
 
+const RECURRENCE_FAILED =
+  'La operación se guardó, pero no se pudo programar la repetición. Vuelve a intentarlo o sigue sin repetición.';
+
+const openOperations = (day: string) =>
+  router.navigate({ pathname: '/operations', params: { day, at: String(Date.now()) } } as Href);
+
 function loadErrorMessage(error: unknown) {
   if (!(error instanceof ApiError)) return 'No se pudo conectar con el servidor. Revisa tu conexión y vuelve a intentarlo.';
   return 'El servidor no pudo cargar tus billeteras y categorías. Vuelve a intentarlo en un momento.';
@@ -150,6 +163,9 @@ export default function AddOperationScreen() {
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recurrence, setRecurrence] = useState<RecurrenceDraft | null>(null);
+  const [recurrenceOpen, setRecurrenceOpen] = useState(false);
+  const [pending, setPending] = useState<{ operationId: string; day: string } | null>(null);
   const [opened, setOpened] = useState<string>();
 
   const request = `${editId ?? ''}:${params.at ?? ''}`;
@@ -164,6 +180,8 @@ export default function AddOperationScreen() {
       setCategory(editing.category?.id);
       setWallet(editing.type === 'INCOME' ? editing.wallets.to?.id : editing.wallets.from?.id);
       setTarget(editing.type === 'TRANSFER' ? editing.wallets.to?.id : undefined);
+      setRecurrence(null);
+      setPending(null);
       setError(null);
     } else if (opened !== undefined) {
       setType('INCOME');
@@ -173,6 +191,8 @@ export default function AddOperationScreen() {
       setCategory(undefined);
       setWallet(undefined);
       setTarget(undefined);
+      setRecurrence(null);
+      setPending(null);
       setError(null);
     }
   }
@@ -227,10 +247,41 @@ export default function AddOperationScreen() {
     setDescription('');
     setCategory(undefined);
     setTarget(undefined);
+    setRecurrence(null);
+    setPending(null);
     setError(null);
   };
 
+  const finish = (day: string) => {
+    reset();
+    openOperations(day);
+  };
+
+  const schedule = async (operationId: string, day: string, draft: RecurrenceDraft) => {
+    try {
+      await createRecurrence(operationId, draft);
+      return true;
+    } catch {
+      setPending({ operationId, day });
+      setError(RECURRENCE_FAILED);
+      return false;
+    }
+  };
+
+  const retryRecurrence = async () => {
+    if (!pending || !recurrence || saving) return;
+    setSaving(true);
+    setError(null);
+    const scheduled = await schedule(pending.operationId, pending.day, recurrence);
+    setSaving(false);
+    if (scheduled) finish(pending.day);
+  };
+
   const save = async () => {
+    if (pending) {
+      await retryRecurrence();
+      return;
+    }
     if (!complete || saving) return;
     setSaving(true);
     setError(null);
@@ -247,7 +298,7 @@ export default function AddOperationScreen() {
         router.navigate({ pathname: '/operation-detail', params: { id: editing._id, at: String(Date.now()) } } as Href);
         return;
       }
-      await createOperation({
+      const created = await createOperation({
         type,
         date: toUtcInstant(date),
         amount: parsedAmount,
@@ -257,8 +308,8 @@ export default function AddOperationScreen() {
         to: type === 'INCOME' ? wallet : transfer ? target : undefined,
       });
       const day = dayParam(date);
-      reset();
-      router.navigate({ pathname: '/operations', params: { day, at: String(Date.now()) } } as Href);
+      if (recurrence && !transfer && !(await schedule(created._id, day, recurrence))) return;
+      finish(day);
     } catch (reason) {
       setError(saveErrorMessage(reason));
     } finally {
@@ -314,14 +365,30 @@ export default function AddOperationScreen() {
               <DateTimeField label="Hora" mode="time" value={date} onChange={setDate} />
               {!transfer && !editId && (
                 <Pressable
-                  disabled
                   accessibilityRole="button"
-                  accessibilityLabel="Recurrente"
-                  accessibilityHint="Disponible próximamente"
-                  accessibilityState={{ disabled: true }}
-                  style={styles.recurrent}>
-                  <Image contentFit="contain" source={require('@/assets/icons/recurrent.svg')} style={styles.recurrentIcon} />
-                  <Text style={styles.recurrentLabel}>Recurrente</Text>
+                  accessibilityLabel={recurrence ? `Repetición: ${recurrenceSummary(recurrence, date)}` : 'Recurrente'}
+                  accessibilityHint="Configura si la operación se repite"
+                  accessibilityState={{ disabled: !!pending }}
+                  disabled={!!pending}
+                  onPress={() => setRecurrenceOpen(true)}
+                  style={({ pressed }) => [
+                    styles.recurrent,
+                    !recurrence && styles.recurrentOff,
+                    pressed && styles.pressed,
+                  ]}>
+                  <Image
+                    contentFit="contain"
+                    source={require('@/assets/icons/recurrent.svg')}
+                    tintColor={recurrence ? colors.textOnBrand : colors.brand}
+                    style={styles.recurrentIcon}
+                  />
+                  <Text
+                    style={[styles.recurrentLabel, !recurrence && styles.recurrentLabelOff]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.8}>
+                    {recurrence ? recurrenceShortLabel(recurrence) : 'Recurrente'}
+                  </Text>
                 </Pressable>
               )}
             </View>
@@ -371,7 +438,22 @@ export default function AddOperationScreen() {
               </Text>
             )}
             <View style={styles.action}>
-              <Button label="Guardar" onPress={save} loading={saving} disabled={!complete} />
+              <Button
+                label={pending ? 'Reintentar repetición' : 'Guardar'}
+                onPress={save}
+                loading={saving}
+                disabled={!pending && !complete}
+              />
+              {pending && (
+                <Pressable
+                  accessibilityRole="button"
+                  hitSlop={8}
+                  disabled={saving}
+                  onPress={() => finish(pending.day)}
+                  style={({ pressed }) => [styles.skip, pressed && styles.pressed]}>
+                  <Text style={styles.skipLabel}>Seguir sin repetición</Text>
+                </Pressable>
+              )}
             </View>
           </View>
         )}
@@ -385,6 +467,14 @@ export default function AddOperationScreen() {
         iconFor={option => (sheet === 'category' ? option.label : 'billetera')}
         onSelect={selectFromSheet}
         onClose={() => setSheet(null)}
+      />
+      <RecurrenceSheet
+        visible={recurrenceOpen}
+        value={recurrence}
+        start={date}
+        onConfirm={setRecurrence}
+        onRemove={() => setRecurrence(null)}
+        onClose={() => setRecurrenceOpen(false)}
       />
     </ScreenBackground>
   );
@@ -411,10 +501,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
   },
+  recurrentOff: { backgroundColor: colors.input, borderWidth: 1, borderColor: colors.brand },
   recurrentIcon: { width: 17, height: 14 },
-  recurrentLabel: { ...typography.labelOverline, textTransform: 'none', color: colors.textOnBrand },
+  recurrentLabel: { ...typography.labelOverline, textTransform: 'none', color: colors.textOnBrand, flexShrink: 1 },
+  recurrentLabelOff: { color: colors.brand },
+  pressed: { opacity: 0.85 },
   error: { ...typography.bodyMedium, color: colors.error, textAlign: 'center' },
-  action: { marginTop: 12 },
+  action: { marginTop: 12, gap: spacing.md },
+  skip: { alignSelf: 'center', paddingVertical: spacing.xs },
+  skipLabel: { ...typography.bodyMedium, color: colors.textSecondary },
   state: { paddingVertical: spacing.xxl, justifyContent: 'center', gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
 });
