@@ -12,11 +12,19 @@ type CurrencySheetProps = {
   visible: boolean;
   title?: string;
   selected: Currency | null;
+  exclude?: string[];
   onSelect: (currency: Currency) => void;
   onClose: () => void;
 };
 
-export function CurrencySheet({ visible, title = 'Moneda principal', selected, onSelect, onClose }: CurrencySheetProps) {
+export function CurrencySheet({
+  visible,
+  title = 'Moneda principal',
+  selected,
+  exclude = [],
+  onSelect,
+  onClose,
+}: CurrencySheetProps) {
   const insets = useSafeAreaInsets();
   const [currencies, setCurrencies] = useState<Currency[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -35,7 +43,9 @@ export function CurrencySheet({ visible, title = 'Moneda principal', selected, o
 
   const search = query.trim().toLowerCase();
   const filtered = (currencies ?? []).filter(
-    item => item.code.toLowerCase().includes(search) || item.currency.toLowerCase().includes(search),
+    item =>
+      !exclude.includes(item.code) &&
+      (item.code.toLowerCase().includes(search) || item.currency.toLowerCase().includes(search)),
   );
 
   const choose = (currency: Currency) => {
