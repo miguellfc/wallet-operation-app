@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
-import { colors, fonts, radius, spacing, typography } from '@/theme';
+import { colors, fonts, radius, spacing, themedStyles, typography } from '@/theme';
 
 type DayBalanceCardProps = { label: string; amount: string; income: number; expense: number };
 
@@ -30,7 +30,7 @@ export function DayBalanceCard({ label, amount, income, expense }: DayBalanceCar
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   card: {
     minHeight: 161,
     borderRadius: 32,
@@ -50,8 +50,8 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     color: colors.textPrimary,
   },
-  amount: { ...typography.displayAmount, color: colors.textInverse, marginTop: 4, marginRight: 70 },
+  amount: { ...typography.displayAmount, color: colors.textStrong, marginTop: 4, marginRight: 70 },
   bar: { flexDirection: 'row', gap: spacing.sm, height: 5, marginTop: spacing.xl },
   segment: { flexBasis: 0, minWidth: 5, height: '100%', borderRadius: radius.full },
   empty: { flexGrow: 1, backgroundColor: colors.surface },
-});
+}));

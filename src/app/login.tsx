@@ -1,15 +1,17 @@
 import { Redirect, router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { AuthLayout } from '@/components/ui/auth-layout';
 import { Button } from '@/components/ui/button';
 import { TextField } from '@/components/ui/text-field';
 import { login, loginErrorMessage } from '@/features/auth/auth-api';
 import { saveSession, useSession } from '@/features/auth/session';
-import { colors, typography } from '@/theme';
+import { colors, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 export default function LoginScreen() {
+  useThemeName();
   const session = useSession();
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
@@ -71,7 +73,7 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   form: { gap: 10, marginBottom: 31 },
   error: { ...typography.bodyMedium, color: colors.error },
-});
+}));

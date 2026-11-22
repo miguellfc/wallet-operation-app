@@ -1,10 +1,10 @@
 import { Image } from 'expo-image';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 const MONTHS = [
   'Enero',
@@ -136,7 +136,7 @@ export function CalendarSheet({
           hitSlop={8}
           onPress={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
           style={({ pressed }) => [styles.arrow, pressed && styles.pressed]}>
-          <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} style={[styles.chevron, styles.left]} />
+          <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} tintColor={colors.brand} style={[styles.chevron, styles.left]} />
         </Pressable>
         <Text style={styles.month} accessibilityLiveRegion="polite">
           {MONTHS[month.getMonth()]} {month.getFullYear()}
@@ -149,7 +149,7 @@ export function CalendarSheet({
           hitSlop={8}
           onPress={() => setMonth(nextMonth)}
           style={({ pressed }) => [styles.arrow, !canGoNext && styles.off, pressed && styles.pressed]}>
-          <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} style={[styles.chevron, styles.right]} />
+          <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} tintColor={colors.brand} style={[styles.chevron, styles.right]} />
         </Pressable>
       </View>
       {ranged && <Text style={styles.hint}>Toca el día de inicio y luego el de fin, o un solo día.</Text>}
@@ -199,7 +199,7 @@ export function CalendarSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   arrow: {
     width: 36,
@@ -227,4 +227,4 @@ const styles = StyleSheet.create({
   dayLabel: { ...typography.bodyMedium, color: colors.textPrimary },
   dayDisabled: { color: colors.textMuted, opacity: 0.5 },
   dayLabelSelected: { color: colors.textOnBrand, fontFamily: typography.titleSection.fontFamily },
-});
+}));

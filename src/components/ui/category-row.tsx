@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { CategoryIcon } from '@/components/ui/category-icon';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type CategoryRowProps = {
   name: string;
@@ -31,7 +31,7 @@ export function CategoryRow({ name, icon, amount, percent, color, iconBackground
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   row: {
     minHeight: 80,
     paddingVertical: spacing.md,
@@ -47,4 +47,4 @@ const styles = StyleSheet.create({
   name: { ...typography.bodyMedium, color: colors.textPrimary },
   amount: { ...typography.bodyRegular, color: colors.textPrimary, opacity: 0.8 },
   percent: { ...typography.titleStat, color: colors.textPrimary, marginLeft: spacing.sm },
-});
+}));

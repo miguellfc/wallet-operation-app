@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
@@ -20,9 +20,8 @@ import {
 import { softColor } from '@/features/wallets/wallet-options';
 import { ApiError } from '@/lib/api';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, layout, radius, spacing, typography } from '@/theme';
-
-const DANGER = '#F99799';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 const TYPES: { value: CategoryType; label: string }[] = [
   { value: 'EXPENSE', label: 'Gastos' },
@@ -82,13 +81,14 @@ function CategoryItem({ category, accent, onEdit, onDelete }: CategoryItemProps)
         hitSlop={8}
         onPress={onDelete}
         style={({ pressed }) => [styles.trash, pressed && styles.pressed]}>
-        <SvgXml xml={TRASH_ICON} color={DANGER} width={22} height={22} />
+        <SvgXml xml={TRASH_ICON} color={colors.danger} width={22} height={22} />
       </Pressable>
     </View>
   );
 }
 
 export default function CategorySettingsScreen() {
+  useThemeName();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ type?: string; at?: string }>();
   const [type, setType] = useState<CategoryType>('EXPENSE');
@@ -182,7 +182,7 @@ export default function CategorySettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     paddingHorizontal: spacing.xl,
     gap: 15,
@@ -216,4 +216,4 @@ const styles = StyleSheet.create({
   error: { ...typography.bodyMedium, color: colors.error, textAlign: 'center' },
   state: { paddingVertical: spacing.xxl, justifyContent: 'center', gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.lg },
-});
+}));

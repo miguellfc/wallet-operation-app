@@ -1,10 +1,10 @@
 import { Image } from 'expo-image';
 import type { PropsWithChildren } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ui/screen-background';
-import { colors, fonts, layout, spacing, typography } from '@/theme';
+import { colors, fonts, layout, spacing, themedStyles, typography } from '@/theme';
 
 const GLOWS = [
   { left: '82%', top: '31%' },
@@ -52,7 +52,7 @@ export function AuthLayout({ title, footerPrompt, footerAction, onFooterPress, c
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   flex: { flex: 1 },
   scroll: {
     flexGrow: 1,
@@ -71,6 +71,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.sm,
   },
-  footerText: { ...typography.bodyLink, color: colors.textInverse },
+  footerText: { ...typography.bodyLink, color: colors.textStrong },
   footerLink: { fontFamily: fonts.medium, color: colors.brand, textDecorationLine: 'underline' },
-});
+}));

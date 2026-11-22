@@ -1,16 +1,15 @@
 import { Image } from 'expo-image';
 import { router, type Href } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { BackHeader } from '@/components/settings/back-header';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { confirmSignOut } from '@/features/auth/sign-out';
-import { colors, layout, radius, spacing, typography } from '@/theme';
-
-const DANGER = '#F99799';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 const GLOWS = [
   { left: '8%', top: '30%' },
@@ -32,6 +31,8 @@ const openCategories = () => router.navigate('/category-settings' as Href);
 const openExchangeRates = () => router.navigate('/exchange-rates' as Href);
 
 const openAccount = () => router.navigate('/account' as Href);
+
+const openTheme = () => router.navigate('/theme' as Href);
 
 type SettingsCardProps = { icon: ReactNode; title: string; detail: string; onPress?: () => void };
 
@@ -60,6 +61,7 @@ function SettingsCard({ icon, title, detail, onPress }: SettingsCardProps) {
 }
 
 export default function SettingsScreen() {
+  useThemeName();
   const insets = useSafeAreaInsets();
 
   return (
@@ -90,6 +92,7 @@ export default function SettingsScreen() {
             icon={<SvgXml xml={MOON_ICON} color={colors.textInverse} width={28} height={28} />}
             title="Tema"
             detail="Elige entre el modo claro y oscuro"
+            onPress={openTheme}
           />
         </View>
         <View style={styles.spacer} />
@@ -104,7 +107,7 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     flexGrow: 1,
     paddingHorizontal: spacing.xl,
@@ -130,7 +133,7 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: radius.full,
-    backgroundColor: colors.bgApp,
+    backgroundColor: colors.badge,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -143,9 +146,9 @@ const styles = StyleSheet.create({
     minHeight: 50,
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: DANGER,
+    borderColor: colors.danger,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  signOutLabel: { ...typography.buttonLabel, color: DANGER },
-});
+  signOutLabel: { ...typography.buttonLabel, color: colors.danger },
+}));

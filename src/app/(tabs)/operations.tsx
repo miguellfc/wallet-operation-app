@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HomeHeader } from '@/components/home/home-header';
@@ -16,7 +16,8 @@ import { loadRangeOperations, type Operation, type OperationsRange } from '@/fea
 import { ApiError } from '@/lib/api';
 import { formatAmount } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, layout, spacing, typography } from '@/theme';
+import { colors, layout, spacing, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 type Filter = 'ALL' | 'EXPENSE' | 'INCOME' | 'TRANSFER';
 
@@ -63,6 +64,7 @@ function loadErrorMessage(error: unknown) {
 }
 
 export default function OperationsScreen() {
+  useThemeName();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ day?: string; at?: string }>();
   const [range, setRange] = useState(today);
@@ -175,7 +177,7 @@ export default function OperationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xxl,
@@ -192,4 +194,4 @@ const styles = StyleSheet.create({
   empty: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.xxl },
   state: { flex: 1, justifyContent: 'center', padding: spacing.xl, gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
-});
+}));

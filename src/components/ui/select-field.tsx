@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type SelectFieldProps = {
   label: string;
@@ -23,13 +23,13 @@ export function SelectField({ label, value, placeholder, onPress }: SelectFieldP
         <Text style={[styles.value, !value && styles.placeholder]} numberOfLines={1}>
           {value ?? placeholder}
         </Text>
-        <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} style={styles.chevron} />
+        <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} tintColor={colors.brand} style={styles.chevron} />
       </Pressable>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   container: { gap: 10 },
   label: { ...typography.labelOverline, color: colors.textSecondary },
   field: {
@@ -46,4 +46,4 @@ const styles = StyleSheet.create({
   value: { ...typography.bodyMedium, flex: 1, color: colors.textPrimary },
   placeholder: { color: colors.textMuted },
   chevron: { width: 11.5, height: 5.5, marginRight: 4 },
-});
+}));

@@ -2,7 +2,7 @@ import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CategoryIcon } from '@/components/ui/category-icon';
-import { colors, layout, radius, spacing, typography } from '@/theme';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 
 export type SheetOption = { value: string; label: string; detail?: string };
 
@@ -64,7 +64,7 @@ export function OptionSheet({ visible, title, options, selected, emptyText, icon
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
   sheet: {
     maxHeight: '75%',
@@ -109,4 +109,4 @@ const styles = StyleSheet.create({
   labelSelected: { color: colors.brand },
   detail: { ...typography.bodyMedium, fontSize: 13, color: colors.textSecondary },
   empty: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.xl },
-});
+}));

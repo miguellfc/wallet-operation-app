@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { BrandGradient } from '@/components/ui/brand-gradient';
-import { colors, fonts, typography } from '@/theme';
+import { colors, fonts, themedStyles, typography } from '@/theme';
 
 export function BalanceCard({ amount }: { amount: string }) {
   return (
@@ -22,7 +22,7 @@ export function BalanceCard({ amount }: { amount: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   card: {
     minHeight: 161,
     borderRadius: 32,
@@ -43,4 +43,4 @@ const styles = StyleSheet.create({
     color: colors.textOnBrand,
   },
   amount: { ...typography.displayAmount, color: colors.textOnBrand, marginTop: 4 },
-});
+}));

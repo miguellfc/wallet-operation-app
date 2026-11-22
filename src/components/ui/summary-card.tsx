@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type SummaryCardProps = { kind: 'INCOME' | 'EXPENSE'; label: string; amount: string; caption?: string };
 
@@ -14,7 +14,7 @@ export function SummaryCard({ kind, label, amount, caption }: SummaryCardProps) 
         <View style={[styles.badge, { backgroundColor: income ? colors.incomeSoft : colors.expenseSoft }]}>
           <Image
             contentFit="contain"
-            source={require('@/assets/icons/arrow-down.svg')}
+            source={require('@/assets/icons/arrow-down.svg')} tintColor={colors.iconAccent}
             style={[styles.arrow, !income && styles.arrowUp]}
           />
         </View>
@@ -34,7 +34,7 @@ export function SummaryCard({ kind, label, amount, caption }: SummaryCardProps) 
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   card: {
     flex: 1,
     minHeight: 70,
@@ -53,4 +53,4 @@ const styles = StyleSheet.create({
   label: { ...typography.labelOverline, color: colors.textSecondary },
   amount: typography.titleSection,
   caption: { ...typography.caption, color: colors.textMuted, paddingHorizontal: 6 },
-});
+}));

@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { ScreenBackground } from '@/components/ui/screen-background';
-import { colors, spacing, typography } from '@/theme';
+import { colors, spacing, themedStyles, typography } from '@/theme';
 
 export function ComingSoon({ title }: { title: string }) {
   return (
@@ -16,8 +16,8 @@ export function ComingSoon({ title }: { title: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   title: { ...typography.titleSection, color: colors.textPrimary },
   text: { ...typography.bodyMedium, color: colors.textSecondary },
-});
+}));

@@ -4,8 +4,10 @@ import { Tabs } from 'expo-router/js-tabs';
 import { TabBar } from '@/components/navigation/tab-bar';
 import { useSession } from '@/features/auth/session';
 import { colors } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 export default function TabsLayout() {
+  useThemeName();
   const session = useSession();
   if (!session) return <Redirect href="/login" />;
 

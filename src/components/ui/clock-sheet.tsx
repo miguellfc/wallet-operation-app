@@ -4,7 +4,7 @@ import Svg, { Circle, Line } from 'react-native-svg';
 
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type Mode = 'hour' | 'minute';
 
@@ -157,7 +157,7 @@ export function ClockSheet({ visible, title, value, onConfirm, onClose }: ClockS
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   display: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.lg },
   time: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   segment: { borderRadius: radius.md, backgroundColor: colors.input, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
@@ -187,4 +187,4 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   dialLabelActive: { color: colors.textOnBrand, fontFamily: typography.titleSection.fontFamily },
-});
+}));

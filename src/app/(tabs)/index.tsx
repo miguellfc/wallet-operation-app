@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BalanceCard } from '@/components/home/balance-card';
@@ -13,7 +13,8 @@ import { loadCashFlow, loadHome, type CashFlowInterval, type CategoryTotal } fro
 import { formatAmount } from '@/lib/format';
 import { ApiError } from '@/lib/api';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, layout, spacing, typography } from '@/theme';
+import { colors, layout, spacing, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 const GLOWS = [
   { left: '82%', top: '32%' },
@@ -31,6 +32,7 @@ function loadErrorMessage(error: unknown) {
 
 
 export default function HomeScreen() {
+  useThemeName();
   const insets = useSafeAreaInsets();
   const { data, error, retry, refresh, refreshing } = useApiData(loadHome);
   const [interval, setInterval] = useState<CashFlowInterval>('MONTH');
@@ -90,7 +92,7 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xxl,
@@ -103,4 +105,4 @@ const styles = StyleSheet.create({
   totals: { flexDirection: 'row', gap: 21 },
   state: { flex: 1, justifyContent: 'center', padding: spacing.xl, gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
-});
+}));

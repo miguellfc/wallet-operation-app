@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
@@ -22,9 +22,8 @@ import {
 } from '@/features/auth/account-api';
 import { ApiError } from '@/lib/api';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, layout, radius, spacing, typography } from '@/theme';
-
-const DANGER = '#F99799';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 const MIN_PASSWORD = 8;
 
@@ -87,7 +86,7 @@ function DangerButton({ label, onPress, disabled, loading }: DangerButtonProps) 
       disabled={disabled || loading}
       onPress={onPress}
       style={({ pressed }) => [styles.danger, disabled && styles.off, pressed && styles.pressed]}>
-      {loading ? <ActivityIndicator color={DANGER} /> : <Text style={styles.dangerLabel}>{label}</Text>}
+      {loading ? <ActivityIndicator color={colors.danger} /> : <Text style={styles.dangerLabel}>{label}</Text>}
     </Pressable>
   );
 }
@@ -251,6 +250,7 @@ function DeleteSheet({ visible, nickname, onClose }: DeleteSheetProps) {
 }
 
 export default function AccountScreen() {
+  useThemeName();
   const insets = useSafeAreaInsets();
   const { data: account, error: loadError, retry, refresh } = useApiData(loadAccount);
   const [loaded, setLoaded] = useState<Account | null>(null);
@@ -409,7 +409,7 @@ export default function AccountScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     paddingHorizontal: spacing.xl,
     gap: 15,
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: radius.full,
-    backgroundColor: colors.bgApp,
+    backgroundColor: colors.badge,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -471,11 +471,11 @@ const styles = StyleSheet.create({
     minHeight: 50,
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: DANGER,
+    borderColor: colors.danger,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dangerLabel: { ...typography.buttonLabel, color: DANGER },
+  dangerLabel: { ...typography.buttonLabel, color: colors.danger },
   off: { opacity: 0.45 },
   pressed: { opacity: 0.85 },
   cancel: { alignSelf: 'center', paddingVertical: spacing.xs },
@@ -485,4 +485,4 @@ const styles = StyleSheet.create({
   message: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
   state: { paddingVertical: spacing.xxl, justifyContent: 'center', gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
-});
+}));

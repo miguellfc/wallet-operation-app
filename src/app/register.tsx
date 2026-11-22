@@ -1,6 +1,6 @@
 import { Redirect, router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { AuthLayout } from '@/components/ui/auth-layout';
 import { Button } from '@/components/ui/button';
@@ -10,11 +10,13 @@ import { login, register, registerErrorMessage } from '@/features/auth/auth-api'
 import { saveSession, useSession } from '@/features/auth/session';
 import type { Currency } from '@/features/currencies/currency-api';
 import { CurrencySheet } from '@/features/currencies/currency-sheet';
-import { colors, typography } from '@/theme';
+import { colors, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 const goToLogin = () => (router.canGoBack() ? router.back() : router.replace('/login'));
 
 export default function RegisterScreen() {
+  useThemeName();
   const session = useSession();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -123,7 +125,7 @@ export default function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   form: { gap: 12, marginBottom: 22 },
   error: { ...typography.bodyMedium, color: colors.error },
-});
+}));

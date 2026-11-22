@@ -1,7 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { CategoryIcon } from '@/components/ui/category-icon';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type InfoRowProps = {
   icon: string;
@@ -54,7 +54,7 @@ export function InfoRow({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   row: {
     minHeight: 76,
     borderRadius: radius.lg,
@@ -72,4 +72,4 @@ const styles = StyleSheet.create({
   detail: { ...typography.caption, color: colors.textMuted },
   side: { alignItems: 'flex-end', gap: 2, maxWidth: '45%' },
   amount: { ...typography.bodyMedium, fontFamily: typography.titleSection.fontFamily, color: colors.textPrimary },
-});
+}));

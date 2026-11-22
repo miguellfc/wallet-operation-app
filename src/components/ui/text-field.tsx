@@ -1,8 +1,8 @@
 import { Image } from 'expo-image';
 import { useState, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
+import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type TextFieldProps = Omit<TextInputProps, 'style' | 'secureTextEntry'> & {
   label: string;
@@ -32,7 +32,7 @@ export function TextField({ label, secure = false, accessory, ...inputProps }: T
             onPress={() => setHidden(value => !value)}>
             <Image
               contentFit="contain"
-              source={require('@/assets/icons/eye.svg')}
+              source={require('@/assets/icons/eye.svg')} tintColor={colors.brand}
               style={[styles.eye, !hidden && styles.eyeActive]}
             />
           </Pressable>
@@ -43,7 +43,7 @@ export function TextField({ label, secure = false, accessory, ...inputProps }: T
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   container: { gap: 10 },
   label: { ...typography.labelOverline, color: colors.textSecondary },
   field: {
@@ -58,4 +58,4 @@ const styles = StyleSheet.create({
   input: { ...typography.bodyMedium, flex: 1, paddingVertical: spacing.md, color: colors.textPrimary },
   eye: { width: 26.5, height: 21.5 },
   eyeActive: { opacity: 0.6 },
-});
+}));

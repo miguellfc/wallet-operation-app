@@ -1,6 +1,8 @@
-import type { TextStyle } from 'react-native';
+import { StyleSheet, type TextStyle } from 'react-native';
 
-export const colors = {
+export type ThemeName = 'dark' | 'light';
+
+const darkPalette = {
   bgApp: '#070D20',
   surface: 'rgba(255, 255, 255, 0.04)',
   surfaceSubtle: 'rgba(255, 255, 255, 0.03)',
@@ -29,7 +31,106 @@ export const colors = {
   textInverse: '#FFFFFF',
   error: '#FEFC69',
   scrim: 'rgba(0, 0, 0, 0.6)',
-} as const;
+  danger: '#F99799',
+  divider: 'rgba(255, 255, 255, 0.08)',
+  track: 'rgba(255, 255, 255, 0.12)',
+  trackOn: 'rgba(151, 161, 249, 0.35)',
+  heroCard: 'rgba(0, 0, 0, 0.26)',
+  excludedBorder: 'rgba(254, 252, 105, 0.35)',
+  badge: '#070D20',
+  iconOnSurface: '#FFFFFF',
+  shadowGlow: 'rgba(92, 107, 192, 0.35)',
+  shadowAvatar: 'rgba(186, 195, 255, 0.25)',
+  shadowTooltip: 'rgba(8, 13, 29, 0.8)',
+  shadowCard: 'rgba(0, 0, 0, 0.1)',
+  iconAccent: '#BAC3FF',
+  textStrong: '#FFFFFF',
+};
+
+export type Palette = Record<keyof typeof darkPalette, string>;
+
+const lightPalette: Palette = {
+  bgApp: '#EEF0F7',
+  surface: '#FFFFFF',
+  surfaceSubtle: 'rgba(255, 255, 255, 0.75)',
+  input: 'rgba(7, 13, 32, 0.05)',
+  row: '#FFFFFF',
+  segment: 'rgba(7, 13, 32, 0.06)',
+  tooltip: '#FFFFFF',
+  glow: 'rgba(92, 107, 192, 0.18)',
+  avatar: '#DDE1FF',
+  incomeSoft: 'rgba(110, 120, 230, 0.14)',
+  expenseSoft: 'rgba(160, 124, 0, 0.12)',
+  categoryIcon: 'rgba(160, 124, 0, 0.12)',
+  categoryIconIncome: 'rgba(47, 128, 209, 0.12)',
+  brand: '#6E78E6',
+  income: '#2F80D1',
+  expense: '#A07C00',
+  gradientYellow: '#FEFC69',
+  gradientGreen: '#B1FF9D',
+  gradientTeal: '#9FF8DF',
+  gradientIndigo: '#97A1F9',
+  textPrimary: '#141A33',
+  textSecondary: '#4B5068',
+  textMuted: '#7A7E93',
+  textAccent: '#4A55C7',
+  textOnBrand: '#070D20',
+  textInverse: '#FFFFFF',
+  error: '#C2410C',
+  scrim: 'rgba(7, 13, 32, 0.35)',
+  danger: '#D64550',
+  divider: 'rgba(7, 13, 32, 0.08)',
+  track: 'rgba(7, 13, 32, 0.12)',
+  trackOn: 'rgba(110, 120, 230, 0.35)',
+  heroCard: '#FFFFFF',
+  excludedBorder: 'rgba(160, 124, 0, 0.45)',
+  badge: '#1E2440',
+  iconOnSurface: '#141A33',
+  shadowGlow: 'rgba(92, 107, 192, 0.2)',
+  shadowAvatar: 'rgba(92, 107, 192, 0.2)',
+  shadowTooltip: 'rgba(20, 26, 51, 0.15)',
+  shadowCard: 'rgba(20, 26, 51, 0.06)',
+  iconAccent: '#4A55C7',
+  textStrong: '#141A33',
+};
+
+const PALETTES: Record<ThemeName, Palette> = { dark: { ...darkPalette }, light: lightPalette };
+
+export const themePalette = (name: ThemeName): Palette => PALETTES[name];
+
+export const colors: Palette = { ...darkPalette };
+
+let activeTheme: ThemeName = 'dark';
+let themeVersion = 0;
+
+export const currentTheme = () => activeTheme;
+
+export function applyTheme(name: ThemeName) {
+  if (name === activeTheme) return;
+  activeTheme = name;
+  Object.assign(colors, PALETTES[name]);
+  themeVersion += 1;
+}
+
+type StyleDefinitions = Parameters<typeof StyleSheet.create>[0];
+
+export function themedStyles<S extends StyleDefinitions>(factory: () => S & StyleDefinitions): Readonly<S> {
+  let cache: Readonly<S> | null = null;
+  let cachedVersion = -1;
+  const resolve = (): Readonly<S> => {
+    if (!cache || cachedVersion !== themeVersion) {
+      cache = StyleSheet.create(factory());
+      cachedVersion = themeVersion;
+    }
+    return cache;
+  };
+  return new Proxy({} as Readonly<S>, {
+    get: (_, key) => resolve()[key as keyof S],
+    has: (_, key) => key in resolve(),
+    ownKeys: () => Reflect.ownKeys(resolve()),
+    getOwnPropertyDescriptor: (_, key) => Object.getOwnPropertyDescriptor(resolve(), key),
+  });
+}
 
 export const layout = {
   maxContentWidth: 520,

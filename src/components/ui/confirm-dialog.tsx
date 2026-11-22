@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, layout, radius, spacing, typography } from '@/theme';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 
 type ConfirmRequest = {
   title: string;
@@ -71,7 +71,7 @@ export function ConfirmDialogHost() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   overlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.scrim, padding: spacing.xl },
   card: {
     width: '100%',
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgApp,
     padding: spacing.xl,
     gap: spacing.md,
-    boxShadow: '0px 0px 24px 0px rgba(92, 107, 192, 0.35)',
+    boxShadow: `0px 0px 24px 0px ${colors.shadowGlow}`,
   },
   title: { ...typography.titleSection, color: colors.textPrimary },
   message: { ...typography.bodyMedium, color: colors.textSecondary },
@@ -93,4 +93,4 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.85 },
   cancelLabel: { ...typography.buttonLabel, fontSize: 14, color: colors.textPrimary },
   confirmLabel: { ...typography.buttonLabel, fontSize: 14, color: colors.textOnBrand },
-});
+}));

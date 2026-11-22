@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddHeader } from '@/components/add/add-header';
@@ -24,11 +24,10 @@ import { loadWallets, type WalletSummary } from '@/features/wallets/wallets-api'
 import { ApiError } from '@/lib/api';
 import { formatAmount, roundTo } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, layout, radius, spacing, typography } from '@/theme';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 const PAGE = 20;
-
-const DANGER = '#F99799';
 
 const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
@@ -243,6 +242,7 @@ function PaymentSheet({ visible, detail, wallets, onClose, onDone }: PaymentShee
 }
 
 export default function DebtDetailScreen() {
+  useThemeName();
   const insets = useSafeAreaInsets();
   const { id = '' } = useLocalSearchParams<{ id?: string }>();
   const [size, setSize] = useState(PAGE);
@@ -380,7 +380,7 @@ export default function DebtDetailScreen() {
                     disabled={deleting}
                     onPress={remove}
                     style={({ pressed }) => [styles.action, styles.danger, pressed && styles.pressed]}>
-                    {deleting ? <ActivityIndicator color={DANGER} /> : <Text style={styles.dangerLabel}>Eliminar</Text>}
+                    {deleting ? <ActivityIndicator color={colors.danger} /> : <Text style={styles.dangerLabel}>Eliminar</Text>}
                   </Pressable>
                 </View>
               </View>
@@ -413,7 +413,7 @@ export default function DebtDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xxl,
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     height: 30,
     padding: 4,
     borderRadius: 11,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.divider,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -470,11 +470,11 @@ const styles = StyleSheet.create({
     minHeight: 50,
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: DANGER,
+    borderColor: colors.danger,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dangerLabel: { ...typography.buttonLabel, color: DANGER },
+  dangerLabel: { ...typography.buttonLabel, color: colors.danger },
   pressed: { opacity: 0.85 },
   error: { ...typography.bodyMedium, color: colors.error, textAlign: 'center' },
   listTitle: { ...typography.bodyMedium, fontFamily: typography.titleSection.fontFamily, fontSize: 16, color: colors.textSecondary, marginTop: spacing.sm },
@@ -500,4 +500,4 @@ const styles = StyleSheet.create({
   walletBalance: { ...typography.bodyMedium, fontSize: 13, color: colors.textSecondary },
   state: { paddingVertical: spacing.xxl, justifyContent: 'center', gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
-});
+}));

@@ -1,5 +1,5 @@
 import { router, type Href } from 'expo-router';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddOption } from '@/components/add/add-option';
@@ -7,7 +7,8 @@ import { HomeHeader } from '@/components/home/home-header';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { loadProfile } from '@/features/wallets/wallets-api';
 import { useApiData } from '@/lib/use-api-data';
-import { layout, spacing } from '@/theme';
+import { layout, spacing, themedStyles } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 const GLOWS = [
   { left: '27%', top: '16%' },
@@ -49,6 +50,7 @@ const OPTIONS = [
 ];
 
 export default function AddScreen() {
+  useThemeName();
   const insets = useSafeAreaInsets();
   const { data: profile } = useApiData(loadProfile);
 
@@ -73,7 +75,7 @@ export default function AddScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xxl,
@@ -83,4 +85,4 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   list: { gap: 12 },
-});
+}));
