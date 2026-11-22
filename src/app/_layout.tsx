@@ -15,10 +15,12 @@ import { useEffect, useState } from 'react';
 import { ConfirmDialogHost } from '@/components/ui/confirm-dialog';
 import { restoreSession } from '@/features/auth/session';
 import { colors, fonts } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const themeName = useThemeName();
   const [fontsLoaded] = useFonts({
     Montserrat_300Light,
     Montserrat_400Regular,
@@ -45,9 +47,9 @@ export default function RootLayout() {
 
   return (
     <>
-      <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bgApp } }} />
-      <ConfirmDialogHost />
+      <StatusBar style={themeName === 'light' ? 'dark' : 'light'} />
+      <Stack key={themeName} screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bgApp } }} />
+      <ConfirmDialogHost key={`dialog-${themeName}`} />
     </>
   );
 }

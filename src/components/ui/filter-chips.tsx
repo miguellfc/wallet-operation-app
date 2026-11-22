@@ -1,6 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type FilterChipsProps<T extends string> = {
   options: { value: T; label: string }[];
@@ -31,7 +31,7 @@ export function FilterChips<T extends string>({ options, value, onChange }: Filt
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   row: { flexDirection: 'row', gap: spacing.sm },
   chip: {
     flexGrow: 1,
@@ -47,4 +47,4 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: colors.brand },
   label: { ...typography.labelLegend, color: colors.textSecondary },
   labelActive: { color: colors.textOnBrand },
-});
+}));

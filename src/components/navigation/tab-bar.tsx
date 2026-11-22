@@ -1,9 +1,9 @@
 import { Image, type ImageSource } from 'expo-image';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { Fragment } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { colors, spacing, typography } from '@/theme';
+import { colors, currentTheme, spacing, themedStyles, typography } from '@/theme';
 
 type TabConfig = { label: string; icon: ImageSource; width: number; height: number };
 
@@ -43,7 +43,12 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
               onPress={() => navigateToTab(route.key)}
               style={[styles.tab, !focused && styles.inactive]}>
               <View style={styles.iconSlot}>
-                <Image contentFit="contain" source={tab.icon} style={{ width: tab.width, height: tab.height }} />
+                <Image
+                  contentFit="contain"
+                  source={tab.icon}
+                  tintColor={colors.brand}
+                  style={{ width: tab.width, height: tab.height }}
+                />
               </View>
               <Text style={styles.label} numberOfLines={1}>
                 {tab.label}
@@ -56,7 +61,7 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -65,9 +70,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgApp,
   },
   tab: { flex: 1, alignItems: 'center', gap: 4 },
-  inactive: { opacity: 0.3 },
+  inactive: { opacity: currentTheme() === 'light' ? 0.5 : 0.3 },
   iconSlot: { height: 33, justifyContent: 'center' },
   label: { ...typography.labelTab, color: colors.brand },
   addSlot: { width: 86, alignItems: 'center' },
   add: { width: 74, height: 74, marginTop: -20 },
-});
+}));

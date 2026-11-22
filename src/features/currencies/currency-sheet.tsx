@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
 import { ListOption } from '@/components/ui/list-option';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 import { fetchCurrencies, type Currency } from './currency-api';
 
@@ -106,7 +106,7 @@ export function CurrencySheet({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
   sheet: {
     height: '80%',
@@ -138,4 +138,4 @@ const styles = StyleSheet.create({
   list: { gap: spacing.sm, paddingBottom: spacing.lg },
   state: { flex: 1, justifyContent: 'center', gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
-});
+}));

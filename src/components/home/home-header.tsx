@@ -1,9 +1,9 @@
 import { Image } from 'expo-image';
 import { router, type Href } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { BrandGradient } from '@/components/ui/brand-gradient';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type HomeHeaderProps = { name: string; showProfile?: boolean; onProfilePress?: () => void };
 
@@ -38,7 +38,7 @@ export function HomeHeader({ name, showProfile = true, onProfilePress = openSett
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   greeting: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexShrink: 1 },
   mark: {
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0px 0px 12px 0px rgba(92, 107, 192, 0.35)',
+    boxShadow: `0px 0px 12px 0px ${colors.shadowGlow}`,
   },
   markIcon: { width: 20.17, height: 15.58 },
   overline: { ...typography.labelOverline, color: colors.textAccent },
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.avatar,
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0px 0px 5px 0px rgba(186, 195, 255, 0.25)',
+    boxShadow: `0px 0px 5px 0px ${colors.shadowAvatar}`,
   },
   avatarIcon: { width: 22, height: 22 },
-});
+}));

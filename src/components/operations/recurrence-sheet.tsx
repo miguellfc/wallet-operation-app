@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,7 @@ import {
   type RecurrenceDraft,
   type RecurrenceEnd,
 } from '@/features/operations/recurrence-form-api';
-import { colors, radius, spacing, typography } from '@/theme';
-
-const DANGER = '#F99799';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 const MAX_DELAY = 99;
 
@@ -202,7 +200,7 @@ export function RecurrenceSheet({ visible, value, start, onConfirm, onRemove, on
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   block: { gap: 10 },
   label: { ...typography.labelOverline, color: colors.textSecondary },
   stepperRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
@@ -238,5 +236,5 @@ const styles = StyleSheet.create({
   summary: { ...typography.bodyMedium, fontSize: 13, color: colors.textSecondary },
   problem: { color: colors.error },
   remove: { alignSelf: 'center', paddingVertical: spacing.xs },
-  removeLabel: { ...typography.bodyMedium, color: DANGER },
-});
+  removeLabel: { ...typography.bodyMedium, color: colors.danger },
+}));

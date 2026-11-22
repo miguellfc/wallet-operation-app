@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
@@ -29,7 +29,8 @@ import { loadWallets, type WalletSummary } from '@/features/wallets/wallets-api'
 import { ApiError } from '@/lib/api';
 import { formatAmount, roundTo } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, layout, radius, spacing, typography } from '@/theme';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 const TYPES: { value: DebtType; label: string }[] = [
   { value: 'BORROWED', label: 'Pedí prestado' },
@@ -93,6 +94,7 @@ function loadErrorMessage(error: unknown) {
 }
 
 export default function AddDebtScreen() {
+  useThemeName();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ edit?: string; at?: string }>();
   const editId = params.edit;
@@ -336,7 +338,7 @@ export default function AddDebtScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xxl,
@@ -352,7 +354,7 @@ const styles = StyleSheet.create({
     height: 36,
     marginRight: -spacing.sm,
     borderRadius: radius.sm,
-    backgroundColor: 'rgba(140, 197, 252, 0.1)',
+    backgroundColor: colors.categoryIconIncome,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -361,4 +363,4 @@ const styles = StyleSheet.create({
   action: { marginTop: 19 },
   state: { paddingVertical: spacing.xxl, justifyContent: 'center', gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
-});
+}));

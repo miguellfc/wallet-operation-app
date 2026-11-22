@@ -1,10 +1,10 @@
 import type { PropsWithChildren, ReactNode } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
 import { ApiError } from '@/lib/api';
-import { colors, layout, spacing, typography } from '@/theme';
+import { colors, layout, spacing, themedStyles, typography } from '@/theme';
 
 type TabScrollProps = PropsWithChildren<{
   header: ReactNode;
@@ -61,7 +61,7 @@ export function TabScroll({ header, loading, error, empty, refreshing, onRefresh
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xxl,
@@ -73,4 +73,4 @@ const styles = StyleSheet.create({
   state: { paddingVertical: spacing.xxl, gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
   empty: { paddingVertical: spacing.xxl },
-});
+}));

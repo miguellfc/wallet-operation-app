@@ -1,7 +1,7 @@
 import { Image, type ImageSource } from 'expo-image';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { colors, radius, typography } from '@/theme';
+import { colors, radius, themedStyles, typography } from '@/theme';
 
 type AddOptionProps = {
   label: string;
@@ -33,7 +33,7 @@ export function AddOption({ label, icon, iconWidth, iconHeight, onPress }: AddOp
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   card: {
     minHeight: 83,
     flexDirection: 'row',
@@ -55,4 +55,4 @@ const styles = StyleSheet.create({
   },
   label: { ...typography.bodyRegular, fontSize: 16, flex: 1, color: colors.textSecondary },
   plus: { width: 16, height: 17 },
-});
+}));

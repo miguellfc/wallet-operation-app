@@ -1,8 +1,8 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { WalletIcon } from '@/components/wallets/wallet-icon';
 import { softColor } from '@/features/wallets/wallet-options';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type WalletCardProps = {
   name: string;
@@ -44,7 +44,7 @@ export function WalletCard({ name, amount, currencyCode, excluded, icon, color, 
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   card: {
     flex: 1,
     minHeight: 100,
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 2,
   },
-  excluded: { borderWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(254, 252, 105, 0.35)' },
+  excluded: { borderWidth: 1, borderStyle: 'dashed', borderColor: colors.excludedBorder },
   faded: { opacity: 0.6 },
   pressed: { opacity: 0.85 },
   icon: {
@@ -81,4 +81,4 @@ const styles = StyleSheet.create({
     backgroundColor: colors.expenseSoft,
   },
   badgeLabel: { ...typography.labelLegend, color: colors.expense },
-});
+}));

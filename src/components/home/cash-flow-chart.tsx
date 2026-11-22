@@ -5,7 +5,7 @@ import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop } from 'react-nativ
 import { FilterChips } from '@/components/ui/filter-chips';
 import type { CashFlowInterval, CashFlowPeriod } from '@/features/home/home-api';
 import { formatAmount, periodLabel, periodTitle } from '@/lib/format';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type Point = { x: number; y: number };
 
@@ -181,12 +181,12 @@ function TooltipRow({ label, value, accent = false }: { label: string; value: st
   return (
     <View style={styles.tooltipRow}>
       <Text style={[styles.tooltipText, { color: accent ? colors.textAccent : colors.textSecondary }]}>{label}</Text>
-      <Text style={[styles.tooltipText, { color: accent ? colors.avatar : colors.textPrimary }]}>{value}</Text>
+      <Text style={[styles.tooltipText, { color: accent ? colors.iconAccent : colors.textPrimary }]}>{value}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   card: {
     borderRadius: radius.lg,
     backgroundColor: colors.surface,
@@ -212,10 +212,10 @@ const styles = StyleSheet.create({
     gap: 2,
     borderRadius: radius.sm,
     backgroundColor: colors.tooltip,
-    boxShadow: '0px 6px 20px 0px rgba(8, 13, 29, 0.8)',
+    boxShadow: `0px 6px 20px 0px ${colors.shadowTooltip}`,
   },
   tooltipRow: { flexDirection: 'row', justifyContent: 'space-between' },
   tooltipText: typography.labelLegend,
   axis: { height: 14, marginTop: 13, marginHorizontal: 5 },
   axisLabel: { ...typography.labelAxis, position: 'absolute', width: 32, textAlign: 'center', color: colors.textMuted },
-});
+}));

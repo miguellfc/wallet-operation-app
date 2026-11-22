@@ -1,6 +1,6 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, Pressable, Text } from 'react-native';
 
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type ButtonProps = {
   label: string;
@@ -27,7 +27,7 @@ export function Button({ label, onPress, loading = false, disabled = false }: Bu
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   button: {
     minHeight: 50,
     paddingVertical: spacing.md,
@@ -40,4 +40,4 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.5 },
   label: { ...typography.buttonLabel, color: colors.textOnBrand },
-});
+}));

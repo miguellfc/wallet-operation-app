@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddHeader } from '@/components/add/add-header';
@@ -14,9 +14,8 @@ import { deleteOperation, loadOperation, type Operation } from '@/features/opera
 import { ApiError } from '@/lib/api';
 import { formatAmount } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, layout, radius, spacing, typography } from '@/theme';
-
-const DANGER = '#F99799';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
@@ -27,12 +26,8 @@ const TYPE_LABELS: Record<Operation['type'], string> = {
   OPENING: 'Saldo inicial',
 };
 
-const TYPE_COLORS: Record<Operation['type'], string> = {
-  INCOME: colors.income,
-  EXPENSE: colors.expense,
-  TRANSFER: colors.brand,
-  OPENING: colors.income,
-};
+const typeColor = (type: Operation['type']) =>
+  type === 'EXPENSE' ? colors.expense : type === 'TRANSFER' ? colors.brand : colors.income;
 
 const GLOWS = [
   { left: '50%', top: '18%' },
@@ -99,6 +94,7 @@ function detailRows(operation: Operation) {
 }
 
 export default function OperationDetailScreen() {
+  useThemeName();
   const insets = useSafeAreaInsets();
   const { id = '' } = useLocalSearchParams<{ id?: string }>();
   const load = useCallback(() => loadOperation(id), [id]);
@@ -110,7 +106,7 @@ export default function OperationDetailScreen() {
   const opening = current?.type === 'OPENING';
   const debtOpening = current?.debt?.action === 'OPENING';
   const chip = current?.type === 'TRANSFER' ? 'Transferencia' : opening ? 'Saldo inicial' : (current?.category?.name ?? '');
-  const accent = current ? (isColor(current.category?.color) ? current.category.color : TYPE_COLORS[current.type]) : colors.brand;
+  const accent = current ? (isColor(current.category?.color) ? current.category.color : typeColor(current.type)) : colors.brand;
   const icon =
     current?.type === 'TRANSFER'
       ? 'Transferencia'
@@ -207,7 +203,7 @@ export default function OperationDetailScreen() {
                     disabled={deleting}
                     onPress={remove}
                     style={({ pressed }) => [styles.action, styles.danger, pressed && styles.pressed]}>
-                    {deleting ? <ActivityIndicator color={DANGER} /> : <Text style={styles.dangerLabel}>Eliminar</Text>}
+                    {deleting ? <ActivityIndicator color={colors.danger} /> : <Text style={styles.dangerLabel}>Eliminar</Text>}
                   </Pressable>
                 </View>
               )}
@@ -219,7 +215,7 @@ export default function OperationDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xxl,
@@ -258,14 +254,14 @@ const styles = StyleSheet.create({
     minHeight: 50,
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: DANGER,
+    borderColor: colors.danger,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dangerLabel: { ...typography.buttonLabel, color: DANGER },
+  dangerLabel: { ...typography.buttonLabel, color: colors.danger },
   pressed: { opacity: 0.85 },
   note: { ...typography.bodyMedium, color: colors.textMuted, textAlign: 'center' },
   error: { ...typography.bodyMedium, color: colors.error, textAlign: 'center' },
   state: { paddingVertical: spacing.xxl, justifyContent: 'center', gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
-});
+}));

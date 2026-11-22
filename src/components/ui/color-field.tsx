@@ -1,10 +1,10 @@
 import { Image } from 'expo-image';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { GridSheet } from '@/components/ui/grid-sheet';
 import { WALLET_COLORS } from '@/features/wallets/wallet-options';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type ColorFieldProps = { label: string; value: string; onChange: (value: string) => void };
 
@@ -22,7 +22,7 @@ export function ColorField({ label, value, onChange }: ColorFieldProps) {
         onPress={() => setOpen(true)}
         style={({ pressed }) => [styles.field, pressed && styles.pressed]}>
         <View style={[styles.swatch, { backgroundColor: value }]} />
-        <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} style={styles.chevron} />
+        <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} tintColor={colors.brand} style={styles.chevron} />
       </Pressable>
       <GridSheet
         visible={open}
@@ -37,7 +37,7 @@ export function ColorField({ label, value, onChange }: ColorFieldProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   container: { gap: 10 },
   label: { ...typography.labelOverline, color: colors.textSecondary },
   field: {
@@ -55,4 +55,4 @@ const styles = StyleSheet.create({
   swatch: { flex: 1, height: 22, borderRadius: 5 },
   chevron: { width: 11.5, height: 5.5, marginRight: 4 },
   dot: { width: '60%', aspectRatio: 1, borderRadius: radius.full },
-});
+}));

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { operationSign, walletAmount } from '@/components/operations/operation-row';
 import { InfoRow } from '@/components/ui/info-row';
@@ -7,7 +7,7 @@ import { TabScroll } from '@/components/wallets/tab-scroll';
 import { loadRecurrences, type Recurrence, type RecurrenceItem } from '@/features/wallets/wallets-api';
 import { formatAmount, longDayLabel } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, themedStyles } from '@/theme';
 
 const FREQUENCY: Record<Recurrence['recurrence'], string> = {
   DAILY: 'Diaria',
@@ -68,6 +68,6 @@ export function RecurrencesView({ header }: { header: ReactNode }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   list: { gap: spacing.sm },
-});
+}));

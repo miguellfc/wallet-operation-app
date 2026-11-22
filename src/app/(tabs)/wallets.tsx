@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { HomeHeader } from '@/components/home/home-header';
 import { ScreenBackground } from '@/components/ui/screen-background';
@@ -10,7 +10,8 @@ import { RecurrencesView } from '@/components/wallets/recurrences-view';
 import { WalletsView } from '@/components/wallets/wallets-view';
 import { loadProfile } from '@/features/wallets/wallets-api';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, themedStyles } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 type Section = 'WALLETS' | 'DEBTS' | 'RECURRENCES';
 
@@ -27,6 +28,7 @@ const GLOWS = [
 ] as const;
 
 export default function WalletsScreen() {
+  useThemeName();
   const params = useLocalSearchParams<{ section?: string; at?: string }>();
   const [section, setSection] = useState<Section>('WALLETS');
   const [opened, setOpened] = useState<string>();
@@ -55,6 +57,6 @@ export default function WalletsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   header: { gap: spacing.lg },
-});
+}));

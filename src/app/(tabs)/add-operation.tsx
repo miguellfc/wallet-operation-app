@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddHeader } from '@/components/add/add-header';
@@ -32,7 +32,8 @@ import {
 import { ApiError } from '@/lib/api';
 import { formatAmount, roundTo } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, layout, radius, spacing, typography } from '@/theme';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 type Sheet = 'category' | 'wallet' | 'target';
 
@@ -145,6 +146,7 @@ function useDestination(amount: number | null, from?: FormWallet, to?: FormWalle
 }
 
 export default function AddOperationScreen() {
+  useThemeName();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ edit?: string; at?: string }>();
   const editId = params.edit;
@@ -484,7 +486,7 @@ export default function AddOperationScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xxl,
@@ -516,4 +518,4 @@ const styles = StyleSheet.create({
   skipLabel: { ...typography.bodyMedium, color: colors.textSecondary },
   state: { paddingVertical: spacing.xxl, justifyContent: 'center', gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
-});
+}));

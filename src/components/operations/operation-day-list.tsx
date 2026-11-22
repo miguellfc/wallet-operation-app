@@ -1,9 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { OperationRow } from '@/components/operations/operation-row';
 import type { Operation } from '@/features/operations/operations-api';
 import { utcDateLabel } from '@/lib/format';
-import { colors, spacing, typography } from '@/theme';
+import { colors, spacing, themedStyles, typography } from '@/theme';
 
 type OperationDayListProps = { operations: Operation[]; onPress: (operation: Operation) => void };
 
@@ -47,8 +47,8 @@ export function OperationDayList({ operations, onPress }: OperationDayListProps)
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   list: { gap: spacing.lg },
   group: { gap: spacing.sm },
   header: { ...typography.labelOverline, color: colors.textMuted, marginTop: spacing.xs },
-});
+}));

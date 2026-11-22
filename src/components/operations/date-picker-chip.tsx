@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, Text } from 'react-native';
 
 import { CalendarSheet } from '@/components/ui/calendar-sheet';
 import { CategoryIcon } from '@/components/ui/category-icon';
 import type { OperationsRange } from '@/features/operations/operations-api';
 import { rangeLabel } from '@/lib/format';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type DatePickerChipProps = { value: OperationsRange; onChange: (range: OperationsRange) => void };
 
@@ -41,7 +41,7 @@ export function DatePickerChip({ value, onChange }: DatePickerChipProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   chip: {
     flexShrink: 0,
     flexDirection: 'row',
@@ -57,4 +57,4 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.8 },
   label: { ...typography.labelLegend, color: colors.textSecondary },
-});
+}));

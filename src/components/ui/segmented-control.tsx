@@ -1,6 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { colors, radius, typography } from '@/theme';
+import { colors, radius, themedStyles, typography } from '@/theme';
 
 type Option<T extends string> = { value: T; label: string };
 
@@ -42,7 +42,7 @@ export function SegmentedControl<T extends string>({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   track: {
     minHeight: 42,
     borderRadius: radius.full,
@@ -62,4 +62,4 @@ const styles = StyleSheet.create({
   label: { ...typography.segmentLabel, color: colors.textSecondary },
   labelCompact: { fontSize: 13, letterSpacing: 0.3 },
   labelActive: { color: colors.textOnBrand },
-});
+}));

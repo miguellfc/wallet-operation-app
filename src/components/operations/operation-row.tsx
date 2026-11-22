@@ -5,10 +5,10 @@ import { formatAmount, timeLabel } from '@/lib/format';
 import { colors } from '@/theme';
 
 const KIND = {
-  INCOME: { sign: '+', label: 'Ingreso', color: colors.income, background: colors.categoryIconIncome },
-  OPENING: { sign: '+', label: 'Saldo inicial', color: colors.income, background: colors.categoryIconIncome },
-  EXPENSE: { sign: '-', label: 'Gasto', color: colors.expense, background: colors.categoryIcon },
-  TRANSFER: { sign: '', label: 'Transferencia', color: colors.brand, background: colors.incomeSoft },
+  INCOME: { sign: '+', label: 'Ingreso', color: () => colors.income, background: () => colors.categoryIconIncome },
+  OPENING: { sign: '+', label: 'Saldo inicial', color: () => colors.income, background: () => colors.categoryIconIncome },
+  EXPENSE: { sign: '-', label: 'Gasto', color: () => colors.expense, background: () => colors.categoryIcon },
+  TRANSFER: { sign: '', label: 'Transferencia', color: () => colors.brand, background: () => colors.incomeSoft },
 } as const;
 
 function describe(operation: Operation) {
@@ -45,8 +45,8 @@ export function OperationRow({ operation, onPress }: { operation: Operation; onP
   return (
     <InfoRow
       icon={icon}
-      iconColor={kind.color}
-      iconBackground={kind.background}
+      iconColor={kind.color()}
+      iconBackground={kind.background()}
       title={title}
       detail={detail}
       amount={amount}

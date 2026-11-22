@@ -1,8 +1,8 @@
 import { Image } from 'expo-image';
 import type { PropsWithChildren } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
-import { colors } from '@/theme';
+import { colors, currentTheme, themedStyles } from '@/theme';
 
 type Glow = { left: `${number}%`; top: `${number}%` };
 
@@ -23,7 +23,7 @@ export function ScreenBackground({ glows, children }: PropsWithChildren<{ glows:
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   root: { flex: 1, backgroundColor: colors.bgApp },
   glowLayer: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden' },
   anchor: { position: 'absolute', width: 0, height: 0 },
@@ -33,5 +33,6 @@ const styles = StyleSheet.create({
     height: GLOW_SIZE,
     left: -GLOW_SIZE / 2,
     top: -GLOW_SIZE / 2,
+    opacity: currentTheme() === 'light' ? 0.45 : 1,
   },
-});
+}));

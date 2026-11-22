@@ -1,13 +1,13 @@
 import { router, type Href } from 'expo-router';
 import type { ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { InfoRow } from '@/components/ui/info-row';
 import { TabScroll } from '@/components/wallets/tab-scroll';
 import { loadDebts, type Debt } from '@/features/wallets/wallets-api';
 import { formatAmount } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, themedStyles } from '@/theme';
 
 const openDebt = (id: string) =>
   router.navigate({ pathname: '/debt-detail', params: { id, at: String(Date.now()) } } as Href);
@@ -58,6 +58,6 @@ export function DebtsView({ header }: { header: ReactNode }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   list: { gap: spacing.sm },
-});
+}));

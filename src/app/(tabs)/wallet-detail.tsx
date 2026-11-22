@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
@@ -16,7 +16,8 @@ import { adjustWalletBalance, loadWalletDetail, type WalletDetail } from '@/feat
 import { ApiError } from '@/lib/api';
 import { formatAmount, formatNumber, roundTo } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, fonts, layout, radius, spacing, typography } from '@/theme';
+import { colors, fonts, layout, radius, spacing, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 const PAGE = 20;
 
@@ -143,6 +144,7 @@ function AdjustSheet({ visible, detail, onClose, onDone }: AdjustSheetProps) {
 }
 
 export default function WalletDetailScreen() {
+  useThemeName();
   const insets = useSafeAreaInsets();
   const { id = '' } = useLocalSearchParams<{ id?: string }>();
   const [size, setSize] = useState(PAGE);
@@ -278,7 +280,7 @@ export default function WalletDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xxl,
@@ -290,7 +292,7 @@ const styles = StyleSheet.create({
   card: {
     minHeight: 161,
     borderRadius: 32,
-    backgroundColor: 'rgba(0, 0, 0, 0.26)',
+    backgroundColor: colors.heroCard,
     paddingHorizontal: 23,
     paddingTop: 70,
     paddingBottom: 21,
@@ -342,4 +344,4 @@ const styles = StyleSheet.create({
   hint: { ...typography.bodyMedium, fontSize: 13, color: colors.textSecondary },
   state: { paddingVertical: spacing.xxl, justifyContent: 'center', gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
-});
+}));

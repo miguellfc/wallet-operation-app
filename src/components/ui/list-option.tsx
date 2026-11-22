@@ -1,6 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type ListOptionProps = {
   code: string;
@@ -28,7 +28,7 @@ export function ListOption({ code, name, tag, selected, onPress }: ListOptionPro
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   row: {
     minHeight: 56,
     paddingVertical: spacing.sm,
@@ -54,4 +54,4 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   tagText: { ...typography.labelLegend, color: colors.textMuted },
-});
+}));

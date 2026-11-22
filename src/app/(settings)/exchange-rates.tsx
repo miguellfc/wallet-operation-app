@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
@@ -22,9 +22,8 @@ import {
 import { ApiError } from '@/lib/api';
 import { formatNumber } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, layout, radius, spacing, typography } from '@/theme';
-
-const DANGER = '#F99799';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 const GLOWS = [
   { left: '82%', top: '18%' },
@@ -160,6 +159,7 @@ function RateSheet({ visible, editing, userCurrency, taken, onClose, onDone }: R
 }
 
 export default function ExchangeRatesScreen() {
+  useThemeName();
   const insets = useSafeAreaInsets();
   const { data, error: loadError, retry, refresh } = useApiData(loadExchangeRates);
   const [sheet, setSheet] = useState<{ editing: ExchangeRate | null } | null>(null);
@@ -249,7 +249,7 @@ export default function ExchangeRatesScreen() {
                     hitSlop={8}
                     onPress={() => remove(rate)}
                     style={({ pressed }) => [styles.trash, pressed && styles.pressed]}>
-                    <SvgXml xml={TRASH_ICON} color={DANGER} width={22} height={22} />
+                    <SvgXml xml={TRASH_ICON} color={colors.danger} width={22} height={22} />
                   </Pressable>
                 </View>
               );
@@ -271,7 +271,7 @@ export default function ExchangeRatesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     paddingHorizontal: spacing.xl,
     gap: 15,
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     minHeight: 76,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.divider,
     backgroundColor: colors.row,
     paddingLeft: spacing.xl,
     paddingRight: spacing.lg,
@@ -306,4 +306,4 @@ const styles = StyleSheet.create({
   error: { ...typography.bodyMedium, color: colors.error, textAlign: 'center' },
   state: { paddingVertical: spacing.xxl, justifyContent: 'center', gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.lg },
-});
+}));

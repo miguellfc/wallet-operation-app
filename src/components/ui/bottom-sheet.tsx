@@ -2,7 +2,7 @@ import type { PropsWithChildren } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, layout, radius, spacing, typography } from '@/theme';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 
 type BottomSheetProps = PropsWithChildren<{ visible: boolean; title: string; onClose: () => void }>;
 
@@ -25,7 +25,7 @@ export function BottomSheet({ visible, title, onClose, children }: BottomSheetPr
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
   sheet: {
     width: '100%',
@@ -42,4 +42,4 @@ const styles = StyleSheet.create({
   },
   handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: radius.full, backgroundColor: colors.textMuted },
   title: { ...typography.titleSection, color: colors.textPrimary },
-});
+}));

@@ -1,9 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { HomeHeader } from '@/components/home/home-header';
 import { loadProfile } from '@/features/wallets/wallets-api';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, typography } from '@/theme';
+import { colors, themedStyles, typography } from '@/theme';
 
 export function AddHeader({ title }: { title: string }) {
   const { data: profile } = useApiData(loadProfile);
@@ -18,7 +18,7 @@ export function AddHeader({ title }: { title: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   header: { gap: 17 },
   title: { ...typography.titleSection, color: colors.textPrimary },
-});
+}));

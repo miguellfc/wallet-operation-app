@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { CalendarSheet } from '@/components/ui/calendar-sheet';
 import { ClockSheet } from '@/components/ui/clock-sheet';
 import { clockLabel, shortDateLabel } from '@/lib/format';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type DateTimeFieldProps = {
   label: string;
@@ -46,7 +46,7 @@ export function DateTimeField({ label, mode, value, allowFuture = false, onChang
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   container: { flex: 1, gap: 10 },
   label: { ...typography.labelOverline, color: colors.textSecondary },
   field: {
@@ -58,4 +58,4 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.85 },
   value: { ...typography.bodyMedium, color: colors.textPrimary },
-});
+}));

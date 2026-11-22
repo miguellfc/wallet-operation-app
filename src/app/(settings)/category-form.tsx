@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackHeader } from '@/components/settings/back-header';
@@ -25,7 +25,8 @@ import { DEFAULT_WALLET_COLOR } from '@/features/wallets/wallet-options';
 import { ApiError } from '@/lib/api';
 import { normalizeName } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, layout, radius, spacing, typography } from '@/theme';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 const TYPES: { value: CategoryType; label: string }[] = [
   { value: 'EXPENSE', label: 'Gastos' },
@@ -52,6 +53,7 @@ function saveErrorMessage(error: unknown) {
 }
 
 export default function CategoryFormScreen() {
+  useThemeName();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ edit?: string; type?: string; at?: string }>();
   const editId = params.edit;
@@ -157,13 +159,13 @@ export default function CategoryFormScreen() {
                 style={({ pressed }) => [styles.select, pressed && styles.pressed]}>
                 <View style={styles.selectValue}>
                   <View style={styles.iconSlot}>
-                    <CategoryIcon name={icon} color={colors.textInverse} size={22} />
+                    <CategoryIcon name={icon} color={colors.iconOnSurface} size={22} />
                   </View>
                   <Text style={styles.selectText} numberOfLines={1}>
                     {iconLabel(icon)}
                   </Text>
                 </View>
-                <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} style={styles.chevron} />
+                <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} tintColor={colors.brand} style={styles.chevron} />
               </Pressable>
             </View>
             {error && (
@@ -184,7 +186,7 @@ export default function CategoryFormScreen() {
         selected={icon}
         renderItem={item => (
           <View style={styles.gridIcon}>
-            <CategoryIcon name={item.value} color={colors.textInverse} size={28} />
+            <CategoryIcon name={item.value} color={colors.iconOnSurface} size={28} />
           </View>
         )}
         onSelect={setIcon}
@@ -194,7 +196,7 @@ export default function CategoryFormScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     paddingHorizontal: spacing.xl,
     gap: 15,
@@ -226,4 +228,4 @@ const styles = StyleSheet.create({
   action: { marginTop: 12 },
   state: { paddingVertical: spacing.xxl, justifyContent: 'center', gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
-});
+}));

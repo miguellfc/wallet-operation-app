@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, layout, radius, spacing, typography } from '@/theme';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 
 type GridItem = { value: string; label: string };
 
@@ -55,7 +55,7 @@ export function GridSheet({ visible, title, items, selected, renderItem, onSelec
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
   sheet: {
     maxHeight: '75%',
@@ -92,4 +92,4 @@ const styles = StyleSheet.create({
   },
   selected: { backgroundColor: colors.surface, borderColor: colors.brand },
   pressed: { opacity: 0.85 },
-});
+}));

@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
 import { appendKey, evaluate } from '@/lib/calculator';
 import { formatAmount, roundTo } from '@/lib/format';
-import { colors, layout, radius, spacing, typography } from '@/theme';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 
 type Key = { value: string; label: string; spoken: string; operator?: boolean };
 
@@ -167,7 +167,7 @@ export function AmountField({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   container: { gap: 10 },
   label: { ...typography.labelOverline, color: colors.textSecondary },
   field: {
@@ -225,4 +225,4 @@ const styles = StyleSheet.create({
   operatorLabel: { color: colors.brand },
   clearLabel: { ...typography.titleSection, fontSize: 20, color: colors.textSecondary },
   done: { flexGrow: 2, flexShrink: 1, flexBasis: spacing.sm },
-});
+}));

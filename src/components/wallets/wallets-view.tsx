@@ -1,6 +1,6 @@
 import { router, type Href } from 'expo-router';
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { BalanceCard } from '@/components/home/balance-card';
 import { TabScroll } from '@/components/wallets/tab-scroll';
@@ -8,7 +8,7 @@ import { WalletCard } from '@/components/wallets/wallet-card';
 import { loadWallets, type WalletSummary } from '@/features/wallets/wallets-api';
 import { formatAmount, formatNumber } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, spacing, typography } from '@/theme';
+import { colors, spacing, themedStyles, typography } from '@/theme';
 
 const GRID_GAP = 15;
 
@@ -64,9 +64,9 @@ export function WalletsView({ header }: { header: ReactNode }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   section: { gap: GRID_GAP },
   title: { ...typography.titleSection, fontFamily: typography.bodyMedium.fontFamily, color: colors.textPrimary, marginBottom: -spacing.xs },
   row: { flexDirection: 'row', gap: GRID_GAP },
   spacer: { flex: 1 },
-});
+}));

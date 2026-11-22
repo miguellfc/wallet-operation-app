@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState, type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddHeader } from '@/components/add/add-header';
@@ -29,7 +29,8 @@ import {
 import { ApiError } from '@/lib/api';
 import { currencyDecimals, roundTo } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, layout, radius, spacing, typography } from '@/theme';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
+import { useThemeName } from '@/features/theme/theme-store';
 
 type Sheet = 'type' | 'currency' | 'icon';
 
@@ -66,12 +67,13 @@ function PickerBox({ label, value, onPress, children }: PickerBoxProps) {
       onPress={onPress}
       style={({ pressed }) => [styles.picker, pressed && styles.pressed]}>
       {children}
-      <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} style={styles.chevron} />
+      <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} tintColor={colors.brand} style={styles.chevron} />
     </Pressable>
   );
 }
 
 export default function AddWalletScreen() {
+  useThemeName();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ edit?: string; at?: string }>();
   const editId = params.edit;
@@ -336,7 +338,7 @@ export default function AddWalletScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   content: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xxl,
@@ -367,8 +369,8 @@ const styles = StyleSheet.create({
   chevron: { width: 11.5, height: 5.5, marginRight: 4 },
   iconBox: { width: 36, height: 36, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   toggleRow: { flexDirection: 'row', alignItems: 'center', gap: 20, marginTop: 10, minHeight: layout.minTouchTarget },
-  track: { width: 42, height: 15, borderRadius: radius.md, backgroundColor: 'rgba(255, 255, 255, 0.12)', justifyContent: 'center' },
-  trackOn: { backgroundColor: 'rgba(151, 161, 249, 0.35)' },
+  track: { width: 42, height: 15, borderRadius: radius.md, backgroundColor: colors.track, justifyContent: 'center' },
+  trackOn: { backgroundColor: colors.trackOn },
   knob: { width: 22, height: 22, borderRadius: 11, backgroundColor: colors.textMuted, marginLeft: -2 },
   knobOn: { backgroundColor: colors.brand, marginLeft: 22 },
   toggleText: { flex: 1, gap: 4 },
@@ -378,4 +380,4 @@ const styles = StyleSheet.create({
   action: { marginTop: 19 },
   state: { paddingVertical: spacing.xxl, justifyContent: 'center', gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
-});
+}));
