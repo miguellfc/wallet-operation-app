@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 
@@ -12,7 +13,7 @@ const ARROW_ICON =
 
 const goBack = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
-export function BackHeader({ title }: { title: string }) {
+export function BackHeader({ title, action }: { title: string; action?: ReactNode }) {
   const { data: profile } = useApiData(loadProfile);
 
   return (
@@ -30,6 +31,7 @@ export function BackHeader({ title }: { title: string }) {
         <Text style={styles.title} accessibilityRole="header" numberOfLines={1}>
           {title}
         </Text>
+        {action && <View style={styles.action}>{action}</View>}
       </View>
     </View>
   );
@@ -41,4 +43,5 @@ const styles = StyleSheet.create({
   back: { marginLeft: spacing.xs },
   pressed: { opacity: 0.7 },
   title: { ...typography.titleSection, color: colors.textPrimary, flexShrink: 1 },
+  action: { marginLeft: 'auto' },
 });

@@ -29,6 +29,8 @@ const MOON_ICON =
 
 const openCategories = () => router.navigate('/category-settings' as Href);
 
+const openExchangeRates = () => router.navigate('/exchange-rates' as Href);
+
 type SettingsCardProps = { icon: ReactNode; title: string; detail: string; onPress?: () => void };
 
 function SettingsCard({ icon, title, detail, onPress }: SettingsCardProps) {
@@ -73,6 +75,7 @@ export default function SettingsScreen() {
             icon={<SvgXml xml={EXCHANGE_ICON} color={colors.textInverse} width={30} height={30} />}
             title="Tasas de cambio"
             detail="Configura las tasas de cambio"
+            onPress={openExchangeRates}
           />
           <SettingsCard
             icon={<SvgXml xml={CATEGORY_ICON} color={colors.textInverse} width={28} height={28} />}
