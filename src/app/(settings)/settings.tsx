@@ -31,6 +31,8 @@ const openCategories = () => router.navigate('/category-settings' as Href);
 
 const openExchangeRates = () => router.navigate('/exchange-rates' as Href);
 
+const openAccount = () => router.navigate('/account' as Href);
+
 type SettingsCardProps = { icon: ReactNode; title: string; detail: string; onPress?: () => void };
 
 function SettingsCard({ icon, title, detail, onPress }: SettingsCardProps) {
@@ -70,6 +72,7 @@ export default function SettingsScreen() {
             icon={<Image contentFit="contain" source={require('@/assets/icons/user-rounded.svg')} tintColor={colors.textInverse} style={styles.userIcon} />}
             title="Mi cuenta"
             detail="Administra tu información personal"
+            onPress={openAccount}
           />
           <SettingsCard
             icon={<SvgXml xml={EXCHANGE_ICON} color={colors.textInverse} width={30} height={30} />}
