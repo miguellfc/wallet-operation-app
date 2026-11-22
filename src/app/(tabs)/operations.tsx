@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { FilterChips } from '@/components/ui/filter-chips';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { SummaryCard } from '@/components/ui/summary-card';
-import { confirmSignOut } from '@/features/auth/sign-out';
 import { loadRangeOperations, type Operation, type OperationsRange } from '@/features/operations/operations-api';
 import { ApiError } from '@/lib/api';
 import { formatAmount } from '@/lib/format';
@@ -126,7 +125,7 @@ export default function OperationsScreen() {
           />
         }>
         <View style={styles.top}>
-          <HomeHeader name={data.firstName} onProfilePress={confirmSignOut} />
+          <HomeHeader name={data.firstName} />
           <View style={styles.subheader}>
             <Text style={styles.overline}>Cierre en tiempo real</Text>
             <DatePickerChip value={range} onChange={changeRange} />

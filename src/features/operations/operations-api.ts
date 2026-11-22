@@ -13,7 +13,7 @@ export type Operation = {
   description?: string;
   date: string;
   amount: { from?: CurrencyAmount; to?: CurrencyAmount; user: CurrencyAmount };
-  category?: { id: string; name: string; color?: string };
+  category?: { id: string; name: string; color?: string; icon?: string };
   wallets: { from?: OperationWallet; to?: OperationWallet };
   debt?: { id: string; action: 'OPENING' | 'PAYMENT' | 'INCREASE'; amount: number };
 };

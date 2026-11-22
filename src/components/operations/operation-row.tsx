@@ -1,4 +1,5 @@
 import { InfoRow } from '@/components/ui/info-row';
+import { categoryIconName } from '@/features/categories/categories-api';
 import type { Operation } from '@/features/operations/operations-api';
 import { formatAmount, timeLabel } from '@/lib/format';
 import { colors } from '@/theme';
@@ -20,7 +21,7 @@ function describe(operation: Operation) {
   const wallet = (operation.type === 'EXPENSE' ? from : to)?.name;
   return {
     title: operation.description || category,
-    icon: operation.type === 'OPENING' ? 'Saldo inicial' : category,
+    icon: operation.type === 'OPENING' ? 'Saldo inicial' : operation.category ? categoryIconName(operation.category) : category,
     detail: wallet ? `${category} · ${wallet}` : category,
   };
 }

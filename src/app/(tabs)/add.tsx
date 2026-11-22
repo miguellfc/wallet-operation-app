@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AddOption } from '@/components/add/add-option';
 import { HomeHeader } from '@/components/home/home-header';
 import { ScreenBackground } from '@/components/ui/screen-background';
-import { confirmSignOut } from '@/features/auth/sign-out';
 import { loadProfile } from '@/features/wallets/wallets-api';
 import { useApiData } from '@/lib/use-api-data';
 import { layout, spacing } from '@/theme';
@@ -56,7 +55,7 @@ export default function AddScreen() {
   return (
     <ScreenBackground glows={[...GLOWS]}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}>
-        <HomeHeader name={profile?.firstName ?? ''} onProfilePress={confirmSignOut} />
+        <HomeHeader name={profile?.firstName ?? ''} />
         <View style={styles.list}>
           {OPTIONS.map(option => (
             <AddOption

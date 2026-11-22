@@ -5,7 +5,7 @@ export type FormOperationType = 'INCOME' | 'EXPENSE' | 'TRANSFER';
 
 export type FormWallet = WalletSummary;
 
-export type FormCategory = { id: string; name: string; type: 'INCOME' | 'EXPENSE' };
+export type FormCategory = { id: string; name: string; type: 'INCOME' | 'EXPENSE'; icon?: string };
 
 export type OperationFormData = { wallets: FormWallet[]; categories: FormCategory[] };
 
@@ -26,14 +26,14 @@ const PAGE_SIZE = 200;
 export async function loadOperationForm(): Promise<OperationFormData> {
   const [wallets, categories] = await Promise.all([
     loadWallets(),
-    authRequest<Page<{ _id: string; name: string; type: FormCategory['type'] }>>('/categories/search', {
+    authRequest<Page<{ _id: string; name: string; type: FormCategory['type']; icon?: string }>>('/categories/search', {
       method: 'POST',
       body: { size: PAGE_SIZE, sort: { name: 1 } },
     }),
   ]);
   return {
     wallets: wallets.wallets,
-    categories: categories.data.map(category => ({ id: category._id, name: category.name, type: category.type })),
+    categories: categories.data.map(category => ({ id: category._id, name: category.name, type: category.type, icon: category.icon })),
   };
 }
 
