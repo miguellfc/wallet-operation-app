@@ -1,12 +1,15 @@
 import { Image } from 'expo-image';
+import { router, type Href } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BrandGradient } from '@/components/ui/brand-gradient';
 import { colors, radius, spacing, typography } from '@/theme';
 
-type HomeHeaderProps = { name: string; onProfilePress: () => void };
+type HomeHeaderProps = { name: string; showProfile?: boolean; onProfilePress?: () => void };
 
-export function HomeHeader({ name, onProfilePress }: HomeHeaderProps) {
+const openSettings = () => router.navigate('/settings' as Href);
+
+export function HomeHeader({ name, showProfile = true, onProfilePress = openSettings }: HomeHeaderProps) {
   return (
     <View style={styles.header}>
       <View style={styles.greeting}>
@@ -21,14 +24,16 @@ export function HomeHeader({ name, onProfilePress }: HomeHeaderProps) {
           </Text>
         </View>
       </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Perfil"
-        onPress={onProfilePress}
-        hitSlop={8}
-        style={styles.avatar}>
-        <Image contentFit="contain" source={require('@/assets/icons/user-rounded.svg')} style={styles.avatarIcon} />
-      </Pressable>
+      {showProfile && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Ajustes"
+          onPress={onProfilePress}
+          hitSlop={8}
+          style={styles.avatar}>
+          <Image contentFit="contain" source={require('@/assets/icons/user-rounded.svg')} style={styles.avatarIcon} />
+        </Pressable>
+      )}
     </View>
   );
 }

@@ -9,7 +9,6 @@ import { HomeHeader } from '@/components/home/home-header';
 import { Button } from '@/components/ui/button';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { SummaryCard } from '@/components/ui/summary-card';
-import { confirmSignOut } from '@/features/auth/sign-out';
 import { loadCashFlow, loadHome, type CashFlowInterval, type CategoryTotal } from '@/features/home/home-api';
 import { formatAmount } from '@/lib/format';
 import { ApiError } from '@/lib/api';
@@ -76,7 +75,7 @@ export default function HomeScreen() {
             progressBackgroundColor={colors.bgApp}
           />
         }>
-        <HomeHeader name={data.firstName} onProfilePress={confirmSignOut} />
+        <HomeHeader name={data.firstName} />
         <View style={styles.body}>
           <BalanceCard amount={formatAmount(data.balance, code)} />
           <View style={styles.totals}>

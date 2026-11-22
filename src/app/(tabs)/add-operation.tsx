@@ -464,7 +464,11 @@ export default function AddOperationScreen() {
         options={sheetOptions}
         selected={sheetSelected}
         emptyText={sheet === 'category' ? 'No tienes categorías de este tipo' : 'No tienes billeteras'}
-        iconFor={option => (sheet === 'category' ? option.label : 'billetera')}
+        iconFor={option =>
+          sheet === 'category'
+            ? (categories.find(item => item.id === option.value)?.icon ?? option.label)
+            : 'billetera'
+        }
         onSelect={selectFromSheet}
         onClose={() => setSheet(null)}
       />

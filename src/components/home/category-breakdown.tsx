@@ -37,6 +37,7 @@ export function CategoryBreakdown({ categories, currencyCode }: CategoryBreakdow
               <CategoryRow
                 key={item.category.id}
                 name={item.category.name}
+                icon={item.category.icon}
                 amount={formatAmount(item.total, currencyCode)}
                 percent={`${Math.round((item.total / total) * 100)}%`}
                 color={colorOf(item)}

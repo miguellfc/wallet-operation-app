@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { CategoryIcon } from '@/components/ui/category-icon';
 import { showConfirm } from '@/components/ui/confirm-dialog';
 import { ScreenBackground } from '@/components/ui/screen-background';
+import { categoryIconName } from '@/features/categories/categories-api';
 import { deleteOperation, loadOperation, type Operation } from '@/features/operations/operations-api';
 import { ApiError } from '@/lib/api';
 import { formatAmount } from '@/lib/format';
@@ -110,7 +111,14 @@ export default function OperationDetailScreen() {
   const debtOpening = current?.debt?.action === 'OPENING';
   const chip = current?.type === 'TRANSFER' ? 'Transferencia' : opening ? 'Saldo inicial' : (current?.category?.name ?? '');
   const accent = current ? (isColor(current.category?.color) ? current.category.color : TYPE_COLORS[current.type]) : colors.brand;
-  const icon = current?.type === 'TRANSFER' ? 'Transferencia' : opening ? 'Saldo inicial' : (current?.category?.name ?? '');
+  const icon =
+    current?.type === 'TRANSFER'
+      ? 'Transferencia'
+      : opening
+        ? 'Saldo inicial'
+        : current?.category
+          ? categoryIconName(current.category)
+          : '';
 
   const edit = () => {
     if (!current) return;

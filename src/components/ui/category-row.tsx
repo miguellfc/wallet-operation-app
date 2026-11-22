@@ -5,17 +5,18 @@ import { colors, radius, spacing, typography } from '@/theme';
 
 type CategoryRowProps = {
   name: string;
+  icon?: string;
   amount: string;
   percent: string;
   color: string;
   iconBackground: string;
 };
 
-export function CategoryRow({ name, amount, percent, color, iconBackground }: CategoryRowProps) {
+export function CategoryRow({ name, icon, amount, percent, color, iconBackground }: CategoryRowProps) {
   return (
     <View style={styles.row} accessible accessibilityLabel={`${name}, ${amount}, ${percent}`}>
       <View style={[styles.iconBox, { backgroundColor: iconBackground }]}>
-        <CategoryIcon name={name} color={color} />
+        <CategoryIcon name={icon || name} color={color} />
       </View>
       <View style={styles.content}>
         <Text style={styles.name} numberOfLines={1}>

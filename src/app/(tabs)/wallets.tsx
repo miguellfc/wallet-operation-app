@@ -8,7 +8,6 @@ import { SegmentedControl } from '@/components/ui/segmented-control';
 import { DebtsView } from '@/components/wallets/debts-view';
 import { RecurrencesView } from '@/components/wallets/recurrences-view';
 import { WalletsView } from '@/components/wallets/wallets-view';
-import { confirmSignOut } from '@/features/auth/sign-out';
 import { loadProfile } from '@/features/wallets/wallets-api';
 import { useApiData } from '@/lib/use-api-data';
 import { colors, spacing } from '@/theme';
@@ -42,7 +41,7 @@ export default function WalletsScreen() {
 
   const header = (
     <View style={styles.header}>
-      <HomeHeader name={profile?.firstName ?? ''} onProfilePress={confirmSignOut} />
+      <HomeHeader name={profile?.firstName ?? ''} />
       <SegmentedControl options={SECTIONS} value={section} onChange={setSection} activeColor={colors.brand} compact />
     </View>
   );

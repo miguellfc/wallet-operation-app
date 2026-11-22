@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { HomeHeader } from '@/components/home/home-header';
-import { confirmSignOut } from '@/features/auth/sign-out';
 import { loadProfile } from '@/features/wallets/wallets-api';
 import { useApiData } from '@/lib/use-api-data';
 import { colors, typography } from '@/theme';
@@ -11,7 +10,7 @@ export function AddHeader({ title }: { title: string }) {
 
   return (
     <View style={styles.header}>
-      <HomeHeader name={profile?.firstName ?? ''} onProfilePress={confirmSignOut} />
+      <HomeHeader name={profile?.firstName ?? ''} />
       <Text style={styles.title} accessibilityRole="header">
         {title}
       </Text>
