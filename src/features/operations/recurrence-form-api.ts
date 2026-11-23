@@ -1,4 +1,6 @@
 import { authRequest } from '@/features/auth/auth-request';
+import { isLocal } from '@/lib/data-source';
+import { createLocalRecurrence } from '@/lib/local-db/recurrences';
 
 export type Frequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
 
@@ -103,6 +105,7 @@ function toPayload(draft: RecurrenceDraft) {
 }
 
 export async function createRecurrence(operationId: string, draft: RecurrenceDraft) {
+  if (isLocal) return createLocalRecurrence(operationId, toPayload(draft));
   return authRequest<{ _id: string }>('/recurrences', {
     method: 'POST',
     body: { operation: operationId, ...toPayload(draft) },

@@ -8,6 +8,7 @@ import { SvgXml } from 'react-native-svg';
 import { BackHeader } from '@/components/settings/back-header';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { confirmSignOut } from '@/features/auth/sign-out';
+import { isLocal } from '@/lib/data-source';
 import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 import { useThemeName } from '@/features/theme/theme-store';
 
@@ -23,12 +24,17 @@ const EXCHANGE_ICON =
 const CATEGORY_ICON =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><rect width="7" height="7" x="3" y="3" rx="2"/><rect width="7" height="7" x="3" y="14" rx="2"/><rect width="7" height="7" x="14" y="14" rx="2"/><path stroke-linecap="round" d="M17.5 3v7M14 6.5h7"/></g></svg>';
 
+const BACKUP_ICON =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"><path d="M4 18V6m16 0v12"/><path d="M4 6c0 2.21 3.58 4 8 4s8-1.79 8-4-3.58-4-8-4-8 1.79-8 4Z"/><path d="M20 12c0 2.21-3.58 4-8 4s-8-1.79-8-4m16 6c0 2.21-3.58 4-8 4s-8-1.79-8-4"/></g></svg>';
+
 const MOON_ICON =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.5" d="M21 14.5A9 9 0 0 1 9.5 3a9 9 0 1 0 11.5 11.5Z"/></svg>';
 
 const openCategories = () => router.navigate('/category-settings' as Href);
 
 const openExchangeRates = () => router.navigate('/exchange-rates' as Href);
+
+const openBackup = () => router.navigate('/backup' as Href);
 
 const openAccount = () => router.navigate('/account' as Href);
 
@@ -70,12 +76,14 @@ export default function SettingsScreen() {
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
         <BackHeader title="Ajustes" />
         <View style={styles.list}>
-          <SettingsCard
-            icon={<Image contentFit="contain" source={require('@/assets/icons/user-rounded.svg')} tintColor={colors.textInverse} style={styles.userIcon} />}
-            title="Mi cuenta"
-            detail="Administra tu información personal"
-            onPress={openAccount}
-          />
+          {!isLocal && (
+            <SettingsCard
+              icon={<Image contentFit="contain" source={require('@/assets/icons/user-rounded.svg')} tintColor={colors.textInverse} style={styles.userIcon} />}
+              title="Mi cuenta"
+              detail="Administra tu información personal"
+              onPress={openAccount}
+            />
+          )}
           <SettingsCard
             icon={<SvgXml xml={EXCHANGE_ICON} color={colors.textInverse} width={30} height={30} />}
             title="Tasas de cambio"
@@ -94,14 +102,26 @@ export default function SettingsScreen() {
             detail="Elige entre el modo claro y oscuro"
             onPress={openTheme}
           />
+          {isLocal && (
+            <SettingsCard
+              icon={<SvgXml xml={BACKUP_ICON} color={colors.textInverse} width={28} height={28} />}
+              title="Copia de seguridad"
+              detail="Exporta o importa tus datos en un archivo"
+              onPress={openBackup}
+            />
+          )}
         </View>
-        <View style={styles.spacer} />
-        <Pressable
-          accessibilityRole="button"
-          onPress={confirmSignOut}
-          style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}>
-          <Text style={styles.signOutLabel}>Cerrar sesión</Text>
-        </Pressable>
+        {!isLocal && (
+          <>
+            <View style={styles.spacer} />
+            <Pressable
+              accessibilityRole="button"
+              onPress={confirmSignOut}
+              style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}>
+              <Text style={styles.signOutLabel}>Cerrar sesión</Text>
+            </Pressable>
+          </>
+        )}
       </ScrollView>
     </ScreenBackground>
   );

@@ -1,5 +1,9 @@
+import { loadAccount } from '@/features/auth/account-api';
 import { authRequest } from '@/features/auth/auth-request';
 import type { Currency } from '@/features/currencies/currency-api';
+import { isLocal } from '@/lib/data-source';
+import { localCashFlow, localCategoryTotals } from '@/lib/local-db/statistics';
+import { localUserBalance } from '@/lib/local-db/wallets';
 
 export type OperationKind = 'INCOME' | 'EXPENSE';
 
@@ -15,8 +19,6 @@ export type CashFlowPeriod = { period: string; income: number; expense: number; 
 export type CashFlowInterval = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
 
 export type CashFlowData = { interval: CashFlowInterval; periods: CashFlowPeriod[] };
-
-type Profile = { firstName: string; lastName: string };
 
 export type HomeData = {
   firstName: string;
@@ -48,6 +50,13 @@ function chartStart(interval: CashFlowInterval) {
 }
 
 export async function loadCashFlow(interval: CashFlowInterval): Promise<CashFlowData> {
+  if (isLocal) {
+    const periods = await localCashFlow(
+      { from: chartStart(interval).toISOString(), to: chartEnd().toISOString() },
+      interval,
+    );
+    return { interval, periods: periods.slice(-PERIODS_IN_CHART[interval]) };
+  }
   const cashFlow = await authRequest<{ periods: CashFlowPeriod[] }>('/statistics/cash-flow', {
     method: 'POST',
     body: { from: chartStart(interval).toISOString(), to: chartEnd().toISOString(), interval },
@@ -56,8 +65,16 @@ export async function loadCashFlow(interval: CashFlowInterval): Promise<CashFlow
 }
 
 export async function loadHome(): Promise<HomeData> {
+  if (isLocal) {
+    const profile = await loadAccount();
+    const [balance, categories] = await Promise.all([
+      localUserBalance(profile.currency),
+      localCategoryTotals({ to: new Date().toISOString() }),
+    ]);
+    return { firstName: profile.firstName, currency: profile.currency, balance, categories };
+  }
   const [profile, balance, categories] = await Promise.all([
-    authRequest<Profile>('/users'),
+    loadAccount(),
     authRequest<{ currency: Currency; balance: number }>('/balance'),
     authRequest<{ categories: CategoryTotal[] }>('/statistics/categories', { method: 'POST', body: {} }),
   ]);
