@@ -64,3 +64,9 @@ export async function createProfile({ firstName, lastName, currency }: LocalProf
   });
   return { firstName, lastName, currency };
 }
+
+export async function requireProfile() {
+  const profile = await readProfile();
+  if (!profile) throw new Error('LOCAL_PROFILE_MISSING');
+  return profile;
+}

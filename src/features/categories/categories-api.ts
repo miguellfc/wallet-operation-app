@@ -1,5 +1,7 @@
 import { authRequest } from '@/features/auth/auth-request';
 import { CATEGORY_ICONS } from '@/features/categories/category-icons';
+import { isLocal } from '@/lib/data-source';
+import * as local from '@/lib/local-db/categories';
 
 export type CategoryType = 'INCOME' | 'EXPENSE';
 
@@ -30,6 +32,7 @@ export const DEFAULT_CATEGORY_ICON = 'otros';
 export const categoryIconName = (category: { name: string; icon?: string }) => category.icon || category.name;
 
 export async function loadCategories(type: CategoryType) {
+  if (isLocal) return { type, categories: await local.listCategories(type) };
   const page = await authRequest<{ data: Category[] }>('/categories/search', {
     method: 'POST',
     body: { filters: { type }, sort: { name: 1 }, size: 200 },
@@ -38,17 +41,21 @@ export async function loadCategories(type: CategoryType) {
 }
 
 export async function loadCategory(id: string) {
+  if (isLocal) return local.getCategory(id);
   return authRequest<Category>(`/categories/${id}`);
 }
 
 export async function createCategory(type: CategoryType, input: CategoryInput) {
+  if (isLocal) return local.createCategory(type, input);
   return authRequest<{ _id: string }>('/categories', { method: 'POST', body: { type, ...input } });
 }
 
 export async function updateCategory(id: string, input: CategoryInput) {
+  if (isLocal) return local.updateCategory(id, input);
   return authRequest<{ _id: string }>(`/categories/${id}`, { method: 'PATCH', body: input });
 }
 
 export async function deleteCategory(id: string) {
+  if (isLocal) return local.deleteCategory(id);
   return authRequest<unknown>(`/categories/${id}`, { method: 'DELETE' });
 }

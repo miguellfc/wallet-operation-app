@@ -2,6 +2,8 @@ import { loadAccount } from '@/features/auth/account-api';
 import { authRequest } from '@/features/auth/auth-request';
 import type { CurrencyType } from '@/features/currencies/currency-api';
 import type { Operation } from '@/features/operations/operations-api';
+import { isLocal } from '@/lib/data-source';
+import * as local from '@/lib/local-db/wallets';
 import { currencyDecimals } from '@/lib/format';
 
 type CurrencyRef = { code: string };
@@ -46,6 +48,7 @@ export async function loadProfile() {
 }
 
 export async function loadWallets(): Promise<WalletsData> {
+  if (isLocal) return local.listWallets();
   const [total, wallets] = await Promise.all([
     authRequest<{ currency: CurrencyRef; balance: number }>('/balance'),
     authRequest<Page<{ _id: string; name: string; excluded: boolean; icon: string; color: string; currency: CurrencyRef & { type: CurrencyType } }>>('/wallets/search', {
@@ -72,7 +75,8 @@ export async function loadWallets(): Promise<WalletsData> {
   };
 }
 
-export async function loadDebts() {
+export async function loadDebts(): Promise<Debt[]> {
+  if (isLocal) return [];
   const page = await authRequest<Page<Debt>>('/debts/search', {
     method: 'POST',
     body: { filters: { status: { $in: ['PENDING', 'PARTIAL'] } }, sort: { date: -1 }, size: PAGE_SIZE },
@@ -81,6 +85,7 @@ export async function loadDebts() {
 }
 
 export async function loadRecurrences(): Promise<RecurrenceItem[]> {
+  if (isLocal) return [];
   const page = await authRequest<Page<Recurrence>>('/recurrences/search', {
     method: 'POST',
     body: { filters: { completed: false }, sort: { nextExecution: 1 }, size: PAGE_SIZE },
@@ -120,10 +125,12 @@ export type WalletDetail = {
 };
 
 export async function loadWallet(id: string) {
+  if (isLocal) return local.getWallet(id);
   return authRequest<WalletDocument>(`/wallets/${id}`);
 }
 
 export async function loadWalletDetail(id: string, size: number): Promise<WalletDetail> {
+  if (isLocal) return local.getWalletDetail(id, size);
   const [wallet, summary, wallets, operations] = await Promise.all([
     loadWallet(id),
     authRequest<{ balance: number; counts: WalletDetail['counts'] }>(`/balance/wallet/${id}/summary`),
@@ -152,9 +159,11 @@ export async function loadWalletDetail(id: string, size: number): Promise<Wallet
 }
 
 export async function adjustWalletBalance(id: string, balance: number, date: string) {
+  if (isLocal) return local.adjustWalletBalance(id, balance, date);
   return authRequest<{ _id: string }>(`/wallets/${id}/adjust`, { method: 'POST', body: { balance, date } });
 }
 
 export async function updateWallet(id: string, changes: Record<string, unknown>) {
+  if (isLocal) return local.updateWallet(id, changes as local.WalletChanges);
   return authRequest<{ _id: string }>(`/wallets/${id}`, { method: 'PATCH', body: changes });
 }

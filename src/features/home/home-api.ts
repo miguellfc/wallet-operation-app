@@ -2,6 +2,7 @@ import { loadAccount } from '@/features/auth/account-api';
 import { authRequest } from '@/features/auth/auth-request';
 import type { Currency } from '@/features/currencies/currency-api';
 import { isLocal } from '@/lib/data-source';
+import { localUserBalance } from '@/lib/local-db/wallets';
 
 export type OperationKind = 'INCOME' | 'EXPENSE';
 
@@ -59,7 +60,8 @@ export async function loadCashFlow(interval: CashFlowInterval): Promise<CashFlow
 export async function loadHome(): Promise<HomeData> {
   if (isLocal) {
     const profile = await loadAccount();
-    return { firstName: profile.firstName, currency: profile.currency, balance: 0, categories: [] };
+    const balance = await localUserBalance(profile.currency);
+    return { firstName: profile.firstName, currency: profile.currency, balance, categories: [] };
   }
   const [profile, balance, categories] = await Promise.all([
     loadAccount(),
