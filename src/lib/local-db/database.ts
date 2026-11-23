@@ -1,4 +1,4 @@
-import { openDatabaseAsync, type SQLiteDatabase } from 'expo-sqlite';
+import { deleteDatabaseAsync, openDatabaseAsync, type SQLiteDatabase } from 'expo-sqlite';
 
 import { migrate } from './migrations';
 
@@ -19,4 +19,11 @@ export function getDatabase() {
     throw error;
   });
   return opening;
+}
+
+export async function deleteDatabase() {
+  const current = opening;
+  opening = null;
+  if (current) await (await current.catch(() => null))?.closeAsync();
+  await deleteDatabaseAsync(DATABASE_NAME);
 }

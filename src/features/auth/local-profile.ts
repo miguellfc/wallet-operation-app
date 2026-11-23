@@ -17,6 +17,7 @@ const subscribe = (listener: () => void) => {
 export async function restoreLocalProfile() {
   current = await readProfile();
   emit();
+  return current;
 }
 
 export async function saveLocalProfile(profile: LocalProfile) {
@@ -28,6 +29,11 @@ export async function getLocalProfile() {
   current ??= await readProfile();
   if (!current) throw new Error('LOCAL_PROFILE_MISSING');
   return current;
+}
+
+export function clearLocalProfile() {
+  current = null;
+  emit();
 }
 
 export function useLocalProfile() {

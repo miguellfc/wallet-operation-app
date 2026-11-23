@@ -12,16 +12,20 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 
+import { AppLock } from '@/components/lock/app-lock';
 import { ConfirmDialogHost } from '@/components/ui/confirm-dialog';
 import { restoreLocalProfile } from '@/features/auth/local-profile';
 import { restoreSession } from '@/features/auth/session';
+import { restoreLock, watchAppState } from '@/features/lock/lock-store';
 import { isLocal } from '@/lib/data-source';
 import { colors, fonts } from '@/theme';
 import { useThemeName } from '@/features/theme/theme-store';
 
 SplashScreen.preventAutoHideAsync();
 
-const restore = isLocal ? restoreLocalProfile : restoreSession;
+const restoreLocal = async () => restoreLock((await restoreLocalProfile()) !== null);
+
+const restore = isLocal ? restoreLocal : restoreSession;
 
 export default function RootLayout() {
   const themeName = useThemeName();
@@ -47,12 +51,15 @@ export default function RootLayout() {
     if (ready) SplashScreen.hideAsync();
   }, [ready]);
 
+  useEffect(() => (isLocal ? watchAppState() : undefined), []);
+
   if (!ready) return null;
 
   return (
     <>
       <StatusBar style={themeName === 'light' ? 'dark' : 'light'} />
       <Stack key={themeName} screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bgApp } }} />
+      {isLocal && <AppLock key={`lock-${themeName}`} />}
       <ConfirmDialogHost key={`dialog-${themeName}`} />
     </>
   );

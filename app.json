@@ -40,7 +40,13 @@
           "contactsPermission": "Cashen usa tus contactos solo para rellenar el nombre de una deuda."
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Cashen usa Face ID para desbloquear la app y proteger tus datos."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
