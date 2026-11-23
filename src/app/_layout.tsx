@@ -11,6 +11,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
+import { AppState } from 'react-native';
 
 import { AppLock } from '@/components/lock/app-lock';
 import { ConfirmDialogHost } from '@/components/ui/confirm-dialog';
@@ -18,12 +19,24 @@ import { restoreLocalProfile } from '@/features/auth/local-profile';
 import { restoreSession } from '@/features/auth/session';
 import { restoreLock, watchAppState } from '@/features/lock/lock-store';
 import { isLocal } from '@/lib/data-source';
+import { runDueRecurrences } from '@/lib/local-db/recurrences';
 import { colors, fonts } from '@/theme';
 import { useThemeName } from '@/features/theme/theme-store';
 
 SplashScreen.preventAutoHideAsync();
 
-const restoreLocal = async () => restoreLock((await restoreLocalProfile()) !== null);
+const restoreLocal = async () => {
+  const profile = await restoreLocalProfile();
+  await restoreLock(profile !== null);
+  if (profile) await runDueRecurrences().catch(() => 0);
+};
+
+const watchRecurrences = () => {
+  const subscription = AppState.addEventListener('change', state => {
+    if (state === 'active') runDueRecurrences().catch(() => 0);
+  });
+  return () => subscription.remove();
+};
 
 const restore = isLocal ? restoreLocal : restoreSession;
 
@@ -52,6 +65,8 @@ export default function RootLayout() {
   }, [ready]);
 
   useEffect(() => (isLocal ? watchAppState() : undefined), []);
+
+  useEffect(() => (isLocal ? watchRecurrences() : undefined), []);
 
   if (!ready) return null;
 

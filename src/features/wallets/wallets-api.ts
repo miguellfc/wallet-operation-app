@@ -4,6 +4,7 @@ import type { CurrencyType } from '@/features/currencies/currency-api';
 import type { Operation } from '@/features/operations/operations-api';
 import { isLocal } from '@/lib/data-source';
 import { listOpenDebts } from '@/lib/local-db/debts';
+import { listLocalRecurrences } from '@/lib/local-db/recurrences';
 import * as local from '@/lib/local-db/wallets';
 import { currencyDecimals } from '@/lib/format';
 
@@ -86,7 +87,7 @@ export async function loadDebts(): Promise<Debt[]> {
 }
 
 export async function loadRecurrences(): Promise<RecurrenceItem[]> {
-  if (isLocal) return [];
+  if (isLocal) return listLocalRecurrences();
   const page = await authRequest<Page<Recurrence>>('/recurrences/search', {
     method: 'POST',
     body: { filters: { completed: false }, sort: { nextExecution: 1 }, size: PAGE_SIZE },
