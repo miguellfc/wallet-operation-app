@@ -11,6 +11,16 @@
       "android": {
         "buildType": "apk"
       }
+    },
+    "remote-apk": {
+      "distribution": "internal",
+      "environment": "preview",
+      "env": {
+        "EXPO_PUBLIC_DATA_SOURCE": "remote"
+      },
+      "android": {
+        "buildType": "apk"
+      }
     }
   }
 }
