@@ -1,6 +1,13 @@
 import { authRequest } from '@/features/auth/auth-request';
+import type { Operation } from '@/features/operations/operations-api';
 import { isLocal } from '@/lib/data-source';
-import { createLocalRecurrence } from '@/lib/local-db/recurrences';
+import { currencyDecimals, roundTo } from '@/lib/format';
+import {
+  createLocalRecurrence,
+  deleteLocalRecurrence,
+  getLocalRecurrence,
+  updateLocalRecurrence,
+} from '@/lib/local-db/recurrences';
 
 export type Frequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
 
@@ -110,4 +117,93 @@ export async function createRecurrence(operationId: string, draft: RecurrenceDra
     method: 'POST',
     body: { operation: operationId, ...toPayload(draft) },
   });
+}
+
+export type RecurrenceDocument = {
+  _id: string;
+  recurrence: Frequency;
+  configuration: {
+    delay?: number;
+    end?: { type?: RecurrenceEnd; times?: number; timesExecuted?: number; until?: string };
+    daysOfWeek?: number[];
+    sameMonthDay?: boolean;
+    lastMonthDay?: boolean;
+  };
+  operations: string[];
+  startDate: string;
+  lastExecution: string;
+  nextExecution: string | null;
+  completed: boolean;
+};
+
+export type RecurrenceDetail = {
+  recurrence: RecurrenceDocument;
+  template?: Operation;
+  originalId?: string;
+  operations: Operation[];
+  hasMore: boolean;
+  total: { amount: number; currency: string } | null;
+};
+
+const PAGE_SIZE = 200;
+
+const utcDay = (iso: string) => {
+  const date = new Date(iso);
+  return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+};
+
+export const recurrenceStart = (recurrence: RecurrenceDocument) => utcDay(recurrence.startDate);
+
+export function draftFromRecurrence(recurrence: RecurrenceDocument): RecurrenceDraft {
+  const start = recurrenceStart(recurrence);
+  const { configuration } = recurrence;
+  const end = configuration.end ?? {};
+  const fallback = defaultRecurrence(start);
+  return {
+    frequency: recurrence.recurrence,
+    delay: configuration.delay ?? 1,
+    daysOfWeek: configuration.daysOfWeek?.length ? configuration.daysOfWeek : [start.getDay()],
+    lastMonthDay: !!configuration.lastMonthDay,
+    end: end.type ?? 'FOREVER',
+    times: end.times ?? fallback.times,
+    until: end.until ? utcDay(end.until) : fallback.until,
+  };
+}
+
+function buildDetail(recurrence: RecurrenceDocument, operations: Operation[], size: number): RecurrenceDetail {
+  const currency = operations[0]?.amount.user.currency;
+  const sum = operations.reduce((total, operation) => total + operation.amount.user.amount, 0);
+  const original = recurrence.operations[0];
+  return {
+    recurrence,
+    template: operations[0],
+    originalId: original,
+    operations: operations.slice(0, size),
+    hasMore: operations.length > size,
+    total: currency ? { amount: roundTo(sum, currencyDecimals(currency)), currency } : null,
+  };
+}
+
+export async function loadRecurrenceDetail(id: string, size: number): Promise<RecurrenceDetail> {
+  if (isLocal) {
+    const { recurrence, operations } = await getLocalRecurrence(id);
+    return buildDetail(recurrence, operations, size);
+  }
+  const recurrence = await authRequest<RecurrenceDocument>(`/recurrences/${id}`);
+  if (recurrence.operations.length === 0) return buildDetail(recurrence, [], size);
+  const page = await authRequest<{ data: Operation[] }>('/operations/search', {
+    method: 'POST',
+    body: { filters: { _id: { $in: recurrence.operations } }, sort: { date: -1 }, size: PAGE_SIZE },
+  });
+  return buildDetail(recurrence, page.data, size);
+}
+
+export async function updateRecurrence(id: string, draft: RecurrenceDraft) {
+  if (isLocal) return updateLocalRecurrence(id, toPayload(draft));
+  return authRequest<{ _id: string }>(`/recurrences/${id}`, { method: 'PATCH', body: toPayload(draft) });
+}
+
+export async function deleteRecurrence(id: string) {
+  if (isLocal) return deleteLocalRecurrence(id);
+  return authRequest<unknown>(`/recurrences/${id}`, { method: 'DELETE' });
 }

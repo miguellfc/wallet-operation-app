@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { CalendarSheet } from '@/components/ui/calendar-sheet';
 import { ClockSheet } from '@/components/ui/clock-sheet';
@@ -11,15 +11,16 @@ type DateTimeFieldProps = {
   mode: 'date' | 'time';
   value: Date;
   allowFuture?: boolean;
+  style?: StyleProp<ViewStyle>;
   onChange: (date: Date) => void;
 };
 
-export function DateTimeField({ label, mode, value, allowFuture = false, onChange }: DateTimeFieldProps) {
+export function DateTimeField({ label, mode, value, allowFuture = false, style, onChange }: DateTimeFieldProps) {
   const [open, setOpen] = useState(false);
   const text = mode === 'date' ? shortDateLabel(value) : clockLabel(value);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <Text style={styles.label}>{label}</Text>
       <Pressable
         accessibilityRole="button"
@@ -47,7 +48,7 @@ export function DateTimeField({ label, mode, value, allowFuture = false, onChang
 }
 
 const styles = themedStyles(() => ({
-  container: { flex: 1, gap: 10 },
+  container: { gap: 10 },
   label: { ...typography.labelOverline, color: colors.textSecondary },
   field: {
     minHeight: 50,
