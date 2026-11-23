@@ -1,3 +1,4 @@
+import { router, type Href } from 'expo-router';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
 
@@ -8,6 +9,9 @@ import { loadRecurrences, type Recurrence, type RecurrenceItem } from '@/feature
 import { formatAmount, longDayLabel } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
 import { colors, spacing, themedStyles } from '@/theme';
+
+const openRecurrence = (id: string) =>
+  router.navigate({ pathname: '/recurrence-detail', params: { id, at: String(Date.now()) } } as Href);
 
 const FREQUENCY: Record<Recurrence['recurrence'], string> = {
   DAILY: 'Diaria',
@@ -60,6 +64,7 @@ export function RecurrencesView({ header }: { header: ReactNode }) {
               amount={row.amount}
               caption={frequency}
               accessibilityLabel={`${row.title}, ${row.amount}, ${frequency}, ${row.next.replace('\n', ' ')}`}
+              onPress={() => openRecurrence(item.recurrence._id)}
             />
           );
         })}

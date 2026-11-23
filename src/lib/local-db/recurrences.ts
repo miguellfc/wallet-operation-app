@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import type { Frequency, RecurrenceEnd } from '@/features/operations/recurrence-form-api';
+import type { Operation } from '@/features/operations/operations-api';
+import type { Frequency, RecurrenceDocument, RecurrenceEnd } from '@/features/operations/recurrence-form-api';
 import type { RecurrenceItem } from '@/features/wallets/wallets-api';
 import { ApiError } from '@/lib/api';
 
@@ -42,11 +43,15 @@ type RecurrenceRow = {
   same_month_day: number | null;
   last_month_day: number | null;
   start_date: string;
+  last_execution: string;
   next_execution: string | null;
+  completed: number;
 };
 
 const RECURRENCE_COLUMNS = `id, recurrence, delay, end_type, end_times, end_times_executed, end_until, days_of_week,
-  same_month_day, last_month_day, start_date, next_execution`;
+  same_month_day, last_month_day, start_date, last_execution, next_execution, completed`;
+
+const JOINED_OPERATION_COLUMNS = OPERATION_COLUMNS.replace(/(^|,\s*)/g, '$1operations.');
 
 const configurationOf = (row: RecurrenceRow): ScheduleConfiguration => ({
   delay: row.delay,
@@ -142,7 +147,7 @@ export async function listLocalRecurrences(): Promise<RecurrenceItem[]> {
 
 async function findTemplate(db: SQLiteDatabase, recurrenceId: string) {
   return db.getFirstAsync<Parameters<typeof toOperation>[0]>(
-    `SELECT ${OPERATION_COLUMNS.replace(/(^|,\s*)/g, '$1operations.')} FROM operations
+    `SELECT ${JOINED_OPERATION_COLUMNS} FROM operations
      JOIN recurrence_operations ON recurrence_operations.operation_id = operations.id
      WHERE recurrence_operations.recurrence_id = ? AND operations.deleted = 0
      ORDER BY operations.date DESC, operations.id DESC LIMIT 1`,
@@ -262,4 +267,97 @@ export function runDueRecurrences(now = new Date()) {
     running = null;
   });
   return running;
+}
+
+async function findRecurrenceRow(db: SQLiteDatabase, id: string) {
+  const row = await db.getFirstAsync<RecurrenceRow>(
+    `SELECT ${RECURRENCE_COLUMNS} FROM recurrences WHERE id = ? AND deleted = 0`,
+    [id],
+  );
+  if (!row) throw notFound();
+  return row;
+}
+
+const toDocument = (row: RecurrenceRow, operations: string[]): RecurrenceDocument => ({
+  _id: row.id,
+  recurrence: row.recurrence,
+  configuration: {
+    ...configurationOf(row),
+    end: {
+      type: row.end_type,
+      ...(row.end_times !== null ? { times: row.end_times } : {}),
+      timesExecuted: row.end_times_executed,
+      ...(row.end_until ? { until: row.end_until } : {}),
+    },
+  },
+  operations,
+  startDate: row.start_date,
+  lastExecution: row.last_execution,
+  nextExecution: row.next_execution,
+  completed: row.completed === 1,
+});
+
+export async function getLocalRecurrence(id: string): Promise<{ recurrence: RecurrenceDocument; operations: Operation[] }> {
+  const db = await getDatabase();
+  const row = await findRecurrenceRow(db, id);
+  const links = await db.getAllAsync<{ operation_id: string }>(
+    'SELECT operation_id FROM recurrence_operations WHERE recurrence_id = ? ORDER BY position',
+    [id],
+  );
+  const rows = await db.getAllAsync<Parameters<typeof toOperation>[0]>(
+    `SELECT ${JOINED_OPERATION_COLUMNS} FROM operations
+     JOIN recurrence_operations ON recurrence_operations.operation_id = operations.id
+     WHERE recurrence_operations.recurrence_id = ? AND operations.deleted = 0
+     ORDER BY operations.date DESC, operations.id DESC`,
+    [id],
+  );
+  return {
+    recurrence: toDocument(
+      row,
+      links.map(link => link.operation_id),
+    ),
+    operations: rows.map(toOperation),
+  };
+}
+
+export async function updateLocalRecurrence(id: string, { recurrence, configuration }: RecurrencePayload) {
+  const db = await getDatabase();
+  const row = await findRecurrenceRow(db, id);
+  const { end: requestedEnd, ...rest } = configuration;
+  const current = endOf(row);
+  const end: ScheduleEnd = {
+    ...current,
+    ...(requestedEnd.type ? { type: requestedEnd.type as RecurrenceEnd } : {}),
+    ...(requestedEnd.times !== undefined ? { times: requestedEnd.times } : {}),
+    ...(requestedEnd.until !== undefined ? { until: requestedEnd.until } : {}),
+  };
+  const merged: ScheduleConfiguration = { ...configurationOf(row), ...rest };
+  const nextExecution = getNextExecution({ recurrence, startDate: row.start_date, configuration: merged }, row.last_execution);
+  const completed = isRecurrenceCompleted(end, nextExecution);
+  await db.runAsync(
+    `UPDATE recurrences SET recurrence = ?, delay = ?, end_type = ?, end_times = ?, end_until = ?, days_of_week = ?,
+       same_month_day = ?, last_month_day = ?, next_execution = ?, completed = ?, updated_at = ? WHERE id = ?`,
+    [
+      recurrence,
+      merged.delay ?? 1,
+      end.type ?? 'FOREVER',
+      end.times ?? null,
+      end.until ? toScheduleDay(end.until).toISOString() : null,
+      merged.daysOfWeek ? JSON.stringify(merged.daysOfWeek) : null,
+      flag(merged.sameMonthDay),
+      flag(merged.lastMonthDay),
+      completed ? null : nextExecution.toISOString(),
+      completed ? 1 : 0,
+      new Date().toISOString(),
+      id,
+    ],
+  );
+  return { _id: id };
+}
+
+export async function deleteLocalRecurrence(id: string) {
+  const db = await getDatabase();
+  await findRecurrenceRow(db, id);
+  const now = new Date().toISOString();
+  await db.runAsync('UPDATE recurrences SET deleted = 1, deleted_at = ?, updated_at = ? WHERE id = ?', [now, now, id]);
 }

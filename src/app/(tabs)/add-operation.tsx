@@ -363,8 +363,8 @@ export default function AddOperationScreen() {
               <SegmentedControl options={TYPES} value={type} onChange={changeType} activeColor={colors.brand} compact />
             )}
             <View style={styles.row}>
-              <DateTimeField label="Fecha" mode="date" value={date} onChange={setDate} />
-              <DateTimeField label="Hora" mode="time" value={date} onChange={setDate} />
+              <DateTimeField label="Fecha" mode="date" value={date} style={styles.dateField} onChange={setDate} />
+              <DateTimeField label="Hora" mode="time" value={date} style={styles.dateField} onChange={setDate} />
               {!transfer && !editId && (
                 <Pressable
                   accessibilityRole="button"
@@ -497,6 +497,7 @@ const styles = themedStyles(() => ({
   },
   form: { gap: 12 },
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: 20, marginTop: -2 },
+  dateField: { flex: 1 },
   recurrent: {
     flex: 1,
     minHeight: 50,

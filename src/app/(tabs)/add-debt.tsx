@@ -291,8 +291,8 @@ export default function AddDebtScreen() {
               }}
             />
             <View style={styles.row}>
-              <DateTimeField label="Fecha" mode="date" value={date} onChange={setDate} />
-              <DateTimeField label="Hora" mode="time" value={date} onChange={setDate} />
+              <DateTimeField label="Fecha" mode="date" value={date} style={styles.dateField} onChange={setDate} />
+              <DateTimeField label="Hora" mode="time" value={date} style={styles.dateField} onChange={setDate} />
             </View>
             <ColorField label="Color" value={color} onChange={setColor} />
             <TextField
@@ -349,6 +349,7 @@ const styles = themedStyles(() => ({
   },
   form: { gap: 12 },
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: 20 },
+  dateField: { flex: 1 },
   contact: {
     width: 36,
     height: 36,
