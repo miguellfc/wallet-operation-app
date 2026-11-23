@@ -1,22 +1,24 @@
 import { Image } from 'expo-image';
 import { Text, View } from 'react-native';
 
+import { AmountText, amountText, type Amount } from '@/components/ui/count-up';
+import { Grow } from '@/components/ui/grow';
 import { colors, fonts, radius, spacing, themedStyles, typography } from '@/theme';
 
-type DayBalanceCardProps = { label: string; amount: string; income: number; expense: number };
+type DayBalanceCardProps = { label: string; amount: Amount; income: number; expense: number };
 
 export function DayBalanceCard({ label, amount, income, expense }: DayBalanceCardProps) {
   const total = income + expense;
   return (
-    <View style={styles.card} accessible accessibilityRole="summary" accessibilityLabel={`${label} ${amount}`}>
+    <View style={styles.card} accessible accessibilityRole="summary" accessibilityLabel={`${label} ${amountText(amount)}`}>
       <Image contentFit="contain" source={require('@/assets/icons/logo.svg')} style={styles.badge} />
       <Text style={styles.label} maxFontSizeMultiplier={1.4}>
         {label}
       </Text>
-      <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
-        {amount}
+      <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.3}>
+        <AmountText amount={amount} />
       </Text>
-      <View style={styles.bar}>
+      <Grow key={`${income}:${expense}`} axis="x" delay={150} style={styles.bar}>
         {total === 0 ? (
           <View style={[styles.segment, styles.empty]} />
         ) : (
@@ -25,7 +27,7 @@ export function DayBalanceCard({ label, amount, income, expense }: DayBalanceCar
             {expense > 0 && <View style={[styles.segment, { flexGrow: expense, backgroundColor: colors.expense }]} />}
           </>
         )}
-      </View>
+      </Grow>
     </View>
   );
 }

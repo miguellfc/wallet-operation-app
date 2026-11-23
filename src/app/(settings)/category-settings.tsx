@@ -1,15 +1,19 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
+import { readable } from '@/lib/color';
 import { BackHeader } from '@/components/settings/back-header';
 import { Button } from '@/components/ui/button';
 import { CategoryIcon } from '@/components/ui/category-icon';
 import { showConfirm } from '@/components/ui/confirm-dialog';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { SegmentedControl } from '@/components/ui/segmented-control';
+import { Stagger } from '@/components/ui/stagger';
+import { Reveal } from '@/components/ui/reveal';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import {
   categoryIconName,
   deleteCategory,
@@ -68,7 +72,7 @@ function CategoryItem({ category, accent, onEdit, onDelete }: CategoryItemProps)
         onPress={onEdit}
         style={({ pressed }) => [styles.rowMain, pressed && styles.pressed]}>
         <View style={[styles.iconBox, { backgroundColor: softColor(color, 0.12) }]}>
-          <CategoryIcon name={categoryIconName(category)} color={color} />
+          <CategoryIcon name={categoryIconName(category)} color={readable(color)} />
         </View>
         <Text style={styles.name} numberOfLines={1}>
           {category.name}
@@ -125,59 +129,62 @@ export default function CategorySettingsScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView
+      <RevealScrollView
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
-        <BackHeader title="Ajustes de categoría" />
-        <SegmentedControl
-          options={TYPES}
-          value={type}
-          onChange={next => {
-            setType(next);
-            setError(null);
-          }}
-          activeColor={accent}
-        />
-        {error && (
-          <Text style={styles.error} accessibilityLiveRegion="polite">
-            {error}
-          </Text>
-        )}
-        {!categories ? (
-          <View style={styles.state}>
-            {loadError ? (
-              <>
-                <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadErrorMessage(loadError)}
-                </Text>
-                <Button label="Reintentar" onPress={retry} />
-              </>
-            ) : (
-              <ActivityIndicator color={colors.brand} />
-            )}
-          </View>
-        ) : (
-          <View style={styles.list}>
-            {categories.length === 0 ? (
-              <Text style={styles.stateText}>
-                {type === 'INCOME' ? 'No tienes categorías de ingresos' : 'No tienes categorías de gastos'}
-              </Text>
-            ) : (
-              categories.map(category => (
-                <CategoryItem
-                  key={category._id}
-                  category={category}
-                  accent={accent}
-                  onEdit={() => openForm({ edit: category._id, type })}
-                  onDelete={() => remove(category)}
-                />
-              ))
-            )}
-            <View style={styles.add}>
-              <Button label="Añadir categoría" onPress={() => openForm({ type })} />
+        <Stagger>
+          <BackHeader title="Ajustes de categoría" />
+          <SegmentedControl
+            options={TYPES}
+            value={type}
+            onChange={next => {
+              setType(next);
+              setError(null);
+            }}
+            activeColor={accent}
+          />
+          {error && (
+            <Text style={styles.error} accessibilityLiveRegion="polite">
+              {error}
+            </Text>
+          )}
+          {!categories ? (
+            <View style={styles.state}>
+              {loadError ? (
+                <>
+                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                    {loadErrorMessage(loadError)}
+                  </Text>
+                  <Button label="Reintentar" onPress={retry} />
+                </>
+              ) : (
+                <ActivityIndicator color={colors.brand} />
+              )}
             </View>
-          </View>
-        )}
-      </ScrollView>
+          ) : (
+            <View style={styles.list}>
+              {categories.length === 0 ? (
+                <Text style={styles.stateText}>
+                  {type === 'INCOME' ? 'No tienes categorías de ingresos' : 'No tienes categorías de gastos'}
+                </Text>
+              ) : (
+                categories.map((category, index) => (
+                  <Reveal key={category._id} index={index}>
+                    <CategoryItem
+                      category={category}
+                      accent={accent}
+                      onEdit={() => openForm({ edit: category._id, type })}
+                      onDelete={() => remove(category)}
+                    />
+                  </Reveal>
+                ))
+              )}
+              <View style={styles.add}>
+                <Button label="Añadir categoría" onPress={() => openForm({ type })} />
+              </View>
+            </View>
+          )}
+        </Stagger>
+      </RevealScrollView>
     </ScreenBackground>
   );
 }

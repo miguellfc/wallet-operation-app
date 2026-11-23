@@ -7,11 +7,13 @@ import {
   Montserrat_900Black,
   useFonts,
 } from '@expo-google-fonts/montserrat';
-import { Stack } from 'expo-router';
+import { Stack } from 'expo-router/js-stack';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useReducedMotion } from 'react-native-reanimated';
 
 import { AppLock } from '@/components/lock/app-lock';
 import { ConfirmDialogHost } from '@/components/ui/confirm-dialog';
@@ -22,6 +24,7 @@ import { isLocal } from '@/lib/data-source';
 import { runDueRecurrences } from '@/lib/local-db/recurrences';
 import { colors, fonts } from '@/theme';
 import { useThemeName } from '@/features/theme/theme-store';
+import { useSwipeBack } from '@/lib/navigation';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -42,6 +45,8 @@ const restore = isLocal ? restoreLocal : restoreSession;
 
 export default function RootLayout() {
   const themeName = useThemeName();
+  const reduced = useReducedMotion();
+  const swipeBack = useSwipeBack();
   const [fontsLoaded] = useFonts({
     Montserrat_300Light,
     Montserrat_400Regular,
@@ -71,11 +76,20 @@ export default function RootLayout() {
   if (!ready) return null;
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bgApp }}>
       <StatusBar style={themeName === 'light' ? 'dark' : 'light'} />
-      <Stack key={themeName} screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bgApp } }} />
+      <Stack
+        key={themeName}
+        screenOptions={{
+          headerShown: false,
+          animation: reduced ? 'fade' : 'default',
+          cardStyle: { flex: 1, backgroundColor: colors.bgApp },
+        }}>
+        <Stack.Screen name="(settings)" options={swipeBack} />
+        <Stack.Screen name="(details)" options={swipeBack} />
+      </Stack>
       {isLocal && <AppLock key={`lock-${themeName}`} />}
       <ConfirmDialogHost key={`dialog-${themeName}`} />
-    </>
+    </GestureHandlerRootView>
   );
 }

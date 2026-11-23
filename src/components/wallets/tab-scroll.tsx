@@ -1,13 +1,14 @@
 import type { PropsWithChildren, ReactNode } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import { ApiError } from '@/lib/api';
 import { colors, layout, spacing, themedStyles, typography } from '@/theme';
 
 type TabScrollProps = PropsWithChildren<{
-  header: ReactNode;
+  header?: ReactNode;
   loading: boolean;
   error: unknown;
   empty?: string;
@@ -44,8 +45,8 @@ export function TabScroll({ header, loading, error, empty, refreshing, onRefresh
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}
+    <RevealScrollView
+      contentContainerStyle={[styles.content, { paddingTop: header ? insets.top + 18 : spacing.xl }]}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -57,7 +58,7 @@ export function TabScroll({ header, loading, error, empty, refreshing, onRefresh
       }>
       {header}
       {body}
-    </ScrollView>
+    </RevealScrollView>
   );
 }
 

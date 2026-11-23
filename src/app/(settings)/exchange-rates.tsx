@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/button';
 import { showConfirm } from '@/components/ui/confirm-dialog';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { SelectField } from '@/components/ui/select-field';
+import { Stagger } from '@/components/ui/stagger';
+import { Reveal } from '@/components/ui/reveal';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import type { Currency } from '@/features/currencies/currency-api';
 import { CurrencySheet } from '@/features/currencies/currency-sheet';
 import {
@@ -184,79 +187,81 @@ export default function ExchangeRatesScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView
+      <RevealScrollView
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
-        <BackHeader
-          title="Tasas de cambio"
-          action={
-            data && (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Añadir tasa de cambio"
-                hitSlop={10}
-                onPress={() => setSheet({ editing: null })}
-                style={({ pressed }) => pressed && styles.pressed}>
-                <SvgXml xml={PLUS_ICON} color={colors.textPrimary} width={22} height={22} />
-              </Pressable>
-            )
-          }
-        />
-        {error && (
-          <Text style={styles.error} accessibilityLiveRegion="polite">
-            {error}
-          </Text>
-        )}
-        {!data ? (
-          <View style={styles.state}>
-            {loadError ? (
-              <>
-                <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadErrorMessage(loadError)}
-                </Text>
-                <Button label="Reintentar" onPress={retry} />
-              </>
-            ) : (
-              <ActivityIndicator color={colors.brand} />
-            )}
-          </View>
-        ) : data.rates.length === 0 ? (
-          <Text style={styles.stateText}>Aún no tienes tasas de cambio. Añade una con el botón +.</Text>
-        ) : (
-          <View style={styles.list}>
-            {data.rates.map(rate => {
-              const title = rateText(data.userCurrency.code, rate.exchangeRate, rate.currency.code);
-              return (
-                <View key={rate._id} style={styles.row}>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Editar tasa: ${title}`}
-                    onPress={() => setSheet({ editing: rate })}
-                    style={({ pressed }) => [styles.rowMain, pressed && styles.pressed]}>
-                    <View style={styles.rowText}>
-                      <Text style={styles.rowTitle} numberOfLines={1}>
-                        {title}
-                      </Text>
-                      <Text style={styles.rowDetail} numberOfLines={1}>
-                        {rate.currency.code} = {rate.currency.currency}
-                        {rate.currency.symbol ? ` (${rate.currency.symbol})` : ''}
-                      </Text>
-                    </View>
-                    <SvgXml xml={PEN_ICON} color={colors.textSecondary} width={20} height={20} />
-                  </Pressable>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Eliminar tasa de ${rate.currency.code}`}
-                    hitSlop={8}
-                    onPress={() => remove(rate)}
-                    style={({ pressed }) => [styles.trash, pressed && styles.pressed]}>
-                    <SvgXml xml={TRASH_ICON} color={colors.danger} width={22} height={22} />
-                  </Pressable>
-                </View>
-              );
-            })}
-          </View>
-        )}
-      </ScrollView>
+        <Stagger>
+          <BackHeader
+            title="Tasas de cambio"
+            action={
+              data && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Añadir tasa de cambio"
+                  hitSlop={10}
+                  onPress={() => setSheet({ editing: null })}
+                  style={({ pressed }) => pressed && styles.pressed}>
+                  <SvgXml xml={PLUS_ICON} color={colors.textPrimary} width={22} height={22} />
+                </Pressable>
+              )
+            }
+          />
+          {error && (
+            <Text style={styles.error} accessibilityLiveRegion="polite">
+              {error}
+            </Text>
+          )}
+          {!data ? (
+            <View style={styles.state}>
+              {loadError ? (
+                <>
+                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                    {loadErrorMessage(loadError)}
+                  </Text>
+                  <Button label="Reintentar" onPress={retry} />
+                </>
+              ) : (
+                <ActivityIndicator color={colors.brand} />
+              )}
+            </View>
+          ) : data.rates.length === 0 ? (
+            <Text style={styles.stateText}>Aún no tienes tasas de cambio. Añade una con el botón +.</Text>
+          ) : (
+            <View style={styles.list}>
+              {data.rates.map((rate, index) => {
+                const title = rateText(data.userCurrency.code, rate.exchangeRate, rate.currency.code);
+                return (
+                  <Reveal key={rate._id} index={index} style={styles.row}>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`Editar tasa: ${title}`}
+                      onPress={() => setSheet({ editing: rate })}
+                      style={({ pressed }) => [styles.rowMain, pressed && styles.pressed]}>
+                      <View style={styles.rowText}>
+                        <Text style={styles.rowTitle} numberOfLines={1}>
+                          {title}
+                        </Text>
+                        <Text style={styles.rowDetail} numberOfLines={1}>
+                          {rate.currency.code} = {rate.currency.currency}
+                          {rate.currency.symbol ? ` (${rate.currency.symbol})` : ''}
+                        </Text>
+                      </View>
+                      <SvgXml xml={PEN_ICON} color={colors.textSecondary} width={20} height={20} />
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`Eliminar tasa de ${rate.currency.code}`}
+                      hitSlop={8}
+                      onPress={() => remove(rate)}
+                      style={({ pressed }) => [styles.trash, pressed && styles.pressed]}>
+                      <SvgXml xml={TRASH_ICON} color={colors.danger} width={22} height={22} />
+                    </Pressable>
+                  </Reveal>
+                );
+              })}
+            </View>
+          )}
+        </Stagger>
+      </RevealScrollView>
       {data && (
         <RateSheet
           visible={sheet !== null}

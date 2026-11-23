@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SheetModal } from '@/components/ui/sheet-modal';
 import { Button } from '@/components/ui/button';
 import { appendKey, evaluate } from '@/lib/calculator';
 import { formatAmount, roundTo } from '@/lib/format';
@@ -112,11 +113,7 @@ export function AmountField({
           </Text>
         )}
       </Pressable>
-      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
-        <View style={styles.overlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setOpen(false)} accessibilityLabel="Cerrar" />
-          <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.xl }]}>
-            <View style={styles.handle} />
+      <SheetModal visible={open} onClose={() => setOpen(false)} style={[styles.sheet, { paddingBottom: insets.bottom + spacing.xl }]}>
             <View style={styles.display}>
               <Text style={styles.expression} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
                 {expression || '0'}
@@ -160,9 +157,7 @@ export function AmountField({
                 </View>
               </View>
             </View>
-          </View>
-        </View>
-      </Modal>
+      </SheetModal>
     </View>
   );
 }
@@ -183,7 +178,6 @@ const styles = themedStyles(() => ({
   line: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
   lineLabel: { ...typography.labelOverline, color: colors.textMuted },
   placeholder: { color: colors.textMuted },
-  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
   sheet: {
     width: '100%',
     maxWidth: layout.maxContentWidth,
@@ -197,7 +191,6 @@ const styles = themedStyles(() => ({
     paddingTop: spacing.md,
     gap: spacing.lg,
   },
-  handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: radius.full, backgroundColor: colors.textMuted },
   display: {
     borderRadius: radius.md,
     backgroundColor: colors.input,
@@ -213,7 +206,7 @@ const styles = themedStyles(() => ({
   row: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
   key: {
     flex: 1,
-    height: 56,
+    minHeight: 56,
     borderRadius: radius.md,
     backgroundColor: colors.input,
     alignItems: 'center',

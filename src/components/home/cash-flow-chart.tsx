@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View, type LayoutChange
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import { FilterChips } from '@/components/ui/filter-chips';
+import { Grow } from '@/components/ui/grow';
 import type { CashFlowInterval, CashFlowPeriod } from '@/features/home/home-api';
 import { formatAmount, periodLabel, periodTitle } from '@/lib/format';
 import { colors, radius, spacing, themedStyles, typography } from '@/theme';
@@ -102,32 +103,34 @@ function Chart({ periods, interval, currencyCode }: ChartProps) {
       <View style={styles.chart} onLayout={onLayout}>
         {width > 0 && periods.length > 0 && (
           <>
-            <Svg width={width} height={CHART_HEIGHT}>
-              <Defs>
-                <LinearGradient id={`${id}-income`} x1={0} y1={0} x2={0} y2={1}>
-                  <Stop offset={0} stopColor={colors.income} stopOpacity={0.25} />
-                  <Stop offset={1} stopColor={colors.income} stopOpacity={0} />
-                </LinearGradient>
-                <LinearGradient id={`${id}-expense`} x1={0} y1={0} x2={0} y2={1}>
-                  <Stop offset={0} stopColor={colors.expense} stopOpacity={0.35} />
-                  <Stop offset={1} stopColor={colors.expense} stopOpacity={0} />
-                </LinearGradient>
-              </Defs>
-              <Path d={areaPath(expense)} fill={`url(#${id}-expense)`} />
-              <Path d={areaPath(income)} fill={`url(#${id}-income)`} />
-              <Path d={smoothPath(expense)} stroke={colors.expense} strokeWidth={3} fill="none" />
-              <Path d={smoothPath(income)} stroke={colors.income} strokeWidth={3} fill="none" />
-              <Line
-                x1={markerX}
-                x2={markerX}
-                y1={Math.min(income[selected].y, expense[selected].y)}
-                y2={CHART_HEIGHT}
-                stroke={colors.textMuted}
-                strokeDasharray="4 4"
-              />
-              <Marker point={expense[selected]} color={colors.expense} />
-              <Marker point={income[selected]} color={colors.income} />
-            </Svg>
+            <Grow key={`${interval}:${periods.map(period => `${period.income}:${period.expense}`).join('|')}`}>
+              <Svg width={width} height={CHART_HEIGHT}>
+                <Defs>
+                  <LinearGradient id={`${id}-income`} x1={0} y1={0} x2={0} y2={1}>
+                    <Stop offset={0} stopColor={colors.income} stopOpacity={0.25} />
+                    <Stop offset={1} stopColor={colors.income} stopOpacity={0} />
+                  </LinearGradient>
+                  <LinearGradient id={`${id}-expense`} x1={0} y1={0} x2={0} y2={1}>
+                    <Stop offset={0} stopColor={colors.expense} stopOpacity={0.35} />
+                    <Stop offset={1} stopColor={colors.expense} stopOpacity={0} />
+                  </LinearGradient>
+                </Defs>
+                <Path d={areaPath(expense)} fill={`url(#${id}-expense)`} />
+                <Path d={areaPath(income)} fill={`url(#${id}-income)`} />
+                <Path d={smoothPath(expense)} stroke={colors.expense} strokeWidth={3} fill="none" />
+                <Path d={smoothPath(income)} stroke={colors.income} strokeWidth={3} fill="none" />
+                <Line
+                  x1={markerX}
+                  x2={markerX}
+                  y1={Math.min(income[selected].y, expense[selected].y)}
+                  y2={CHART_HEIGHT}
+                  stroke={colors.textMuted}
+                  strokeDasharray="4 4"
+                />
+                <Marker point={expense[selected]} color={colors.expense} />
+                <Marker point={income[selected]} color={colors.income} />
+              </Svg>
+            </Grow>
             {current && (
               <View style={[styles.tooltip, { top: tooltipTop, left: tooltipLeft }]} pointerEvents="none">
                 <TooltipRow label="Ingreso:" value={formatAmount(current.income, currencyCode, '', true)} accent />
@@ -216,6 +219,6 @@ const styles = themedStyles(() => ({
   },
   tooltipRow: { flexDirection: 'row', justifyContent: 'space-between' },
   tooltipText: typography.labelLegend,
-  axis: { height: 14, marginTop: 13, marginHorizontal: 5 },
+  axis: { minHeight: 14, marginTop: 13, marginHorizontal: 5 },
   axisLabel: { ...typography.labelAxis, position: 'absolute', width: 32, textAlign: 'center', color: colors.textMuted },
 }));

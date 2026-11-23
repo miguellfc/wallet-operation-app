@@ -1,5 +1,6 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
+import { PressableScale } from '@/components/ui/pressable-scale';
 import { CategoryIcon } from '@/components/ui/category-icon';
 import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
@@ -27,7 +28,7 @@ export function InfoRow({
   onPress,
 }: InfoRowProps) {
   return (
-    <Pressable
+    <PressableScale
       disabled={!onPress}
       onPress={onPress}
       accessibilityRole={onPress ? 'button' : undefined}
@@ -45,12 +46,12 @@ export function InfoRow({
         </Text>
       </View>
       <View style={styles.side}>
-        <Text style={styles.amount} numberOfLines={1}>
+        <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
           {amount}
         </Text>
         {caption && <Text style={styles.detail}>{caption}</Text>}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -67,9 +68,9 @@ const styles = themedStyles(() => ({
   },
   pressed: { opacity: 0.85 },
   iconBox: { width: 36, height: 36, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
-  content: { flex: 1, gap: 2 },
+  content: { flex: 1, flexShrink: 1, gap: 2 },
   title: { ...typography.bodyMedium, color: colors.textPrimary },
   detail: { ...typography.caption, color: colors.textMuted },
-  side: { alignItems: 'flex-end', gap: 2, maxWidth: '45%' },
+  side: { alignItems: 'flex-end', gap: 2, maxWidth: '55%' },
   amount: { ...typography.bodyMedium, fontFamily: typography.titleSection.fontFamily, color: colors.textPrimary },
 }));

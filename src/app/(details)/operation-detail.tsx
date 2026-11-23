@@ -1,14 +1,17 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AddHeader } from '@/components/add/add-header';
-import { walletAmount } from '@/components/operations/operation-row';
+import { onColor } from '@/lib/color';
+import { BackHeader } from '@/components/settings/back-header';
+import { operationSign, walletAmount } from '@/components/operations/operation-row';
 import { Button } from '@/components/ui/button';
 import { CategoryIcon } from '@/components/ui/category-icon';
 import { showConfirm } from '@/components/ui/confirm-dialog';
 import { ScreenBackground } from '@/components/ui/screen-background';
+import { Stagger } from '@/components/ui/stagger';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import { categoryIconName } from '@/features/categories/categories-api';
 import { deleteOperation, loadOperation, type Operation } from '@/features/operations/operations-api';
 import { ApiError } from '@/lib/api';
@@ -146,71 +149,75 @@ export default function OperationDetailScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}>
-        <AddHeader title="Operación" />
-        {!current ? (
-          <View style={styles.state}>
-            {loadError ? (
-              <>
-                <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadErrorMessage(loadError)}
-                </Text>
-                <Button label="Reintentar" onPress={retry} />
-              </>
-            ) : (
-              <ActivityIndicator color={colors.brand} />
-            )}
-          </View>
-        ) : (
-          <>
-            <View style={styles.summary}>
-              <View style={[styles.iconCircle, { backgroundColor: accent }]}>
-                <CategoryIcon name={icon} color={colors.textOnBrand} size={33} />
-              </View>
-              <Text style={styles.description} numberOfLines={2}>
-                {current.description || chip}
-              </Text>
-              {chip !== '' && (
-                <View style={styles.chip}>
-                  <Text style={styles.chipLabel}>{chip}</Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.details}>
-              <Text style={styles.detailsTitle} accessibilityRole="header">
-                Detalles
-              </Text>
-              <View style={styles.rows}>
-                {detailRows(current).map(row => (
-                  <DetailRow key={row.label} label={row.label} value={row.value} />
-                ))}
-              </View>
-              {error && (
-                <Text style={styles.error} accessibilityLiveRegion="polite">
-                  {error}
-                </Text>
-              )}
-              {opening ? (
-                <Text style={styles.note}>El saldo inicial se gestiona desde su billetera.</Text>
+      <RevealScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
+        <Stagger>
+          <BackHeader title="Operación" />
+          {!current ? (
+            <View style={styles.state}>
+              {loadError ? (
+                <>
+                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                    {loadErrorMessage(loadError)}
+                  </Text>
+                  <Button label="Reintentar" onPress={retry} />
+                </>
               ) : (
-                <View style={styles.actions}>
-                  <View style={styles.action}>
-                    <Button label="Editar" onPress={edit} disabled={deleting} />
-                  </View>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityState={{ disabled: deleting, busy: deleting }}
-                    disabled={deleting}
-                    onPress={remove}
-                    style={({ pressed }) => [styles.action, styles.danger, pressed && styles.pressed]}>
-                    {deleting ? <ActivityIndicator color={colors.danger} /> : <Text style={styles.dangerLabel}>Eliminar</Text>}
-                  </Pressable>
-                </View>
+                <ActivityIndicator color={colors.brand} />
               )}
             </View>
-          </>
-        )}
-      </ScrollView>
+          ) : (
+            <>
+              <View style={styles.summary}>
+                <View style={[styles.iconCircle, { backgroundColor: accent }]}>
+                  <CategoryIcon name={icon} color={onColor(accent)} size={33} />
+                </View>
+                <Text style={styles.description} numberOfLines={2}>
+                  {current.description || chip}
+                </Text>
+                {chip !== '' && (
+                  <View style={styles.chip}>
+                    <Text style={styles.chipLabel}>{chip}</Text>
+                  </View>
+                )}
+                <Text
+                  style={[styles.amount, { color: typeColor(current.type) }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.4}>
+                  {formatAmount(walletAmount(current).amount, walletAmount(current).currency, operationSign(current.type))}
+                </Text>
+              </View>
+              <View style={styles.details}>
+                <Text style={styles.detailsTitle} accessibilityRole="header">
+                  Detalles
+                </Text>
+                <View style={styles.rows}>
+                  {detailRows(current).map(row => (
+                    <DetailRow key={row.label} label={row.label} value={row.value} />
+                  ))}
+                </View>
+                {error && (
+                  <Text style={styles.error} accessibilityLiveRegion="polite">
+                    {error}
+                  </Text>
+                )}
+                {opening ? (
+                  <Text style={styles.note}>El saldo inicial se gestiona desde su billetera.</Text>
+                ) : (
+                  <View style={styles.actions}>
+                    <View style={styles.action}>
+                      <Button label="Editar" onPress={edit} disabled={deleting} />
+                    </View>
+                    <View style={styles.action}>
+                      <Button label="Eliminar" variant="danger" onPress={remove} loading={deleting} />
+                    </View>
+                  </View>
+                )}
+              </View>
+            </>
+          )}
+        </Stagger>
+      </RevealScrollView>
     </ScreenBackground>
   );
 }
@@ -233,7 +240,8 @@ const styles = themedStyles(() => ({
     gap: spacing.md,
   },
   iconCircle: { width: 62, height: 62, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center' },
-  description: { ...typography.titleSection, color: colors.textSecondary, textAlign: 'center' },
+  description: { ...typography.titleSection, color: colors.textPrimary, textAlign: 'center' },
+  amount: { ...typography.displayAmount },
   chip: { borderRadius: radius.full, backgroundColor: colors.segment, paddingHorizontal: spacing.xl, paddingVertical: 6 },
   chipLabel: { ...typography.bodyRegular, lineHeight: 20, color: colors.textSecondary },
   details: {
@@ -246,19 +254,10 @@ const styles = themedStyles(() => ({
   detailsTitle: { ...typography.bodyMedium, fontFamily: typography.titleSection.fontFamily, fontSize: 16, color: colors.textPrimary },
   rows: { gap: spacing.lg },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  detailLabel: { ...typography.labelOverline, width: 90, color: colors.textSecondary },
+  detailLabel: { ...typography.labelOverline, width: 120, maxWidth: '45%', flexShrink: 0, color: colors.textSecondary },
   detailValue: { ...typography.bodyMedium, fontSize: 13, flex: 1, textAlign: 'right', color: colors.textPrimary },
   actions: { flexDirection: 'row', gap: 18, marginTop: spacing.sm },
   action: { flex: 1 },
-  danger: {
-    minHeight: 50,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.danger,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dangerLabel: { ...typography.buttonLabel, color: colors.danger },
   pressed: { opacity: 0.85 },
   note: { ...typography.bodyMedium, color: colors.textMuted, textAlign: 'center' },
   error: { ...typography.bodyMedium, color: colors.error, textAlign: 'center' },

@@ -1,7 +1,7 @@
 const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
 const full = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 8 });
-const rounded = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+const rounded = new Intl.NumberFormat('en-US', { notation: 'compact', maximumSignificantDigits: 3 });
 
 export function formatNumber(amount: number, compact = false) {
   return `${amount < 0 ? '-' : ''}${(compact ? rounded : full).format(Math.abs(amount))}`;

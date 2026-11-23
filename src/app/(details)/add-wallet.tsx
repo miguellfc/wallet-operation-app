@@ -1,10 +1,12 @@
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState, type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AddHeader } from '@/components/add/add-header';
+import { readable } from '@/lib/color';
+import { BackHeader } from '@/components/settings/back-header';
 import { AmountField } from '@/components/ui/amount-field';
 import { Button } from '@/components/ui/button';
 import { ColorField } from '@/components/ui/color-field';
@@ -14,6 +16,8 @@ import { ScreenBackground } from '@/components/ui/screen-background';
 import { SelectField } from '@/components/ui/select-field';
 import { TextField } from '@/components/ui/text-field';
 import { WalletIcon } from '@/components/wallets/wallet-icon';
+import { Stagger } from '@/components/ui/stagger';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import type { Currency } from '@/features/currencies/currency-api';
 import { CurrencySheet } from '@/features/currencies/currency-sheet';
 import { createWallet, loadWalletForm } from '@/features/wallets/wallet-form-api';
@@ -194,6 +198,7 @@ export default function AddWalletScreen() {
         icon,
         excluded,
       });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => null);
       reset();
       router.navigate('/wallets' as Href);
     } catch (reason) {
@@ -205,109 +210,111 @@ export default function AddWalletScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView
+      <RevealScrollView
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}>
-        <AddHeader title={editId ? 'Editar billetera' : 'Añadir billetera'} />
-        {!data || (editId && !editing) ? (
-          <View style={styles.state}>
-            {loadError || (editId && editError) ? (
-              <>
-                <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadError ? loadErrorMessage(loadError) : 'No se pudo cargar la billetera. Vuelve a intentarlo.'}
-                </Text>
-                <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
-              </>
-            ) : (
-              <ActivityIndicator color={colors.brand} />
-            )}
-          </View>
-        ) : (
-          <View style={styles.form}>
-            <TextField
-              label="Nombre"
-              value={name}
-              onChangeText={value => {
-                setName(value);
-                setError(null);
-              }}
-              placeholder="Ej. Banco, Ahorros"
-              maxLength={40}
-            />
-            <SelectField label="Tipo" value={typeLabel} onPress={() => setSheet('type')} />
-            <SelectField
-              label="Moneda"
-              value={selectedCurrency && `${selectedCurrency.code} · ${selectedCurrency.currency}`}
-              onPress={() => setSheet('currency')}
-            />
-            <View style={styles.row}>
-              <View style={styles.half}>
-                <AmountField
-                  label="Saldo inicial"
-                  value={initAmount}
-                  currencyCode={code}
-                  decimals={decimals}
-                  onChange={value => {
-                    setInitAmount(value);
-                    setError(null);
-                  }}
-                />
-              </View>
-              {rateNeeded && (
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
+        <Stagger>
+          <BackHeader title={editId ? 'Editar billetera' : 'Añadir billetera'} />
+          {!data || (editId && !editing) ? (
+            <View style={styles.state}>
+              {loadError || (editId && editError) ? (
+                <>
+                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                    {loadError ? loadErrorMessage(loadError) : 'No se pudo cargar la billetera. Vuelve a intentarlo.'}
+                  </Text>
+                  <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
+                </>
+              ) : (
+                <ActivityIndicator color={colors.brand} />
+              )}
+            </View>
+          ) : (
+            <View style={styles.form}>
+              <TextField
+                label="Nombre"
+                value={name}
+                onChangeText={value => {
+                  setName(value);
+                  setError(null);
+                }}
+                placeholder="Ej. Banco, Ahorros"
+                maxLength={40}
+              />
+              <SelectField label="Tipo" value={typeLabel} onPress={() => setSheet('type')} />
+              <SelectField
+                label="Moneda"
+                value={selectedCurrency && `${selectedCurrency.code} · ${selectedCurrency.currency}`}
+                onPress={() => setSheet('currency')}
+              />
+              <View style={styles.row}>
                 <View style={styles.half}>
                   <AmountField
-                    label="Tasa de cambio"
-                    value={rate}
-                    placeholder="Obligatoria"
+                    label="Saldo inicial"
+                    value={initAmount}
+                    currencyCode={code}
+                    decimals={decimals}
                     onChange={value => {
-                      setRate(value);
+                      setInitAmount(value);
                       setError(null);
                     }}
                   />
                 </View>
-              )}
-            </View>
-            {rateHint && <Text style={styles.hint}>{rateHint}</Text>}
-            <View style={styles.row}>
-              <View style={styles.colorColumn}>
-                <ColorField label="Color" value={color} onChange={setColor} />
-              </View>
-              <View style={styles.iconColumn}>
-                <Text style={styles.label}>Ícono</Text>
-                <PickerBox label="Ícono" value={iconLabel} onPress={() => setSheet('icon')}>
-                  <View style={[styles.iconBox, { backgroundColor: softColor(color, 0.1) }]}>
-                    <WalletIcon name={icon} color={color} size={24} />
+                {rateNeeded && (
+                  <View style={styles.half}>
+                    <AmountField
+                      label="Tasa de cambio"
+                      value={rate}
+                      placeholder="Obligatoria"
+                      onChange={value => {
+                        setRate(value);
+                        setError(null);
+                      }}
+                    />
                   </View>
-                </PickerBox>
+                )}
+              </View>
+              {rateHint && <Text style={styles.hint}>{rateHint}</Text>}
+              <View style={styles.row}>
+                <View style={styles.colorColumn}>
+                  <ColorField label="Color" value={color} onChange={setColor} />
+                </View>
+                <View style={styles.iconColumn}>
+                  <Text style={styles.label}>Ícono</Text>
+                  <PickerBox label="Ícono" value={iconLabel} onPress={() => setSheet('icon')}>
+                    <View style={[styles.iconBox, { backgroundColor: softColor(color, 0.1) }]}>
+                      <WalletIcon name={icon} color={readable(color)} size={24} />
+                    </View>
+                  </PickerBox>
+                </View>
+              </View>
+              <Pressable
+                accessibilityRole="switch"
+                accessibilityLabel="Excluir del saldo"
+                accessibilityHint="Ignora el saldo de esta billetera en modo total"
+                accessibilityState={{ checked: excluded }}
+                onPress={() => setExcluded(value => !value)}
+                style={styles.toggleRow}>
+                <View style={[styles.track, excluded && styles.trackOn]}>
+                  <View style={[styles.knob, excluded && styles.knobOn]} />
+                </View>
+                <View style={styles.toggleText}>
+                  <Text style={styles.toggleTitle}>Excluir del saldo</Text>
+                  <Text style={styles.toggleDetail}>Ignora el saldo de esta billetera en modo total</Text>
+                </View>
+              </Pressable>
+              {error && (
+                <Text style={styles.error} accessibilityLiveRegion="polite">
+                  {error}
+                </Text>
+              )}
+              <View style={styles.action}>
+                <Button label="Guardar" onPress={save} loading={saving} disabled={!complete} />
               </View>
             </View>
-            <Pressable
-              accessibilityRole="switch"
-              accessibilityLabel="Excluir del saldo"
-              accessibilityHint="Ignora el saldo de esta billetera en modo total"
-              accessibilityState={{ checked: excluded }}
-              onPress={() => setExcluded(value => !value)}
-              style={styles.toggleRow}>
-              <View style={[styles.track, excluded && styles.trackOn]}>
-                <View style={[styles.knob, excluded && styles.knobOn]} />
-              </View>
-              <View style={styles.toggleText}>
-                <Text style={styles.toggleTitle}>Excluir del saldo</Text>
-                <Text style={styles.toggleDetail}>Ignora el saldo de esta billetera en modo total</Text>
-              </View>
-            </Pressable>
-            {error && (
-              <Text style={styles.error} accessibilityLiveRegion="polite">
-                {error}
-              </Text>
-            )}
-            <View style={styles.action}>
-              <Button label="Guardar" onPress={save} loading={saving} disabled={!complete} />
-            </View>
-          </View>
-        )}
-      </ScrollView>
+          )}
+        </Stagger>
+      </RevealScrollView>
       <OptionSheet
         visible={sheet === 'type'}
         title="Tipo"
@@ -330,7 +337,7 @@ export default function AddWalletScreen() {
         title="Ícono"
         items={WALLET_ICON_OPTIONS}
         selected={icon}
-        renderItem={item => <WalletIcon name={item.value} color={color} size={28} />}
+        renderItem={item => <WalletIcon name={item.value} color={readable(color)} size={28} />}
         onSelect={setIcon}
         onClose={() => setSheet(null)}
       />

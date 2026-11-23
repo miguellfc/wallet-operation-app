@@ -1,10 +1,11 @@
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AddHeader } from '@/components/add/add-header';
+import { BackHeader } from '@/components/settings/back-header';
 import { RecurrenceSheet } from '@/components/operations/recurrence-sheet';
 import { AmountField } from '@/components/ui/amount-field';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,8 @@ import { ScreenBackground } from '@/components/ui/screen-background';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { SelectField } from '@/components/ui/select-field';
 import { TextField } from '@/components/ui/text-field';
+import { Stagger } from '@/components/ui/stagger';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import {
   convertAmount,
   createOperation,
@@ -309,6 +312,7 @@ export default function AddOperationScreen() {
         from: type === 'INCOME' ? undefined : wallet,
         to: type === 'INCOME' ? wallet : transfer ? target : undefined,
       });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => null);
       const day = dayParam(date);
       if (recurrence && !transfer && !(await schedule(created._id, day, recurrence))) return;
       finish(day);
@@ -339,127 +343,129 @@ export default function AddOperationScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView
+      <RevealScrollView
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}>
-        <AddHeader title={editId ? 'Editar operación' : 'Añadir operación'} />
-        {!data || (editId && !editing) ? (
-          <View style={styles.state}>
-            {loadError || (editId && editError) ? (
-              <>
-                <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadError ? loadErrorMessage(loadError) : 'No se pudo cargar la operación. Vuelve a intentarlo.'}
-                </Text>
-                <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
-              </>
-            ) : (
-              <ActivityIndicator color={colors.brand} />
-            )}
-          </View>
-        ) : (
-          <View style={styles.form}>
-            {!debtLocked && (
-              <SegmentedControl options={TYPES} value={type} onChange={changeType} activeColor={colors.brand} compact />
-            )}
-            <View style={styles.row}>
-              <DateTimeField label="Fecha" mode="date" value={date} style={styles.dateField} onChange={setDate} />
-              <DateTimeField label="Hora" mode="time" value={date} style={styles.dateField} onChange={setDate} />
-              {!transfer && !editId && (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={recurrence ? `Repetición: ${recurrenceSummary(recurrence, date)}` : 'Recurrente'}
-                  accessibilityHint="Configura si la operación se repite"
-                  accessibilityState={{ disabled: !!pending }}
-                  disabled={!!pending}
-                  onPress={() => setRecurrenceOpen(true)}
-                  style={({ pressed }) => [
-                    styles.recurrent,
-                    !recurrence && styles.recurrentOff,
-                    pressed && styles.pressed,
-                  ]}>
-                  <Image
-                    contentFit="contain"
-                    source={require('@/assets/icons/recurrent.svg')}
-                    tintColor={recurrence ? colors.textOnBrand : colors.brand}
-                    style={styles.recurrentIcon}
-                  />
-                  <Text
-                    style={[styles.recurrentLabel, !recurrence && styles.recurrentLabelOff]}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.8}>
-                    {recurrence ? recurrenceShortLabel(recurrence) : 'Recurrente'}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
+        <Stagger>
+          <BackHeader title={editId ? 'Editar operación' : 'Añadir operación'} />
+          {!data || (editId && !editing) ? (
+            <View style={styles.state}>
+              {loadError || (editId && editError) ? (
+                <>
+                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                    {loadError ? loadErrorMessage(loadError) : 'No se pudo cargar la operación. Vuelve a intentarlo.'}
                   </Text>
-                </Pressable>
+                  <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
+                </>
+              ) : (
+                <ActivityIndicator color={colors.brand} />
               )}
             </View>
-            <AmountField
-              label="Importe"
-              value={amount}
-              currencyCode={selectedWallet?.currencyCode}
-              decimals={selectedWallet?.decimals}
-              destination={destination ? { text: destination.text, muted: destination.muted } : undefined}
-              onChange={value => {
-                setAmount(value);
-                setError(null);
-              }}
-            />
-            <TextField
-              label="Descripción"
-              value={description}
-              onChangeText={setDescription}
-              placeholder="Opcional"
-              maxLength={120}
-            />
-            {!transfer && (
-              <SelectField
-                label="Categoría"
-                value={categoryName}
-                placeholder="Selecciona una categoría"
-                onPress={() => !debtLocked && setSheet('category')}
+          ) : (
+            <View style={styles.form}>
+              {!debtLocked && (
+                <SegmentedControl options={TYPES} value={type} onChange={changeType} activeColor={colors.brand} compact />
+              )}
+              <View style={styles.row}>
+                <DateTimeField label="Fecha" mode="date" value={date} style={styles.dateField} onChange={setDate} />
+                <DateTimeField label="Hora" mode="time" value={date} style={styles.dateField} onChange={setDate} />
+                {!transfer && !editId && (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={recurrence ? `Repetición: ${recurrenceSummary(recurrence, date)}` : 'Recurrente'}
+                    accessibilityHint="Configura si la operación se repite"
+                    accessibilityState={{ disabled: !!pending }}
+                    disabled={!!pending}
+                    onPress={() => setRecurrenceOpen(true)}
+                    style={({ pressed }) => [
+                      styles.recurrent,
+                      !recurrence && styles.recurrentOff,
+                      pressed && styles.pressed,
+                    ]}>
+                    <Image
+                      contentFit="contain"
+                      source={require('@/assets/icons/recurrent.svg')}
+                      tintColor={recurrence ? colors.textOnBrand : colors.brand}
+                      style={styles.recurrentIcon}
+                    />
+                    <Text
+                      style={[styles.recurrentLabel, !recurrence && styles.recurrentLabelOff]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}>
+                      {recurrence ? recurrenceShortLabel(recurrence) : 'Recurrente'}
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+              <AmountField
+                label="Importe"
+                value={amount}
+                currencyCode={selectedWallet?.currencyCode}
+                decimals={selectedWallet?.decimals}
+                destination={destination ? { text: destination.text, muted: destination.muted } : undefined}
+                onChange={value => {
+                  setAmount(value);
+                  setError(null);
+                }}
               />
-            )}
-            <SelectField
-              label={transfer ? 'De la billetera' : 'Billetera'}
-              value={walletLabel(selectedWallet)}
-              placeholder="Selecciona una billetera"
-              onPress={() => setSheet('wallet')}
-            />
-            {transfer && (
+              <TextField
+                label="Descripción"
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Opcional"
+                maxLength={120}
+              />
+              {!transfer && (
+                <SelectField
+                  label="Categoría"
+                  value={categoryName}
+                  placeholder="Selecciona una categoría"
+                  onPress={() => !debtLocked && setSheet('category')}
+                />
+              )}
               <SelectField
-                label="A la billetera"
-                value={walletLabel(selectedTarget)}
+                label={transfer ? 'De la billetera' : 'Billetera'}
+                value={walletLabel(selectedWallet)}
                 placeholder="Selecciona una billetera"
-                onPress={() => setSheet('target')}
+                onPress={() => setSheet('wallet')}
               />
-            )}
-            {(error || warning) && (
-              <Text style={styles.error} accessibilityLiveRegion="polite">
-                {error ?? warning}
-              </Text>
-            )}
-            <View style={styles.action}>
-              <Button
-                label={pending ? 'Reintentar repetición' : 'Guardar'}
-                onPress={save}
-                loading={saving}
-                disabled={!pending && !complete}
-              />
-              {pending && (
-                <Pressable
-                  accessibilityRole="button"
-                  hitSlop={8}
-                  disabled={saving}
-                  onPress={() => finish(pending.day)}
-                  style={({ pressed }) => [styles.skip, pressed && styles.pressed]}>
-                  <Text style={styles.skipLabel}>Seguir sin repetición</Text>
-                </Pressable>
+              {transfer && (
+                <SelectField
+                  label="A la billetera"
+                  value={walletLabel(selectedTarget)}
+                  placeholder="Selecciona una billetera"
+                  onPress={() => setSheet('target')}
+                />
               )}
+              {(error || warning) && (
+                <Text style={styles.error} accessibilityLiveRegion="polite">
+                  {error ?? warning}
+                </Text>
+              )}
+              <View style={styles.action}>
+                <Button
+                  label={pending ? 'Reintentar repetición' : 'Guardar'}
+                  onPress={save}
+                  loading={saving}
+                  disabled={!pending && !complete}
+                />
+                {pending && (
+                  <Pressable
+                    accessibilityRole="button"
+                    hitSlop={8}
+                    disabled={saving}
+                    onPress={() => finish(pending.day)}
+                    style={({ pressed }) => [styles.skip, pressed && styles.pressed]}>
+                    <Text style={styles.skipLabel}>Seguir sin repetición</Text>
+                  </Pressable>
+                )}
+              </View>
             </View>
-          </View>
-        )}
-      </ScrollView>
+          )}
+        </Stagger>
+      </RevealScrollView>
       <OptionSheet
         visible={sheet !== null}
         title={sheet ? SHEET_TITLES[sheet] : ''}

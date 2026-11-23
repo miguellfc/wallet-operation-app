@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { BackHeader } from '@/components/settings/back-header';
 import { showConfirm } from '@/components/ui/confirm-dialog';
 import { ScreenBackground } from '@/components/ui/screen-background';
+import { Stagger } from '@/components/ui/stagger';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import { backupErrorMessage, exportData, importData, pickBackup } from '@/features/backup/backup-api';
 import { useThemeName } from '@/features/theme/theme-store';
 import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
@@ -105,41 +107,43 @@ export default function BackupScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView
+      <RevealScrollView
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
-        <BackHeader title="Copia de seguridad" />
-        <Text style={styles.intro}>
-          Tus datos solo están en este dispositivo. Exporta una copia de vez en cuando y guárdala en un lugar seguro.
-        </Text>
-        <View style={styles.list}>
-          <ActionCard
-            icon={EXPORT_ICON}
-            title="Exportar"
-            detail="Crea un archivo JSON con todos tus datos"
-            busy={busy === 'export'}
-            disabled={busy !== null}
-            onPress={exportBackup}
-          />
-          <ActionCard
-            icon={IMPORT_ICON}
-            title="Importar"
-            detail="Reemplaza tus datos por los de una copia"
-            busy={busy === 'import'}
-            disabled={busy !== null}
-            onPress={importBackup}
-          />
-        </View>
-        {notice && (
-          <Text style={styles.notice} accessibilityLiveRegion="polite">
-            {notice}
+        <Stagger>
+          <BackHeader title="Copia de seguridad" />
+          <Text style={styles.intro}>
+            Tus datos solo están en este dispositivo. Exporta una copia de vez en cuando y guárdala en un lugar seguro.
           </Text>
-        )}
-        {error && (
-          <Text style={styles.error} accessibilityLiveRegion="polite">
-            {error}
-          </Text>
-        )}
-      </ScrollView>
+          <View style={styles.list}>
+            <ActionCard
+              icon={EXPORT_ICON}
+              title="Exportar"
+              detail="Crea un archivo JSON con todos tus datos"
+              busy={busy === 'export'}
+              disabled={busy !== null}
+              onPress={exportBackup}
+            />
+            <ActionCard
+              icon={IMPORT_ICON}
+              title="Importar"
+              detail="Reemplaza tus datos por los de una copia"
+              busy={busy === 'import'}
+              disabled={busy !== null}
+              onPress={importBackup}
+            />
+          </View>
+          {notice && (
+            <Text style={styles.notice} accessibilityLiveRegion="polite">
+              {notice}
+            </Text>
+          )}
+          {error && (
+            <Text style={styles.error} accessibilityLiveRegion="polite">
+              {error}
+            </Text>
+          )}
+        </Stagger>
+      </RevealScrollView>
     </ScreenBackground>
   );
 }

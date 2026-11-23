@@ -1,12 +1,14 @@
 import { Image } from 'expo-image';
 import { router, type Href } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { BackHeader } from '@/components/settings/back-header';
 import { ScreenBackground } from '@/components/ui/screen-background';
+import { Stagger } from '@/components/ui/stagger';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import { confirmSignOut } from '@/features/auth/sign-out';
 import { isLocal } from '@/lib/data-source';
 import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
@@ -72,57 +74,61 @@ export default function SettingsScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView
+      <RevealScrollView
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
-        <BackHeader title="Ajustes" />
-        <View style={styles.list}>
+        <Stagger>
+          <BackHeader title="Ajustes" />
+          <View style={styles.list}>
+            <Stagger>
+              {!isLocal && (
+                <SettingsCard
+                  icon={<Image contentFit="contain" source={require('@/assets/icons/user-rounded.svg')} tintColor={colors.textInverse} style={styles.userIcon} />}
+                  title="Mi cuenta"
+                  detail="Administra tu información personal"
+                  onPress={openAccount}
+                />
+              )}
+              <SettingsCard
+                icon={<SvgXml xml={EXCHANGE_ICON} color={colors.textInverse} width={30} height={30} />}
+                title="Tasas de cambio"
+                detail="Configura las tasas de cambio"
+                onPress={openExchangeRates}
+              />
+              <SettingsCard
+                icon={<SvgXml xml={CATEGORY_ICON} color={colors.textInverse} width={28} height={28} />}
+                title="Categoría"
+                detail="Organiza y personaliza las categorías"
+                onPress={openCategories}
+              />
+              <SettingsCard
+                icon={<SvgXml xml={MOON_ICON} color={colors.textInverse} width={28} height={28} />}
+                title="Tema"
+                detail="Elige entre el modo claro y oscuro"
+                onPress={openTheme}
+              />
+              {isLocal && (
+                <SettingsCard
+                  icon={<SvgXml xml={BACKUP_ICON} color={colors.textInverse} width={28} height={28} />}
+                  title="Copia de seguridad"
+                  detail="Exporta o importa tus datos en un archivo"
+                  onPress={openBackup}
+                />
+              )}
+            </Stagger>
+          </View>
           {!isLocal && (
-            <SettingsCard
-              icon={<Image contentFit="contain" source={require('@/assets/icons/user-rounded.svg')} tintColor={colors.textInverse} style={styles.userIcon} />}
-              title="Mi cuenta"
-              detail="Administra tu información personal"
-              onPress={openAccount}
-            />
+            <>
+              <View style={styles.spacer} />
+              <Pressable
+                accessibilityRole="button"
+                onPress={confirmSignOut}
+                style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}>
+                <Text style={styles.signOutLabel}>Cerrar sesión</Text>
+              </Pressable>
+            </>
           )}
-          <SettingsCard
-            icon={<SvgXml xml={EXCHANGE_ICON} color={colors.textInverse} width={30} height={30} />}
-            title="Tasas de cambio"
-            detail="Configura las tasas de cambio"
-            onPress={openExchangeRates}
-          />
-          <SettingsCard
-            icon={<SvgXml xml={CATEGORY_ICON} color={colors.textInverse} width={28} height={28} />}
-            title="Categoría"
-            detail="Organiza y personaliza las categorías"
-            onPress={openCategories}
-          />
-          <SettingsCard
-            icon={<SvgXml xml={MOON_ICON} color={colors.textInverse} width={28} height={28} />}
-            title="Tema"
-            detail="Elige entre el modo claro y oscuro"
-            onPress={openTheme}
-          />
-          {isLocal && (
-            <SettingsCard
-              icon={<SvgXml xml={BACKUP_ICON} color={colors.textInverse} width={28} height={28} />}
-              title="Copia de seguridad"
-              detail="Exporta o importa tus datos en un archivo"
-              onPress={openBackup}
-            />
-          )}
-        </View>
-        {!isLocal && (
-          <>
-            <View style={styles.spacer} />
-            <Pressable
-              accessibilityRole="button"
-              onPress={confirmSignOut}
-              style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}>
-              <Text style={styles.signOutLabel}>Cerrar sesión</Text>
-            </Pressable>
-          </>
-        )}
-      </ScrollView>
+        </Stagger>
+      </RevealScrollView>
     </ScreenBackground>
   );
 }

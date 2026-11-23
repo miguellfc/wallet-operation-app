@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackHeader } from '@/components/settings/back-header';
@@ -12,6 +12,8 @@ import { GridSheet } from '@/components/ui/grid-sheet';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { TextField } from '@/components/ui/text-field';
+import { Stagger } from '@/components/ui/stagger';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import {
   CATEGORY_ICON_OPTIONS,
   DEFAULT_CATEGORY_ICON,
@@ -107,78 +109,80 @@ export default function CategoryFormScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView
+      <RevealScrollView
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
-        <BackHeader title={editId ? 'Editar categoría' : 'Añadir categoría'} />
-        {editId && !editing ? (
-          <View style={styles.state}>
-            {loadError ? (
-              <>
-                <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadError instanceof ApiError && loadError.status === 404
-                    ? 'Esta categoría ya no existe.'
-                    : 'No se pudo cargar la categoría. Vuelve a intentarlo.'}
-                </Text>
-                <Button label="Reintentar" onPress={retry} />
-              </>
-            ) : (
-              <ActivityIndicator color={colors.brand} />
-            )}
-          </View>
-        ) : (
-          <View style={styles.form}>
-            {!editing && (
-              <SegmentedControl
-                options={TYPES}
-                value={type}
-                onChange={setType}
-                activeColor={type === 'INCOME' ? colors.income : colors.expense}
-                compact
-              />
-            )}
-            <TextField
-              label="Nombre"
-              value={name}
-              onChangeText={value => {
-                setName(value);
-                setError(null);
-              }}
-              placeholder="Supermercado"
-              maxLength={40}
-            />
-            <ColorField label="Color" value={color} onChange={setColor} />
-            <View style={styles.field}>
-              <Text style={styles.label}>Ícono</Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Ícono"
-                accessibilityValue={{ text: iconLabel(icon) }}
-                onPress={() => setIconSheet(true)}
-                style={({ pressed }) => [styles.select, pressed && styles.pressed]}>
-                <View style={styles.selectValue}>
-                  <View style={styles.iconSlot}>
-                    <CategoryIcon name={icon} color={colors.iconOnSurface} size={22} />
-                  </View>
-                  <Text style={styles.selectText} numberOfLines={1}>
-                    {iconLabel(icon)}
+        <Stagger>
+          <BackHeader title={editId ? 'Editar categoría' : 'Añadir categoría'} />
+          {editId && !editing ? (
+            <View style={styles.state}>
+              {loadError ? (
+                <>
+                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                    {loadError instanceof ApiError && loadError.status === 404
+                      ? 'Esta categoría ya no existe.'
+                      : 'No se pudo cargar la categoría. Vuelve a intentarlo.'}
                   </Text>
-                </View>
-                <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} tintColor={colors.brand} style={styles.chevron} />
-              </Pressable>
+                  <Button label="Reintentar" onPress={retry} />
+                </>
+              ) : (
+                <ActivityIndicator color={colors.brand} />
+              )}
             </View>
-            {error && (
-              <Text style={styles.error} accessibilityLiveRegion="polite">
-                {error}
-              </Text>
-            )}
-            <View style={styles.action}>
-              <Button label="Guardar" onPress={save} loading={saving} disabled={!complete} />
+          ) : (
+            <View style={styles.form}>
+              {!editing && (
+                <SegmentedControl
+                  options={TYPES}
+                  value={type}
+                  onChange={setType}
+                  activeColor={type === 'INCOME' ? colors.income : colors.expense}
+                  compact
+                />
+              )}
+              <TextField
+                label="Nombre"
+                value={name}
+                onChangeText={value => {
+                  setName(value);
+                  setError(null);
+                }}
+                placeholder="Supermercado"
+                maxLength={40}
+              />
+              <ColorField label="Color" value={color} onChange={setColor} />
+              <View style={styles.field}>
+                <Text style={styles.label}>Ícono</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Ícono"
+                  accessibilityValue={{ text: iconLabel(icon) }}
+                  onPress={() => setIconSheet(true)}
+                  style={({ pressed }) => [styles.select, pressed && styles.pressed]}>
+                  <View style={styles.selectValue}>
+                    <View style={styles.iconSlot}>
+                      <CategoryIcon name={icon} color={colors.iconOnSurface} size={22} />
+                    </View>
+                    <Text style={styles.selectText} numberOfLines={1}>
+                      {iconLabel(icon)}
+                    </Text>
+                  </View>
+                  <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} tintColor={colors.brand} style={styles.chevron} />
+                </Pressable>
+              </View>
+              {error && (
+                <Text style={styles.error} accessibilityLiveRegion="polite">
+                  {error}
+                </Text>
+              )}
+              <View style={styles.action}>
+                <Button label="Guardar" onPress={save} loading={saving} disabled={!complete} />
+              </View>
             </View>
-          </View>
-        )}
-      </ScrollView>
+          )}
+        </Stagger>
+      </RevealScrollView>
       <GridSheet
         visible={iconSheet}
         title="Ícono"

@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
+import { readable } from '@/lib/color';
 import { CategoryRow } from '@/components/ui/category-row';
+import { Reveal } from '@/components/ui/reveal';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { SegmentedProgress } from '@/components/ui/segmented-progress';
 import type { CategoryTotal, OperationKind } from '@/features/home/home-api';
@@ -33,16 +35,17 @@ export function CategoryBreakdown({ categories, currencyCode }: CategoryBreakdow
         <>
           <SegmentedProgress segments={rows.map(item => ({ value: item.total, color: colorOf(item) }))} />
           <View style={styles.list}>
-            {rows.map(item => (
-              <CategoryRow
-                key={item.category.id}
-                name={item.category.name}
-                icon={item.category.icon}
-                amount={formatAmount(item.total, currencyCode)}
-                percent={`${Math.round((item.total / total) * 100)}%`}
-                color={colorOf(item)}
-                iconBackground={softColor(colorOf(item), 0.1)}
-              />
+            {rows.map((item, index) => (
+              <Reveal key={`${kind}:${item.category.id}`} index={index}>
+                <CategoryRow
+                  name={item.category.name}
+                  icon={item.category.icon}
+                  amount={formatAmount(item.total, currencyCode)}
+                  percent={`${Math.round((item.total / total) * 100)}%`}
+                  color={readable(colorOf(item))}
+                  iconBackground={softColor(colorOf(item), 0.1)}
+                />
+              </Reveal>
             ))}
           </View>
         </>

@@ -2,11 +2,12 @@ import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { BrandGradient } from '@/components/ui/brand-gradient';
+import { AmountText, amountText, type Amount } from '@/components/ui/count-up';
 import { colors, fonts, themedStyles, typography } from '@/theme';
 
-export function BalanceCard({ amount }: { amount: string }) {
+export function BalanceCard({ amount }: { amount: Amount }) {
   return (
-    <View style={styles.card} accessible accessibilityRole="summary" accessibilityLabel={`Balance ${amount}`}>
+    <View style={styles.card} accessible accessibilityRole="summary" accessibilityLabel={`Balance ${amountText(amount)}`}>
       <BrandGradient radius={32} />
       <View style={styles.badge}>
         <Image contentFit="contain" source={require('@/assets/icons/card-badge.svg')} style={StyleSheet.absoluteFill} />
@@ -15,8 +16,8 @@ export function BalanceCard({ amount }: { amount: string }) {
       <Text style={styles.label} maxFontSizeMultiplier={1.4}>
         Balance
       </Text>
-      <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
-        {amount}
+      <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.3}>
+        <AmountText amount={amount} />
       </Text>
     </View>
   );

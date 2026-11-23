@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SheetModal } from '@/components/ui/sheet-modal';
 import { Button } from '@/components/ui/button';
 import { ListOption } from '@/components/ui/list-option';
 import { colors, radius, spacing, themedStyles, typography } from '@/theme';
@@ -55,11 +56,7 @@ export function CurrencySheet({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Cerrar" />
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.xl }]}>
-          <View style={styles.handle} />
+    <SheetModal visible={visible} onClose={onClose} style={[styles.sheet, { paddingBottom: insets.bottom + spacing.xl }]}>
           <Text style={styles.title} accessibilityRole="header">
             {title}
           </Text>
@@ -100,14 +97,11 @@ export function CurrencySheet({
               ListEmptyComponent={<Text style={styles.stateText}>No hay monedas que coincidan</Text>}
             />
           )}
-        </View>
-      </View>
-    </Modal>
+    </SheetModal>
   );
 }
 
 const styles = themedStyles(() => ({
-  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
   sheet: {
     height: '80%',
     backgroundColor: colors.bgApp,
@@ -118,13 +112,6 @@ const styles = themedStyles(() => ({
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.md,
     gap: spacing.lg,
-  },
-  handle: {
-    alignSelf: 'center',
-    width: 40,
-    height: 4,
-    borderRadius: radius.full,
-    backgroundColor: colors.textMuted,
   },
   title: { ...typography.titleSection, color: colors.textPrimary },
   search: {
