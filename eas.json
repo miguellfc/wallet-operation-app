@@ -1,0 +1,16 @@
+{
+  "cli": {
+    "appVersionSource": "local"
+  },
+  "build": {
+    "local-apk": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_DATA_SOURCE": "local"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  }
+}

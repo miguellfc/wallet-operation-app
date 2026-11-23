@@ -1,3 +1,4 @@
+import { Redirect, type Href } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +22,7 @@ import {
   type Account,
 } from '@/features/auth/account-api';
 import { ApiError } from '@/lib/api';
+import { isLocal } from '@/lib/data-source';
 import { useApiData } from '@/lib/use-api-data';
 import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 import { useThemeName } from '@/features/theme/theme-store';
@@ -249,7 +251,7 @@ function DeleteSheet({ visible, nickname, onClose }: DeleteSheetProps) {
   );
 }
 
-export default function AccountScreen() {
+function AccountScreen() {
   useThemeName();
   const insets = useSafeAreaInsets();
   const { data: account, error: loadError, retry, refresh } = useApiData(loadAccount);
@@ -408,6 +410,12 @@ export default function AccountScreen() {
     </ScreenBackground>
   );
 }
+
+function RedirectToSettings() {
+  return <Redirect href={'/settings' as Href} />;
+}
+
+export default isLocal ? RedirectToSettings : AccountScreen;
 
 const styles = themedStyles(() => ({
   content: {

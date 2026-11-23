@@ -76,12 +76,14 @@ export default function SettingsScreen() {
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
         <BackHeader title="Ajustes" />
         <View style={styles.list}>
-          <SettingsCard
-            icon={<Image contentFit="contain" source={require('@/assets/icons/user-rounded.svg')} tintColor={colors.textInverse} style={styles.userIcon} />}
-            title="Mi cuenta"
-            detail="Administra tu información personal"
-            onPress={openAccount}
-          />
+          {!isLocal && (
+            <SettingsCard
+              icon={<Image contentFit="contain" source={require('@/assets/icons/user-rounded.svg')} tintColor={colors.textInverse} style={styles.userIcon} />}
+              title="Mi cuenta"
+              detail="Administra tu información personal"
+              onPress={openAccount}
+            />
+          )}
           <SettingsCard
             icon={<SvgXml xml={EXCHANGE_ICON} color={colors.textInverse} width={30} height={30} />}
             title="Tasas de cambio"
@@ -109,13 +111,17 @@ export default function SettingsScreen() {
             />
           )}
         </View>
-        <View style={styles.spacer} />
-        <Pressable
-          accessibilityRole="button"
-          onPress={confirmSignOut}
-          style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}>
-          <Text style={styles.signOutLabel}>Cerrar sesión</Text>
-        </Pressable>
+        {!isLocal && (
+          <>
+            <View style={styles.spacer} />
+            <Pressable
+              accessibilityRole="button"
+              onPress={confirmSignOut}
+              style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}>
+              <Text style={styles.signOutLabel}>Cerrar sesión</Text>
+            </Pressable>
+          </>
+        )}
       </ScrollView>
     </ScreenBackground>
   );
