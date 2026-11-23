@@ -731,6 +731,24 @@
   dependencies:
     node-forge "^1.4.0"
 
+"@expo/config-plugins@^58.0.13":
+  version "58.0.13"
+  resolved "https://nexus.dofleinisoftware.com/repository/npm/@expo/config-plugins/-/config-plugins-58.0.13.tgz#d5b389ad8136b537e6b3caae27b35ede5ca632b9"
+  integrity sha512-Vbkt0vpIJ9z+oCFr2simtfuiPxdpIovDgYnzenC9z7jX0rlo8nTLGQky+q+SJdovIbyymGAO45UR0YqwLgbvKw==
+  dependencies:
+    "@expo/config-types" "^58.0.3"
+    "@expo/json-file" "~11.2.1"
+    "@expo/plist" "^0.10.2"
+    "@expo/require-utils" "^58.0.6"
+    "@expo/sdk-runtime-versions" "^1.0.1"
+    chalk "^4.1.2"
+    debug "^4.3.5"
+    semver "^7.7.4"
+    slugify "^1.6.6"
+    tinyglobby "^0.2.15"
+    xcode "^4.0.0"
+    xml2js "0.6.0"
+
 "@expo/config-plugins@~58.0.12":
   version "58.0.12"
   resolved "https://nexus.dofleinisoftware.com/repository/npm/@expo/config-plugins/-/config-plugins-58.0.12.tgz#5cd82c481d23b0512f100a4639943a5dcbfa9414"
@@ -997,6 +1015,14 @@
     base64-js "^1.5.1"
     xmlbuilder "^15.1.1"
 
+"@expo/plist@^0.10.2":
+  version "0.10.2"
+  resolved "https://nexus.dofleinisoftware.com/repository/npm/@expo/plist/-/plist-0.10.2.tgz#c96d5ed5b54aca61002b3cd263980a5e16e43685"
+  integrity sha512-kaCDdGLtezkt5s1w7iCaISNJ+RkNac/1yBYYE8XyXLSJu3czGHZKzJGQ8fFOrpEGm6GdlIHFpzVeiF01ZVyHyg==
+  dependencies:
+    "@xmldom/xmldom" "^0.8.8"
+    xmlbuilder "^15.1.1"
+
 "@expo/prebuild-config@^58.0.19":
   version "58.0.19"
   resolved "https://nexus.dofleinisoftware.com/repository/npm/@expo/prebuild-config/-/prebuild-config-58.0.19.tgz#946885c5fcbf47a9602c05da453994143bd059e7"
@@ -1017,6 +1043,15 @@
   version "58.0.5"
   resolved "https://nexus.dofleinisoftware.com/repository/npm/@expo/require-utils/-/require-utils-58.0.5.tgz#f41c42faaa7287210a332545d36b73bbefb0d381"
   integrity sha512-14dGubYUBmJjK9aqVSGnwSDs9uaxfzvtqJugtMCEWyuTa/eIvToUbzUwpKCSek6S/hYSEYcgds23vDJhXSBpbQ==
+  dependencies:
+    "@babel/code-frame" "^7.20.0"
+    "@babel/core" "^7.25.2"
+    "@babel/plugin-transform-modules-commonjs" "^7.24.8"
+
+"@expo/require-utils@^58.0.6":
+  version "58.0.6"
+  resolved "https://nexus.dofleinisoftware.com/repository/npm/@expo/require-utils/-/require-utils-58.0.6.tgz#0baae831b3d4560ac82ff8a564700aafefae3489"
+  integrity sha512-k9Ce7indjY3+nRBNT6wKw7NghN7pP6WhFnYNjuDiAypwjtVgaZHpD9fo0/g3/emDUpM6ebl8Ekz/teyUGfD9og==
   dependencies:
     "@babel/code-frame" "^7.20.0"
     "@babel/core" "^7.25.2"
@@ -3007,10 +3042,20 @@ expo-device@~58.0.5:
   dependencies:
     ua-parser-js "^0.7.33"
 
+expo-document-picker@~58.0.5:
+  version "58.0.5"
+  resolved "https://nexus.dofleinisoftware.com/repository/npm/expo-document-picker/-/expo-document-picker-58.0.5.tgz#7b8f76d8a3513aeb035346dc03816d590c9902b0"
+  integrity sha512-DHv8GhjDwu2BbDWhV2j52iaqwWsA9P7n5nAwreiKRGQSxv0wpF/C0Cqpqj1B72io8E2KXddwxxKPWVPlV/kgtA==
+
 expo-file-system@~58.0.13:
   version "58.0.13"
   resolved "https://nexus.dofleinisoftware.com/repository/npm/expo-file-system/-/expo-file-system-58.0.13.tgz#c4a44a6706c1e42d9daea048cc50635e7ce642b2"
   integrity sha512-+/1aFErkawyky5UdWI06zYeO2DeHUnfaWnYHeiI8M8Z/sB6L66gI3WUxqtvUvKJoaM0Ti1CximD3x3JwteLYIg==
+
+expo-file-system@~58.0.14:
+  version "58.0.14"
+  resolved "https://nexus.dofleinisoftware.com/repository/npm/expo-file-system/-/expo-file-system-58.0.14.tgz#87cd00ee9300531b2537b90debd124b8e781562b"
+  integrity sha512-VK67RQPDmWRHGbvpmPY5MeA1Ulw1LiyKs4KIN8na/q7SlkxYuPPR8biWsyX1S1/8XAHm6y2txUnYjCKh9l93lQ==
 
 expo-font@~58.0.11:
   version "58.0.11"
@@ -3126,6 +3171,15 @@ expo-server@^58.0.6:
   version "58.0.6"
   resolved "https://nexus.dofleinisoftware.com/repository/npm/expo-server/-/expo-server-58.0.6.tgz#1bc9cdaa3843b7a33608e653dc8b1b8f88feaee8"
   integrity sha512-6DBlSZwxk3J0y1j2s4XebAWNiwGaMp32NcWX7b2kJC2+EFf1g+pCcVmx8ylawt2tyLmbDHswm4MHOfrd4bqfvA==
+
+expo-sharing@~58.0.23:
+  version "58.0.23"
+  resolved "https://nexus.dofleinisoftware.com/repository/npm/expo-sharing/-/expo-sharing-58.0.23.tgz#1ed28e2ea5dbe4028747bd77fb5fa3be31a4d2d1"
+  integrity sha512-TRu/CM7s4caW0TcVurO49468jtHAraoRVa4et5lHWKd18/5tfFMOA3ZAxsEezBaI8ehcLXhWc9FPBSxtYY6GYQ==
+  dependencies:
+    "@expo/config-plugins" "^58.0.13"
+    "@expo/config-types" "^58.0.3"
+    "@expo/plist" "^0.10.2"
 
 expo-splash-screen@~58.0.13:
   version "58.0.13"

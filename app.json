@@ -46,7 +46,8 @@
         {
           "faceIDPermission": "Cashen usa Face ID para desbloquear la app y proteger tus datos."
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,
