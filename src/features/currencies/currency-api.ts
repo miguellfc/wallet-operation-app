@@ -1,4 +1,6 @@
 import { apiRequest } from '@/lib/api';
+import { isLocal } from '@/lib/data-source';
+import { localCurrencies } from '@/lib/local-db/currencies';
 
 export type CurrencyType = 'FIAT' | 'CRYPTO';
 
@@ -14,6 +16,7 @@ type CurrencyPage = { data: Currency[]; total: number; page: number };
 const PAGE_SIZE = 200;
 
 export async function fetchCurrencies() {
+  if (isLocal) return localCurrencies;
   const currencies: Currency[] = [];
   for (let page = 1; ; page++) {
     const result = await apiRequest<CurrencyPage>('/currency/search', {

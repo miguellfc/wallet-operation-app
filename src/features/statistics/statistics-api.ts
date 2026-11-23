@@ -1,6 +1,13 @@
 import { authRequest } from '@/features/auth/auth-request';
 import type { Currency } from '@/features/currencies/currency-api';
 import type { CashFlowPeriod } from '@/features/home/home-api';
+import { isLocal } from '@/lib/data-source';
+import {
+  localBalanceEvolution,
+  localCashFlow,
+  localStatisticsSummary,
+  localWalletBalances,
+} from '@/lib/local-db/statistics';
 
 export type StatsPeriod = 'WEEK' | 'MONTH' | 'YEAR';
 
@@ -123,6 +130,31 @@ export async function loadStatistics(kind: StatsPeriod, offset: number): Promise
   const range = periodRange(kind, offset);
   const previous = periodRange(kind, offset - 1);
   const evolutionInterval = kind === 'YEAR' ? 'MONTH' : 'DAY';
+
+  if (isLocal) {
+    const to = utcEnd(range.end);
+    const [summary, evolution, trend, wallets] = await Promise.all([
+      localStatisticsSummary({
+        from: utcStart(range.start),
+        to,
+        previousFrom: utcStart(previous.start),
+        previousTo: utcEnd(previous.end),
+      }),
+      localBalanceEvolution({ from: utcStart(range.start), to }, evolutionInterval),
+      localCashFlow({ from: utcStart(trendStart(kind, range.start)), to }, kind),
+      localWalletBalances(),
+    ]);
+    return {
+      key: `${kind}:${offset}`,
+      range,
+      previous,
+      summary,
+      evolution,
+      evolutionInterval,
+      trend: trend.slice(-TREND_LENGTH[kind]),
+      wallets,
+    };
+  }
 
   const [summary, evolution, trend, wallets] = await Promise.all([
     authRequest<StatisticsSummary>('/statistics/summary', {

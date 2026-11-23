@@ -16,9 +16,9 @@ const GLOWS = [
 
 type AuthLayoutProps = PropsWithChildren<{
   title: string;
-  footerPrompt: string;
-  footerAction: string;
-  onFooterPress: () => void;
+  footerPrompt?: string;
+  footerAction?: string;
+  onFooterPress?: () => void;
 }>;
 
 export function AuthLayout({ title, footerPrompt, footerAction, onFooterPress, children }: AuthLayoutProps) {
@@ -41,11 +41,13 @@ export function AuthLayout({ title, footerPrompt, footerAction, onFooterPress, c
           </View>
           {children}
           <View style={styles.spacer} />
-          <Pressable accessibilityRole="link" onPress={onFooterPress} style={styles.footer}>
-            <Text style={styles.footerText}>
-              {footerPrompt} <Text style={styles.footerLink}>{footerAction}</Text>
-            </Text>
-          </Pressable>
+          {footerAction && (
+            <Pressable accessibilityRole="link" onPress={onFooterPress} style={styles.footer}>
+              <Text style={styles.footerText}>
+                {footerPrompt} <Text style={styles.footerLink}>{footerAction}</Text>
+              </Text>
+            </Pressable>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </ScreenBackground>
