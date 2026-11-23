@@ -3,6 +3,7 @@ import { authRequest } from '@/features/auth/auth-request';
 import type { CurrencyType } from '@/features/currencies/currency-api';
 import type { Operation } from '@/features/operations/operations-api';
 import { isLocal } from '@/lib/data-source';
+import { listOpenDebts } from '@/lib/local-db/debts';
 import * as local from '@/lib/local-db/wallets';
 import { currencyDecimals } from '@/lib/format';
 
@@ -76,7 +77,7 @@ export async function loadWallets(): Promise<WalletsData> {
 }
 
 export async function loadDebts(): Promise<Debt[]> {
-  if (isLocal) return [];
+  if (isLocal) return listOpenDebts();
   const page = await authRequest<Page<Debt>>('/debts/search', {
     method: 'POST',
     body: { filters: { status: { $in: ['PENDING', 'PARTIAL'] } }, sort: { date: -1 }, size: PAGE_SIZE },

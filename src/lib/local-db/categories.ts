@@ -3,7 +3,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import type { Category, CategoryInput, CategoryType } from '@/features/categories/categories-api';
 
 import { getDatabase } from './database';
-import { ADJUSTMENT_CATEGORY_NAME, DEFAULT_CATEGORIES } from './defaults';
+import { ADJUSTMENT_CATEGORY_NAME, DEFAULT_CATEGORIES, LOAN_CATEGORY_NAME } from './defaults';
 import { newId } from './ids';
 import { notFound } from './money';
 
@@ -86,4 +86,12 @@ export async function findOrCreateAdjustmentCategory(db: SQLiteDatabase, type: C
     [id, ADJUSTMENT_CATEGORY_NAME, type, color, now, now],
   );
   return { _id: id, name: ADJUSTMENT_CATEGORY_NAME, type, color };
+}
+
+export async function findLoanCategory(db: SQLiteDatabase, type: CategoryType) {
+  const row = await db.getFirstAsync<CategoryRow>(
+    `SELECT ${CATEGORY_COLUMNS} FROM categories WHERE deleted = 0 AND system = 1 AND type = ? AND name = ?`,
+    [type, LOAN_CATEGORY_NAME],
+  );
+  return row ? toCategory(row) : null;
 }
