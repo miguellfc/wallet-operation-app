@@ -1,6 +1,8 @@
 import { loadAccount } from '@/features/auth/account-api';
 import { authRequest } from '@/features/auth/auth-request';
 import type { Currency } from '@/features/currencies/currency-api';
+import { isLocal } from '@/lib/data-source';
+import * as local from '@/lib/local-db/operation-service';
 
 export type OperationType = 'INCOME' | 'EXPENSE' | 'TRANSFER' | 'OPENING';
 
@@ -39,6 +41,10 @@ function utcRange({ from, to }: OperationsRange) {
 
 export async function loadRangeOperations(range: OperationsRange, size: number): Promise<RangeOperations> {
   const bounds = utcRange(range);
+  if (isLocal) {
+    const [profile, data] = await Promise.all([loadAccount(), local.loadLocalRange(bounds, size)]);
+    return { firstName: profile.firstName, ...data };
+  }
   const [profile, evolution, cashFlow, operations] = await Promise.all([
     loadAccount(),
     authRequest<{ currency: Currency; periods: { balance: number }[] }>('/statistics/evolution', {
@@ -71,9 +77,11 @@ export async function loadRangeOperations(range: OperationsRange, size: number):
 }
 
 export async function loadOperation(id: string) {
+  if (isLocal) return local.getLocalOperation(id);
   return authRequest<Operation>(`/operations/${id}`);
 }
 
 export async function deleteOperation(id: string) {
+  if (isLocal) return local.deleteLocalOperation(id);
   return authRequest<unknown>(`/operations/${id}`, { method: 'DELETE' });
 }

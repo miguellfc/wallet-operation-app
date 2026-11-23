@@ -109,6 +109,10 @@ async function createOpening(db: SQLiteDatabase, wallet: WalletSnapshot, amount:
   });
 }
 
+export async function findWalletSnapshot(db: SQLiteDatabase, id: string) {
+  return snapshotOf(await findWalletRow(db, id));
+}
+
 export async function localUserBalance(currency: Currency) {
   return userBalance(await getDatabase(), currency);
 }
