@@ -2,14 +2,14 @@ import { Redirect } from 'expo-router';
 import { Tabs } from 'expo-router/js-tabs';
 
 import { TabBar } from '@/components/navigation/tab-bar';
-import { useSession } from '@/features/auth/session';
+import { signInHref, useSignedIn } from '@/features/auth/sign-in-guard';
 import { colors } from '@/theme';
 import { useThemeName } from '@/features/theme/theme-store';
 
 export default function TabsLayout() {
   useThemeName();
-  const session = useSession();
-  if (!session) return <Redirect href="/login" />;
+  const signedIn = useSignedIn();
+  if (!signedIn) return <Redirect href={signInHref} />;
 
   return (
     <Tabs

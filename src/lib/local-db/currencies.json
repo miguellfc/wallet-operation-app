@@ -1,0 +1,1154 @@
+[
+  {
+    "code": "AED",
+    "currency": "UAE Dirham",
+    "symbol": "د.إ",
+    "type": "FIAT"
+  },
+  {
+    "code": "AFN",
+    "currency": "Afghani",
+    "symbol": "؋",
+    "type": "FIAT"
+  },
+  {
+    "code": "ALL",
+    "currency": "Lek",
+    "symbol": "L",
+    "type": "FIAT"
+  },
+  {
+    "code": "AMD",
+    "currency": "Armenian Dram",
+    "symbol": "֏",
+    "type": "FIAT"
+  },
+  {
+    "code": "ANG",
+    "currency": "Netherlands Antillean Guilder",
+    "symbol": "ƒ",
+    "type": "FIAT"
+  },
+  {
+    "code": "AOA",
+    "currency": "Kwanza",
+    "symbol": "Kz",
+    "type": "FIAT"
+  },
+  {
+    "code": "ARS",
+    "currency": "Argentine Peso",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "AUD",
+    "currency": "Australian Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "AWG",
+    "currency": "Aruban Florin",
+    "symbol": "ƒ",
+    "type": "FIAT"
+  },
+  {
+    "code": "AZN",
+    "currency": "Azerbaijan Manat",
+    "symbol": "₼",
+    "type": "FIAT"
+  },
+  {
+    "code": "BAM",
+    "currency": "Convertible Mark",
+    "symbol": "KM",
+    "type": "FIAT"
+  },
+  {
+    "code": "BBD",
+    "currency": "Barbados Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "BDT",
+    "currency": "Taka",
+    "symbol": "৳",
+    "type": "FIAT"
+  },
+  {
+    "code": "BGN",
+    "currency": "Bulgarian Lev",
+    "symbol": "лв",
+    "type": "FIAT"
+  },
+  {
+    "code": "BHD",
+    "currency": "Bahraini Dinar",
+    "symbol": ".د.ب",
+    "type": "FIAT"
+  },
+  {
+    "code": "BIF",
+    "currency": "Burundi Franc",
+    "symbol": "FBu",
+    "type": "FIAT"
+  },
+  {
+    "code": "BMD",
+    "currency": "Bermudian Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "BNB",
+    "currency": "BNB",
+    "symbol": "BNB",
+    "type": "CRYPTO"
+  },
+  {
+    "code": "BND",
+    "currency": "Brunei Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "BOB",
+    "currency": "Boliviano",
+    "symbol": "$b",
+    "type": "FIAT"
+  },
+  {
+    "code": "BOV",
+    "currency": "Mvdol",
+    "symbol": "BOV",
+    "type": "FIAT"
+  },
+  {
+    "code": "BRL",
+    "currency": "Brazilian Real",
+    "symbol": "R$",
+    "type": "FIAT"
+  },
+  {
+    "code": "BSD",
+    "currency": "Bahamian Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "BTC",
+    "currency": "Bitcoin",
+    "symbol": "₿",
+    "type": "CRYPTO"
+  },
+  {
+    "code": "BTN",
+    "currency": "Ngultrum",
+    "symbol": "Nu.",
+    "type": "FIAT"
+  },
+  {
+    "code": "BWP",
+    "currency": "Pula",
+    "symbol": "P",
+    "type": "FIAT"
+  },
+  {
+    "code": "BYN",
+    "currency": "Belarusian Ruble",
+    "symbol": "Br",
+    "type": "FIAT"
+  },
+  {
+    "code": "BZD",
+    "currency": "Belize Dollar",
+    "symbol": "BZ$",
+    "type": "FIAT"
+  },
+  {
+    "code": "CAD",
+    "currency": "Canadian Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "CDF",
+    "currency": "Congolese Franc",
+    "symbol": "FC",
+    "type": "FIAT"
+  },
+  {
+    "code": "CHE",
+    "currency": "WIR Euro",
+    "symbol": "CHE",
+    "type": "FIAT"
+  },
+  {
+    "code": "CHF",
+    "currency": "Swiss Franc",
+    "symbol": "CHF",
+    "type": "FIAT"
+  },
+  {
+    "code": "CHW",
+    "currency": "WIR Franc",
+    "symbol": "CHW",
+    "type": "FIAT"
+  },
+  {
+    "code": "CLF",
+    "currency": "Unidad de Fomento",
+    "symbol": "CLF",
+    "type": "FIAT"
+  },
+  {
+    "code": "CLP",
+    "currency": "Chilean Peso",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "CNY",
+    "currency": "Yuan Renminbi",
+    "symbol": "¥",
+    "type": "FIAT"
+  },
+  {
+    "code": "COP",
+    "currency": "Colombian Peso",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "COU",
+    "currency": "Unidad de Valor Real",
+    "symbol": "COU",
+    "type": "FIAT"
+  },
+  {
+    "code": "CRC",
+    "currency": "Costa Rican Colon",
+    "symbol": "₡",
+    "type": "FIAT"
+  },
+  {
+    "code": "CUC",
+    "currency": "Peso Convertible",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "CUP",
+    "currency": "Cuban Peso",
+    "symbol": "₱",
+    "type": "FIAT"
+  },
+  {
+    "code": "CVE",
+    "currency": "Cabo Verde Escudo",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "CZK",
+    "currency": "Czech Koruna",
+    "symbol": "Kč",
+    "type": "FIAT"
+  },
+  {
+    "code": "DJF",
+    "currency": "Djibouti Franc",
+    "symbol": "Fdj",
+    "type": "FIAT"
+  },
+  {
+    "code": "DKK",
+    "currency": "Danish Krone",
+    "symbol": "kr",
+    "type": "FIAT"
+  },
+  {
+    "code": "DOGE",
+    "currency": "Dogecoin",
+    "symbol": "Ð",
+    "type": "CRYPTO"
+  },
+  {
+    "code": "DOP",
+    "currency": "Dominican Peso",
+    "symbol": "RD$",
+    "type": "FIAT"
+  },
+  {
+    "code": "DZD",
+    "currency": "Algerian Dinar",
+    "symbol": "دج",
+    "type": "FIAT"
+  },
+  {
+    "code": "EGP",
+    "currency": "Egyptian Pound",
+    "symbol": "£",
+    "type": "FIAT"
+  },
+  {
+    "code": "ERN",
+    "currency": "Nakfa",
+    "symbol": "Nfk",
+    "type": "FIAT"
+  },
+  {
+    "code": "ETB",
+    "currency": "Ethiopian Birr",
+    "symbol": "Br",
+    "type": "FIAT"
+  },
+  {
+    "code": "ETH",
+    "currency": "Ethereum",
+    "symbol": "Ξ",
+    "type": "CRYPTO"
+  },
+  {
+    "code": "EUR",
+    "currency": "Euro",
+    "symbol": "€",
+    "type": "FIAT"
+  },
+  {
+    "code": "EURC",
+    "currency": "EURC",
+    "symbol": "€",
+    "type": "CRYPTO"
+  },
+  {
+    "code": "EURT",
+    "currency": "Tether EURt",
+    "symbol": "€",
+    "type": "CRYPTO"
+  },
+  {
+    "code": "FJD",
+    "currency": "Fiji Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "FKP",
+    "currency": "Falkland Islands Pound",
+    "symbol": "£",
+    "type": "FIAT"
+  },
+  {
+    "code": "GBP",
+    "currency": "Pound Sterling",
+    "symbol": "£",
+    "type": "FIAT"
+  },
+  {
+    "code": "GEL",
+    "currency": "Lari",
+    "symbol": "₾",
+    "type": "FIAT"
+  },
+  {
+    "code": "GHS",
+    "currency": "Ghana Cedi",
+    "symbol": "GH₵",
+    "type": "FIAT"
+  },
+  {
+    "code": "GIP",
+    "currency": "Gibraltar Pound",
+    "symbol": "£",
+    "type": "FIAT"
+  },
+  {
+    "code": "GMD",
+    "currency": "Dalasi",
+    "symbol": "D",
+    "type": "FIAT"
+  },
+  {
+    "code": "GNF",
+    "currency": "Guinean Franc",
+    "symbol": "FG",
+    "type": "FIAT"
+  },
+  {
+    "code": "GTQ",
+    "currency": "Quetzal",
+    "symbol": "Q",
+    "type": "FIAT"
+  },
+  {
+    "code": "GYD",
+    "currency": "Guyana Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "HKD",
+    "currency": "Hong Kong Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "HNL",
+    "currency": "Lempira",
+    "symbol": "L",
+    "type": "FIAT"
+  },
+  {
+    "code": "HTG",
+    "currency": "Gourde",
+    "symbol": "G",
+    "type": "FIAT"
+  },
+  {
+    "code": "HUF",
+    "currency": "Forint",
+    "symbol": "Ft",
+    "type": "FIAT"
+  },
+  {
+    "code": "IDR",
+    "currency": "Rupiah",
+    "symbol": "Rp",
+    "type": "FIAT"
+  },
+  {
+    "code": "ILS",
+    "currency": "New Israeli Sheqel",
+    "symbol": "₪",
+    "type": "FIAT"
+  },
+  {
+    "code": "INR",
+    "currency": "Indian Rupee",
+    "symbol": "₹",
+    "type": "FIAT"
+  },
+  {
+    "code": "IQD",
+    "currency": "Iraqi Dinar",
+    "symbol": "ع.د",
+    "type": "FIAT"
+  },
+  {
+    "code": "IRR",
+    "currency": "Iranian Rial",
+    "symbol": "﷼",
+    "type": "FIAT"
+  },
+  {
+    "code": "ISK",
+    "currency": "Iceland Krona",
+    "symbol": "kr",
+    "type": "FIAT"
+  },
+  {
+    "code": "JMD",
+    "currency": "Jamaican Dollar",
+    "symbol": "J$",
+    "type": "FIAT"
+  },
+  {
+    "code": "JOD",
+    "currency": "Jordanian Dinar",
+    "symbol": "JD",
+    "type": "FIAT"
+  },
+  {
+    "code": "JPY",
+    "currency": "Yen",
+    "symbol": "¥",
+    "type": "FIAT"
+  },
+  {
+    "code": "KES",
+    "currency": "Kenyan Shilling",
+    "symbol": "KSh",
+    "type": "FIAT"
+  },
+  {
+    "code": "KGS",
+    "currency": "Som",
+    "symbol": "лв",
+    "type": "FIAT"
+  },
+  {
+    "code": "KHR",
+    "currency": "Riel",
+    "symbol": "៛",
+    "type": "FIAT"
+  },
+  {
+    "code": "KMF",
+    "currency": "Comorian Franc ",
+    "symbol": "CF",
+    "type": "FIAT"
+  },
+  {
+    "code": "KPW",
+    "currency": "North Korean Won",
+    "symbol": "₩",
+    "type": "FIAT"
+  },
+  {
+    "code": "KRW",
+    "currency": "Won",
+    "symbol": "₩",
+    "type": "FIAT"
+  },
+  {
+    "code": "KWD",
+    "currency": "Kuwaiti Dinar",
+    "symbol": "KD",
+    "type": "FIAT"
+  },
+  {
+    "code": "KYD",
+    "currency": "Cayman Islands Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "KZT",
+    "currency": "Tenge",
+    "symbol": "₸",
+    "type": "FIAT"
+  },
+  {
+    "code": "LAK",
+    "currency": "Lao Kip",
+    "symbol": "₭",
+    "type": "FIAT"
+  },
+  {
+    "code": "LBP",
+    "currency": "Lebanese Pound",
+    "symbol": "£",
+    "type": "FIAT"
+  },
+  {
+    "code": "LKR",
+    "currency": "Sri Lanka Rupee",
+    "symbol": "₨",
+    "type": "FIAT"
+  },
+  {
+    "code": "LRD",
+    "currency": "Liberian Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "LSL",
+    "currency": "Loti",
+    "symbol": "M",
+    "type": "FIAT"
+  },
+  {
+    "code": "LYD",
+    "currency": "Libyan Dinar",
+    "symbol": "LD",
+    "type": "FIAT"
+  },
+  {
+    "code": "MAD",
+    "currency": "Moroccan Dirham",
+    "symbol": "MAD",
+    "type": "FIAT"
+  },
+  {
+    "code": "MDL",
+    "currency": "Moldovan Leu",
+    "symbol": "lei",
+    "type": "FIAT"
+  },
+  {
+    "code": "MGA",
+    "currency": "Malagasy Ariary",
+    "symbol": "Ar",
+    "type": "FIAT"
+  },
+  {
+    "code": "MKD",
+    "currency": "Denar",
+    "symbol": "ден",
+    "type": "FIAT"
+  },
+  {
+    "code": "MMK",
+    "currency": "Kyat",
+    "symbol": "K",
+    "type": "FIAT"
+  },
+  {
+    "code": "MNT",
+    "currency": "Tugrik",
+    "symbol": "₮",
+    "type": "FIAT"
+  },
+  {
+    "code": "MOP",
+    "currency": "Pataca",
+    "symbol": "MOP$",
+    "type": "FIAT"
+  },
+  {
+    "code": "MRU",
+    "currency": "Ouguiya",
+    "symbol": "UM",
+    "type": "FIAT"
+  },
+  {
+    "code": "MUR",
+    "currency": "Mauritius Rupee",
+    "symbol": "₨",
+    "type": "FIAT"
+  },
+  {
+    "code": "MVR",
+    "currency": "Rufiyaa",
+    "symbol": "Rf",
+    "type": "FIAT"
+  },
+  {
+    "code": "MWK",
+    "currency": "Malawi Kwacha",
+    "symbol": "MK",
+    "type": "FIAT"
+  },
+  {
+    "code": "MXN",
+    "currency": "Mexican Peso",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "MXV",
+    "currency": "Mexican Unidad de Inversion (UDI)",
+    "symbol": "MXV",
+    "type": "FIAT"
+  },
+  {
+    "code": "MYR",
+    "currency": "Malaysian Ringgit",
+    "symbol": "RM",
+    "type": "FIAT"
+  },
+  {
+    "code": "MZN",
+    "currency": "Mozambique Metical",
+    "symbol": "MT",
+    "type": "FIAT"
+  },
+  {
+    "code": "NAD",
+    "currency": "Namibia Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "NGN",
+    "currency": "Naira",
+    "symbol": "₦",
+    "type": "FIAT"
+  },
+  {
+    "code": "NIO",
+    "currency": "Cordoba Oro",
+    "symbol": "C$",
+    "type": "FIAT"
+  },
+  {
+    "code": "NOK",
+    "currency": "Norwegian Krone",
+    "symbol": "kr",
+    "type": "FIAT"
+  },
+  {
+    "code": "NPR",
+    "currency": "Nepalese Rupee",
+    "symbol": "₨",
+    "type": "FIAT"
+  },
+  {
+    "code": "NZD",
+    "currency": "New Zealand Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "OMR",
+    "currency": "Rial Omani",
+    "symbol": "﷼",
+    "type": "FIAT"
+  },
+  {
+    "code": "PAB",
+    "currency": "Balboa",
+    "symbol": "B/.",
+    "type": "FIAT"
+  },
+  {
+    "code": "PEN",
+    "currency": "Sol",
+    "symbol": "S/.",
+    "type": "FIAT"
+  },
+  {
+    "code": "PGK",
+    "currency": "Kina",
+    "symbol": "K",
+    "type": "FIAT"
+  },
+  {
+    "code": "PHP",
+    "currency": "Philippine Peso",
+    "symbol": "₱",
+    "type": "FIAT"
+  },
+  {
+    "code": "PKR",
+    "currency": "Pakistan Rupee",
+    "symbol": "₨",
+    "type": "FIAT"
+  },
+  {
+    "code": "PLN",
+    "currency": "Zloty",
+    "symbol": "zł",
+    "type": "FIAT"
+  },
+  {
+    "code": "PYG",
+    "currency": "Guarani",
+    "symbol": "Gs",
+    "type": "FIAT"
+  },
+  {
+    "code": "QAR",
+    "currency": "Qatari Rial",
+    "symbol": "﷼",
+    "type": "FIAT"
+  },
+  {
+    "code": "RON",
+    "currency": "Romanian Leu",
+    "symbol": "lei",
+    "type": "FIAT"
+  },
+  {
+    "code": "RSD",
+    "currency": "Serbian Dinar",
+    "symbol": "Дин.",
+    "type": "FIAT"
+  },
+  {
+    "code": "RUB",
+    "currency": "Russian Ruble",
+    "symbol": "₽",
+    "type": "FIAT"
+  },
+  {
+    "code": "RWF",
+    "currency": "Rwanda Franc",
+    "symbol": "R₣",
+    "type": "FIAT"
+  },
+  {
+    "code": "SAR",
+    "currency": "Saudi Riyal",
+    "symbol": "﷼",
+    "type": "FIAT"
+  },
+  {
+    "code": "SBD",
+    "currency": "Solomon Islands Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "SCR",
+    "currency": "Seychelles Rupee",
+    "symbol": "₨",
+    "type": "FIAT"
+  },
+  {
+    "code": "SDG",
+    "currency": "Sudanese Pound",
+    "symbol": "ج.س.",
+    "type": "FIAT"
+  },
+  {
+    "code": "SEK",
+    "currency": "Swedish Krona",
+    "symbol": "kr",
+    "type": "FIAT"
+  },
+  {
+    "code": "SGD",
+    "currency": "Singapore Dollar",
+    "symbol": "S$",
+    "type": "FIAT"
+  },
+  {
+    "code": "SHP",
+    "currency": "Saint Helena Pound",
+    "symbol": "£",
+    "type": "FIAT"
+  },
+  {
+    "code": "SLE",
+    "currency": "Leone",
+    "symbol": "",
+    "type": "FIAT"
+  },
+  {
+    "code": "SLL",
+    "currency": "Leone",
+    "symbol": "Le",
+    "type": "FIAT"
+  },
+  {
+    "code": "SOL",
+    "currency": "Solana",
+    "symbol": "◎",
+    "type": "CRYPTO"
+  },
+  {
+    "code": "SOS",
+    "currency": "Somali Shilling",
+    "symbol": "S",
+    "type": "FIAT"
+  },
+  {
+    "code": "SRD",
+    "currency": "Surinam Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "SSP",
+    "currency": "South Sudanese Pound",
+    "symbol": "£",
+    "type": "FIAT"
+  },
+  {
+    "code": "STN",
+    "currency": "Dobra",
+    "symbol": "Db",
+    "type": "FIAT"
+  },
+  {
+    "code": "SVC",
+    "currency": "El Salvador Colon",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "SYP",
+    "currency": "Syrian Pound",
+    "symbol": "£",
+    "type": "FIAT"
+  },
+  {
+    "code": "SZL",
+    "currency": "Lilangeni",
+    "symbol": "E",
+    "type": "FIAT"
+  },
+  {
+    "code": "THB",
+    "currency": "Baht",
+    "symbol": "฿",
+    "type": "FIAT"
+  },
+  {
+    "code": "TJS",
+    "currency": "Somoni",
+    "symbol": "SM",
+    "type": "FIAT"
+  },
+  {
+    "code": "TMT",
+    "currency": "Turkmenistan New Manat",
+    "symbol": "T",
+    "type": "FIAT"
+  },
+  {
+    "code": "TND",
+    "currency": "Tunisian Dinar",
+    "symbol": "د.ت",
+    "type": "FIAT"
+  },
+  {
+    "code": "TOP",
+    "currency": "Pa’anga",
+    "symbol": "T$",
+    "type": "FIAT"
+  },
+  {
+    "code": "TPY",
+    "currency": "TropiPay",
+    "symbol": "T",
+    "type": "CRYPTO"
+  },
+  {
+    "code": "TRX",
+    "currency": "TRON",
+    "symbol": "TRX",
+    "type": "CRYPTO"
+  },
+  {
+    "code": "TRY",
+    "currency": "Turkish Lira",
+    "symbol": "₺",
+    "type": "FIAT"
+  },
+  {
+    "code": "TTD",
+    "currency": "Trinidad and Tobago Dollar",
+    "symbol": "TT$",
+    "type": "FIAT"
+  },
+  {
+    "code": "TWD",
+    "currency": "New Taiwan Dollar",
+    "symbol": "NT$",
+    "type": "FIAT"
+  },
+  {
+    "code": "TZS",
+    "currency": "Tanzanian Shilling",
+    "symbol": "TSh",
+    "type": "FIAT"
+  },
+  {
+    "code": "UAH",
+    "currency": "Hryvnia",
+    "symbol": "₴",
+    "type": "FIAT"
+  },
+  {
+    "code": "UGX",
+    "currency": "Uganda Shilling",
+    "symbol": "USh",
+    "type": "FIAT"
+  },
+  {
+    "code": "USD",
+    "currency": "US Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "USDC",
+    "currency": "USD Coin",
+    "symbol": "$",
+    "type": "CRYPTO"
+  },
+  {
+    "code": "USDT",
+    "currency": "Tether",
+    "symbol": "₮",
+    "type": "CRYPTO"
+  },
+  {
+    "code": "USN",
+    "currency": "US Dollar (Next day)",
+    "symbol": "",
+    "type": "FIAT"
+  },
+  {
+    "code": "UYI",
+    "currency": "Uruguay Peso en Unidades Indexadas (UI)",
+    "symbol": "UYI",
+    "type": "FIAT"
+  },
+  {
+    "code": "UYU",
+    "currency": "Peso Uruguayo",
+    "symbol": "$U",
+    "type": "FIAT"
+  },
+  {
+    "code": "UYW",
+    "currency": "Unidad Previsional",
+    "symbol": "UYW",
+    "type": "FIAT"
+  },
+  {
+    "code": "UZS",
+    "currency": "Uzbekistan Sum",
+    "symbol": "лв",
+    "type": "FIAT"
+  },
+  {
+    "code": "VED",
+    "currency": "Bolívar Soberano",
+    "symbol": "",
+    "type": "FIAT"
+  },
+  {
+    "code": "VES",
+    "currency": "Bolívar Soberano",
+    "symbol": "Bs.S",
+    "type": "FIAT"
+  },
+  {
+    "code": "VND",
+    "currency": "Dong",
+    "symbol": "₫",
+    "type": "FIAT"
+  },
+  {
+    "code": "VUV",
+    "currency": "Vatu",
+    "symbol": "VT",
+    "type": "FIAT"
+  },
+  {
+    "code": "WST",
+    "currency": "Tala",
+    "symbol": "WS$",
+    "type": "FIAT"
+  },
+  {
+    "code": "XAF",
+    "currency": "CFA Franc BEAC",
+    "symbol": "FCFA",
+    "type": "FIAT"
+  },
+  {
+    "code": "XAG",
+    "currency": "Silver",
+    "symbol": "",
+    "type": "FIAT"
+  },
+  {
+    "code": "XAU",
+    "currency": "Gold",
+    "symbol": "",
+    "type": "FIAT"
+  },
+  {
+    "code": "XBA",
+    "currency": "Bond Markets Unit European Composite Unit (EURCO)",
+    "symbol": "",
+    "type": "FIAT"
+  },
+  {
+    "code": "XBB",
+    "currency": "Bond Markets Unit European Monetary Unit (E.M.U.-6)",
+    "symbol": "",
+    "type": "FIAT"
+  },
+  {
+    "code": "XBC",
+    "currency": "Bond Markets Unit European Unit of Account 9 (E.U.A.-9)",
+    "symbol": "",
+    "type": "FIAT"
+  },
+  {
+    "code": "XBD",
+    "currency": "Bond Markets Unit European Unit of Account 17 (E.U.A.-17)",
+    "symbol": "",
+    "type": "FIAT"
+  },
+  {
+    "code": "XCD",
+    "currency": "East Caribbean Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  },
+  {
+    "code": "XDR",
+    "currency": "SDR (Special Drawing Right)",
+    "symbol": "",
+    "type": "FIAT"
+  },
+  {
+    "code": "XOF",
+    "currency": "CFA Franc BCEAO",
+    "symbol": "CFA",
+    "type": "FIAT"
+  },
+  {
+    "code": "XPD",
+    "currency": "Palladium",
+    "symbol": "",
+    "type": "FIAT"
+  },
+  {
+    "code": "XPF",
+    "currency": "CFP Franc",
+    "symbol": "₣",
+    "type": "FIAT"
+  },
+  {
+    "code": "XPT",
+    "currency": "Platinum",
+    "symbol": "",
+    "type": "FIAT"
+  },
+  {
+    "code": "XRP",
+    "currency": "XRP",
+    "symbol": "✕",
+    "type": "CRYPTO"
+  },
+  {
+    "code": "XSU",
+    "currency": "Sucre",
+    "symbol": "Sucre",
+    "type": "FIAT"
+  },
+  {
+    "code": "XTS",
+    "currency": "Codes specifically reserved for testing purposes",
+    "symbol": "",
+    "type": "FIAT"
+  },
+  {
+    "code": "XUA",
+    "currency": "ADB Unit of Account",
+    "symbol": "XUA",
+    "type": "FIAT"
+  },
+  {
+    "code": "XXX",
+    "currency": "The codes assigned for transactions where no currency is involved",
+    "symbol": "",
+    "type": "FIAT"
+  },
+  {
+    "code": "YER",
+    "currency": "Yemeni Rial",
+    "symbol": "﷼",
+    "type": "FIAT"
+  },
+  {
+    "code": "ZAR",
+    "currency": "Rand",
+    "symbol": "R",
+    "type": "FIAT"
+  },
+  {
+    "code": "ZMW",
+    "currency": "Zambian Kwacha",
+    "symbol": "ZK",
+    "type": "FIAT"
+  },
+  {
+    "code": "ZWL",
+    "currency": "Zimbabwe Dollar",
+    "symbol": "$",
+    "type": "FIAT"
+  }
+]

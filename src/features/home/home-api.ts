@@ -1,5 +1,7 @@
+import { loadAccount } from '@/features/auth/account-api';
 import { authRequest } from '@/features/auth/auth-request';
 import type { Currency } from '@/features/currencies/currency-api';
+import { isLocal } from '@/lib/data-source';
 
 export type OperationKind = 'INCOME' | 'EXPENSE';
 
@@ -15,8 +17,6 @@ export type CashFlowPeriod = { period: string; income: number; expense: number; 
 export type CashFlowInterval = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
 
 export type CashFlowData = { interval: CashFlowInterval; periods: CashFlowPeriod[] };
-
-type Profile = { firstName: string; lastName: string };
 
 export type HomeData = {
   firstName: string;
@@ -48,6 +48,7 @@ function chartStart(interval: CashFlowInterval) {
 }
 
 export async function loadCashFlow(interval: CashFlowInterval): Promise<CashFlowData> {
+  if (isLocal) return { interval, periods: [] };
   const cashFlow = await authRequest<{ periods: CashFlowPeriod[] }>('/statistics/cash-flow', {
     method: 'POST',
     body: { from: chartStart(interval).toISOString(), to: chartEnd().toISOString(), interval },
@@ -56,8 +57,12 @@ export async function loadCashFlow(interval: CashFlowInterval): Promise<CashFlow
 }
 
 export async function loadHome(): Promise<HomeData> {
+  if (isLocal) {
+    const profile = await loadAccount();
+    return { firstName: profile.firstName, currency: profile.currency, balance: 0, categories: [] };
+  }
   const [profile, balance, categories] = await Promise.all([
-    authRequest<Profile>('/users'),
+    loadAccount(),
     authRequest<{ currency: Currency; balance: number }>('/balance'),
     authRequest<{ categories: CategoryTotal[] }>('/statistics/categories', { method: 'POST', body: {} }),
   ]);

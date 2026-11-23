@@ -1954,6 +1954,11 @@ available-typed-arrays@^1.0.7:
   dependencies:
     possible-typed-array-names "^1.0.0"
 
+await-lock@^2.2.2:
+  version "2.2.2"
+  resolved "https://nexus.dofleinisoftware.com/repository/npm/await-lock/-/await-lock-2.2.2.tgz#a95a9b269bfd2f69d22b17a321686f551152bcef"
+  integrity sha512-aDczADvlvTGajTDjcjpJMqRkOF6Qdz3YbPZm/PyW6tKPkx2hlYBzxMhEywM/tU72HrVZjgl5VCdRuMlA7pZ8Gw==
+
 babel-plugin-polyfill-corejs2@^0.4.14:
   version "0.4.17"
   resolved "https://nexus.dofleinisoftware.com/repository/npm/babel-plugin-polyfill-corejs2/-/babel-plugin-polyfill-corejs2-0.4.17.tgz#198f970f1c99a856b466d1187e88ce30bd199d91"
@@ -3113,6 +3118,13 @@ expo-splash-screen@~58.0.13:
     "@expo/config-plugins" "~58.0.12"
     "@expo/image-utils" "^0.12.6"
     xml2js "0.6.0"
+
+expo-sqlite@~58.0.18:
+  version "58.0.18"
+  resolved "https://nexus.dofleinisoftware.com/repository/npm/expo-sqlite/-/expo-sqlite-58.0.18.tgz#b00aa70a9d64541eac640c66cd435dd797c11f4d"
+  integrity sha512-EbRG/tb4Q+M28sZUY+58TSRrj/bK3RBOoGG8xXeobOJnMuBCMhstoKZlTJpu79ydzqURO5TXdbVhqk9suh39rQ==
+  dependencies:
+    await-lock "^2.2.2"
 
 expo-status-bar@^58.0.4, expo-status-bar@~58.0.4:
   version "58.0.4"

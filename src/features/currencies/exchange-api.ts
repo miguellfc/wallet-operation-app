@@ -1,3 +1,4 @@
+import { loadAccount } from '@/features/auth/account-api';
 import { authRequest } from '@/features/auth/auth-request';
 import type { Currency } from '@/features/currencies/currency-api';
 
@@ -7,7 +8,7 @@ export type ExchangeRatesData = { userCurrency: Currency; rates: ExchangeRate[] 
 
 export async function loadExchangeRates(): Promise<ExchangeRatesData> {
   const [user, page] = await Promise.all([
-    authRequest<{ currency: Currency }>('/users'),
+    loadAccount(),
     authRequest<{ data: ExchangeRate[] }>('/currency-exchange/search', {
       method: 'POST',
       body: { sort: { 'currency.code': 1 }, size: 200 },

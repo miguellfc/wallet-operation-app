@@ -13,11 +13,15 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 
 import { ConfirmDialogHost } from '@/components/ui/confirm-dialog';
+import { restoreLocalProfile } from '@/features/auth/local-profile';
 import { restoreSession } from '@/features/auth/session';
+import { isLocal } from '@/lib/data-source';
 import { colors, fonts } from '@/theme';
 import { useThemeName } from '@/features/theme/theme-store';
 
 SplashScreen.preventAutoHideAsync();
+
+const restore = isLocal ? restoreLocalProfile : restoreSession;
 
 export default function RootLayout() {
   const themeName = useThemeName();
@@ -34,7 +38,7 @@ export default function RootLayout() {
   const ready = fontsLoaded && sessionRestored;
 
   useEffect(() => {
-    restoreSession()
+    restore()
       .catch(() => null)
       .finally(() => setSessionRestored(true));
   }, []);

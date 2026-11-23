@@ -1,3 +1,4 @@
+import { loadAccount } from '@/features/auth/account-api';
 import { authRequest } from '@/features/auth/auth-request';
 import type { CurrencyType } from '@/features/currencies/currency-api';
 import type { Operation } from '@/features/operations/operations-api';
@@ -41,7 +42,7 @@ export type Recurrence = {
 export type RecurrenceItem = { recurrence: Recurrence; template?: Operation };
 
 export async function loadProfile() {
-  return authRequest<{ firstName: string }>('/users');
+  return loadAccount();
 }
 
 export async function loadWallets(): Promise<WalletsData> {

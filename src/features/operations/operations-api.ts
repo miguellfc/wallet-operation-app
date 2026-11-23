@@ -1,3 +1,4 @@
+import { loadAccount } from '@/features/auth/account-api';
 import { authRequest } from '@/features/auth/auth-request';
 import type { Currency } from '@/features/currencies/currency-api';
 
@@ -39,7 +40,7 @@ function utcRange({ from, to }: OperationsRange) {
 export async function loadRangeOperations(range: OperationsRange, size: number): Promise<RangeOperations> {
   const bounds = utcRange(range);
   const [profile, evolution, cashFlow, operations] = await Promise.all([
-    authRequest<{ firstName: string }>('/users'),
+    loadAccount(),
     authRequest<{ currency: Currency; periods: { balance: number }[] }>('/statistics/evolution', {
       method: 'POST',
       body: { ...bounds, interval: 'YEAR' },

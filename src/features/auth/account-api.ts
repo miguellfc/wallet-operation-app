@@ -1,7 +1,9 @@
 import type { Currency } from '@/features/currencies/currency-api';
 import { ApiError } from '@/lib/api';
+import { isLocal } from '@/lib/data-source';
 
 import { authRequest } from './auth-request';
+import { getLocalProfile } from './local-profile';
 import { clearSession } from './session';
 
 export type Account = { firstName: string; lastName: string; nickname: string; currency: Currency };
@@ -10,7 +12,8 @@ export type AccountChanges = { firstName: string; lastName: string; nickname: st
 
 const CONNECTION_ERROR = 'No se pudo conectar con el servidor. Revisa tu conexión y vuelve a intentarlo.';
 
-export async function loadAccount() {
+export async function loadAccount(): Promise<Account> {
+  if (isLocal) return { ...(await getLocalProfile()), nickname: '' };
   return authRequest<Account>('/users');
 }
 

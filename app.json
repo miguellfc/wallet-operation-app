@@ -39,7 +39,8 @@
         {
           "contactsPermission": "Cashen usa tus contactos solo para rellenar el nombre de una deuda."
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,
