@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BalanceCard } from '@/components/home/balance-card';
@@ -7,8 +7,10 @@ import { CashFlowChart } from '@/components/home/cash-flow-chart';
 import { CategoryBreakdown } from '@/components/home/category-breakdown';
 import { HomeHeader } from '@/components/home/home-header';
 import { Button } from '@/components/ui/button';
+import { Reveal } from '@/components/ui/reveal';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { SummaryCard } from '@/components/ui/summary-card';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import { loadCashFlow, loadHome, type CashFlowInterval, type CategoryTotal } from '@/features/home/home-api';
 import { formatAmount } from '@/lib/format';
 import { ApiError } from '@/lib/api';
@@ -63,7 +65,7 @@ export default function HomeScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView
+      <RevealScrollView
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}
         refreshControl={
           <RefreshControl
@@ -79,15 +81,29 @@ export default function HomeScreen() {
         }>
         <HomeHeader name={data.firstName} />
         <View style={styles.body}>
-          <BalanceCard amount={formatAmount(data.balance, code)} />
-          <View style={styles.totals}>
-            <SummaryCard kind="INCOME" label="Ingresos" amount={formatAmount(totalOf(data.categories, 'INCOME'), code)} />
-            <SummaryCard kind="EXPENSE" label="Gastos" amount={formatAmount(totalOf(data.categories, 'EXPENSE'), code)} />
-          </View>
-          <CashFlowChart periods={periods} interval={interval} currencyCode={code} onIntervalChange={setInterval} />
-          <CategoryBreakdown categories={data.categories} currencyCode={code} />
+          <Reveal index={0}>
+            <BalanceCard amount={{ value: data.balance, format: value => formatAmount(value, code) }} />
+          </Reveal>
+          <Reveal index={1} style={styles.totals}>
+            <SummaryCard
+              kind="INCOME"
+              label="Ingresos"
+              amount={{ value: totalOf(data.categories, 'INCOME'), format: value => formatAmount(value, code) }}
+            />
+            <SummaryCard
+              kind="EXPENSE"
+              label="Gastos"
+              amount={{ value: totalOf(data.categories, 'EXPENSE'), format: value => formatAmount(value, code) }}
+            />
+          </Reveal>
+          <Reveal index={2}>
+            <CashFlowChart periods={periods} interval={interval} currencyCode={code} onIntervalChange={setInterval} />
+          </Reveal>
+          <Reveal index={3}>
+            <CategoryBreakdown categories={data.categories} currencyCode={code} />
+          </Reveal>
         </View>
-      </ScrollView>
+      </RevealScrollView>
     </ScreenBackground>
   );
 }

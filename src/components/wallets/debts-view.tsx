@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { View } from 'react-native';
 
 import { InfoRow } from '@/components/ui/info-row';
+import { Reveal } from '@/components/ui/reveal';
 import { TabScroll } from '@/components/wallets/tab-scroll';
 import { loadDebts, type Debt } from '@/features/wallets/wallets-api';
 import { formatAmount } from '@/lib/format';
@@ -23,7 +24,7 @@ function describe(debt: Debt) {
   };
 }
 
-export function DebtsView({ header }: { header: ReactNode }) {
+export function DebtsView({ header }: { header?: ReactNode }) {
   const { data, error, retry, refresh, refreshing } = useApiData(loadDebts);
 
   return (
@@ -36,21 +37,22 @@ export function DebtsView({ header }: { header: ReactNode }) {
       onRefresh={refresh}
       onRetry={retry}>
       <View style={styles.list}>
-        {data?.map(debt => {
+        {data?.map((debt, index) => {
           const row = describe(debt);
           const amount = formatAmount(debt.pending, debt.currency.code);
           return (
-            <InfoRow
-              key={debt._id}
-              icon={row.icon}
-              iconColor={row.color}
-              iconBackground={row.background}
-              title={row.title}
-              detail={row.detail}
-              amount={amount}
-              accessibilityLabel={`${row.title}, ${row.detail}, pendiente ${amount}`}
-              onPress={() => openDebt(debt._id)}
-            />
+            <Reveal key={debt._id} index={index}>
+              <InfoRow
+                icon={row.icon}
+                iconColor={row.color}
+                iconBackground={row.background}
+                title={row.title}
+                detail={row.detail}
+                amount={amount}
+                accessibilityLabel={`${row.title}, ${row.detail}, pendiente ${amount}`}
+                onPress={() => openDebt(debt._id)}
+              />
+            </Reveal>
           );
         })}
       </View>

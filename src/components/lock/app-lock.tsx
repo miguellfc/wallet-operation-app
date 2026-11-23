@@ -1,6 +1,8 @@
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { useEffect, useState, type ReactNode } from 'react';
 import { BackHandler, Pressable, Text, View } from 'react-native';
+import Animated, { FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PinPad } from '@/components/lock/pin-pad';
@@ -24,6 +26,8 @@ const GLOWS = [
   { left: '90%', top: '84%' },
 ] as const;
 
+const LOCK_OUT = FadeOut.duration(200);
+
 const MAX_ATTEMPTS = 5;
 
 const WAIT_SECONDS = 30;
@@ -39,7 +43,7 @@ function LockFrame({ title, message, error = false, children }: LockFrameProps) 
   }, []);
 
   return (
-    <View style={styles.overlay} accessibilityViewIsModal>
+    <Animated.View exiting={LOCK_OUT} style={styles.overlay} accessibilityViewIsModal>
       <ScreenBackground glows={[...GLOWS]}>
         <View style={[styles.content, { paddingTop: insets.top + 48, paddingBottom: insets.bottom + spacing.xxl }]}>
           <View style={styles.hero}>
@@ -54,11 +58,12 @@ function LockFrame({ title, message, error = false, children }: LockFrameProps) 
           {children}
         </View>
       </ScreenBackground>
-    </View>
+    </Animated.View>
   );
 }
 
 function PinSetup() {
+  const [mismatches, setMismatches] = useState(0);
   const [first, setFirst] = useState<string | null>(null);
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +96,8 @@ function PinSetup() {
       return;
     }
     if (next !== first) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => null);
+      setMismatches(count => count + 1);
       setError('Los PIN no coinciden. Vuelve a crearlo');
       setFirst(null);
       setValue('');
@@ -125,7 +132,7 @@ function PinSetup() {
       title={first === null ? 'Crea tu PIN' : 'Confirma tu PIN'}
       message={error ?? (first === null ? `Elige ${PIN_LENGTH} dígitos para proteger tus datos` : 'Vuelve a introducirlo')}
       error={!!error}>
-      <PinPad length={PIN_LENGTH} value={value} onChange={change} disabled={saving} />
+      <PinPad length={PIN_LENGTH} value={value} onChange={change} disabled={saving} shake={mismatches} />
       <View style={styles.footer} />
     </LockFrame>
   );
@@ -144,6 +151,7 @@ function confirmForgotPin() {
 }
 
 function PinUnlock() {
+  const [shake, setShake] = useState(0);
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
@@ -184,10 +192,13 @@ function PinUnlock() {
     const valid = await verifyPin(pin).catch(() => false);
     setChecking(false);
     if (valid) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => null);
       unlock();
       return;
     }
     const failed = attempts + 1;
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => null);
+    setShake(count => count + 1);
     setAttempts(failed);
     setValue('');
     if (failed >= MAX_ATTEMPTS) {
@@ -213,6 +224,7 @@ function PinUnlock() {
         disabled={checking || waiting}
         biometric={biometric}
         onBiometric={tryBiometrics}
+        shake={shake}
       />
       <Pressable accessibilityRole="button" onPress={confirmForgotPin} style={[styles.link, styles.footer]}>
         <Text style={styles.linkLabel}>¿Olvidaste el PIN?</Text>

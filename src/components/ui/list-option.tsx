@@ -1,5 +1,6 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
+import { PressableScale } from '@/components/ui/pressable-scale';
 import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type ListOptionProps = {
@@ -12,19 +13,21 @@ type ListOptionProps = {
 
 export function ListOption({ code, name, tag, selected, onPress }: ListOptionProps) {
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
       style={({ pressed }) => [styles.row, selected && styles.selected, pressed && styles.pressed]}>
-      <Text style={[styles.code, selected && styles.codeSelected]}>{code}</Text>
+      <Text style={[styles.code, selected && styles.codeSelected]} numberOfLines={1}>
+        {code}
+      </Text>
       <Text style={styles.name} numberOfLines={1}>
         {name}
       </Text>
       <View style={styles.tag}>
         <Text style={styles.tagText}>{tag}</Text>
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -43,7 +46,7 @@ const styles = themedStyles(() => ({
   },
   selected: { backgroundColor: colors.surface, borderColor: colors.brand },
   pressed: { opacity: 0.85 },
-  code: { ...typography.titleStat, width: 64, color: colors.textPrimary },
+  code: { ...typography.titleStat, minWidth: 64, color: colors.textPrimary },
   codeSelected: { color: colors.brand },
   name: { ...typography.bodyMedium, flex: 1, color: colors.textSecondary },
   tag: {

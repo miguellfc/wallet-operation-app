@@ -1,7 +1,8 @@
 import type { PropsWithChildren } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SheetModal } from '@/components/ui/sheet-modal';
 import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 
 type BottomSheetProps = PropsWithChildren<{ visible: boolean; title: string; onClose: () => void }>;
@@ -10,23 +11,16 @@ export function BottomSheet({ visible, title, onClose, children }: BottomSheetPr
   const insets = useSafeAreaInsets();
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Cerrar" />
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.xl }]}>
-          <View style={styles.handle} />
+    <SheetModal visible={visible} onClose={onClose} style={[styles.sheet, { paddingBottom: insets.bottom + spacing.xl }]}>
           <Text style={styles.title} accessibilityRole="header">
             {title}
           </Text>
           {children}
-        </View>
-      </View>
-    </Modal>
+    </SheetModal>
   );
 }
 
 const styles = themedStyles(() => ({
-  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
   sheet: {
     width: '100%',
     maxWidth: layout.maxContentWidth,
@@ -40,6 +34,5 @@ const styles = themedStyles(() => ({
     paddingTop: spacing.md,
     gap: spacing.lg,
   },
-  handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: radius.full, backgroundColor: colors.textMuted },
   title: { ...typography.titleSection, color: colors.textPrimary },
 }));

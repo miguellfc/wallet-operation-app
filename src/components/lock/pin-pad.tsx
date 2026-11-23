@@ -1,7 +1,17 @@
-import type { ReactNode } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { useEffect, type ReactNode } from 'react';
+import { Text, View } from 'react-native';
+import Animated, {
+  css,
+  cubicBezier,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { SvgXml } from 'react-native-svg';
 
+import { PressableScale } from '@/components/ui/pressable-scale';
 import type { BiometricKind } from '@/features/lock/biometrics';
 import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
@@ -25,13 +35,14 @@ type PinPadProps = {
   disabled?: boolean;
   biometric?: BiometricKind | null;
   onBiometric?: () => void;
+  shake?: number;
 };
 
 type KeyProps = { label: string; onPress: () => void; disabled?: boolean; children?: ReactNode };
 
 function Key({ label, onPress, disabled, children }: KeyProps) {
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled }}
@@ -39,11 +50,29 @@ function Key({ label, onPress, disabled, children }: KeyProps) {
       onPress={onPress}
       style={({ pressed }) => [styles.key, pressed && styles.keyPressed, disabled && styles.keyDisabled]}>
       {children ?? <Text style={styles.keyLabel}>{label}</Text>}
-    </Pressable>
+    </PressableScale>
   );
 }
 
-export function PinPad({ length, value, onChange, disabled = false, biometric, onBiometric }: PinPadProps) {
+export function PinPad({ length, value, onChange, disabled = false, biometric, onBiometric, shake = 0 }: PinPadProps) {
+  const reduced = useReducedMotion();
+  const offset = useSharedValue(0);
+
+  useEffect(() => {
+    if (shake === 0 || reduced) return;
+    offset.set(
+      withSequence(
+        withTiming(-8, { duration: 40 }),
+        withTiming(8, { duration: 60 }),
+        withTiming(-6, { duration: 60 }),
+        withTiming(4, { duration: 60 }),
+        withTiming(0, { duration: 60 }),
+      ),
+    );
+  }, [shake, reduced, offset]);
+
+  const shakeStyle = useAnimatedStyle(() => ({ transform: [{ translateX: offset.get() }] }));
+
   const press = (digit: string) => {
     if (value.length < length) onChange(value + digit);
   };
@@ -51,11 +80,14 @@ export function PinPad({ length, value, onChange, disabled = false, biometric, o
 
   return (
     <View style={styles.root}>
-      <View style={styles.dots} accessible accessibilityLabel={`${value.length} de ${length} dígitos introducidos`}>
+      <Animated.View
+        style={[styles.dots, shakeStyle]}
+        accessible
+        accessibilityLabel={`${value.length} de ${length} dígitos introducidos`}>
         {Array.from({ length }, (_, index) => (
-          <View key={index} style={[styles.dot, index < value.length && styles.dotFilled]} />
+          <Animated.View key={index} style={[styles.dot, motion.dot, index < value.length && styles.dotFilled]} />
         ))}
-      </View>
+      </Animated.View>
       <View style={styles.grid}>
         {DIGITS.map(digit => (
           <Key key={digit} label={digit} onPress={() => press(digit)} disabled={disabled} />
@@ -84,6 +116,14 @@ export function PinPad({ length, value, onChange, disabled = false, biometric, o
   );
 }
 
+const motion = css.create({
+  dot: {
+    transitionProperty: ['backgroundColor', 'borderColor', 'transform'],
+    transitionDuration: 120,
+    transitionTimingFunction: cubicBezier(0.23, 1, 0.32, 1),
+  },
+});
+
 const styles = themedStyles(() => ({
   root: { alignItems: 'center', gap: 36 },
   dots: { flexDirection: 'row', gap: spacing.xl },
@@ -93,8 +133,9 @@ const styles = themedStyles(() => ({
     borderRadius: radius.full,
     borderWidth: 1.5,
     borderColor: colors.textMuted,
+    transform: [{ scale: 1 }],
   },
-  dotFilled: { backgroundColor: colors.brand, borderColor: colors.brand },
+  dotFilled: { backgroundColor: colors.brand, borderColor: colors.brand, transform: [{ scale: 1.15 }] },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

@@ -3,7 +3,8 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AddHeader } from '@/components/add/add-header';
+import { onColor } from '@/lib/color';
+import { BackHeader } from '@/components/settings/back-header';
 import { OperationDayList } from '@/components/operations/operation-day-list';
 import { AmountField } from '@/components/ui/amount-field';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
@@ -13,6 +14,9 @@ import { showConfirm } from '@/components/ui/confirm-dialog';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { SelectField } from '@/components/ui/select-field';
+import { Grow } from '@/components/ui/grow';
+import { Stagger } from '@/components/ui/stagger';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import {
   addDebtOperation,
   deleteDebt,
@@ -296,107 +300,112 @@ export default function DebtDetailScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}>
-        <AddHeader title="Deuda" />
-        {!detail || !debt ? (
-          <View style={styles.state}>
-            {loadError ? (
-              <>
-                <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadErrorMessage(loadError)}
-                </Text>
-                <Button label="Reintentar" onPress={retry} />
-              </>
-            ) : (
-              <ActivityIndicator color={colors.brand} />
-            )}
-          </View>
-        ) : (
-          <>
-            <View style={styles.summary}>
-              <View style={[styles.iconCircle, { backgroundColor: accent }]}>
-                <CategoryIcon name={lent ? 'me debe' : 'le debo'} color={colors.textOnBrand} size={33} />
-              </View>
-              <Text style={styles.person} numberOfLines={2}>
-                {debt.person}
-              </Text>
-              <View style={styles.chip}>
-                <Text style={styles.chipLabel}>{lent ? 'Presté' : 'Me prestaron'}</Text>
-              </View>
-              <View style={styles.progressBlock}>
-                <View style={styles.progressLabels}>
-                  <View
-                    style={styles.progressSide}
-                    accessible
-                    accessibilityLabel={`${settledLabel}: ${formatAmount(settled, code)}`}>
-                    <Text style={styles.progressLabel}>{settledLabel}</Text>
-                    <Text style={styles.progressValue}>{formatAmount(settled, code)}</Text>
-                  </View>
-                  <View
-                    style={[styles.progressSide, styles.progressRight]}
-                    accessible
-                    accessibilityLabel={`Restante: ${formatAmount(debt.pending, code)}`}>
-                    <Text style={styles.progressLabel}>Restante</Text>
-                    <Text style={styles.progressValue}>{formatAmount(debt.pending, code)}</Text>
-                  </View>
+      <RevealScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
+        <Stagger>
+          <BackHeader title="Deuda" />
+          {!detail || !debt ? (
+            <View style={styles.state}>
+              {loadError ? (
+                <>
+                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                    {loadErrorMessage(loadError)}
+                  </Text>
+                  <Button label="Reintentar" onPress={retry} />
+                </>
+              ) : (
+                <ActivityIndicator color={colors.brand} />
+              )}
+            </View>
+          ) : (
+            <>
+              <View style={styles.summary}>
+                <View style={[styles.iconCircle, { backgroundColor: accent }]}>
+                  <CategoryIcon name={lent ? 'me debe' : 'le debo'} color={onColor(accent)} size={33} />
                 </View>
-                <View
-                  style={styles.track}
-                  accessibilityRole="progressbar"
-                  accessibilityValue={{ min: 0, max: 100, now: percent }}>
-                  {progress > 0 && (
-                    <View style={[styles.fill, { width: `${progress * 100}%`, backgroundColor: accent }]}>
-                      {percentInside && <Text style={[styles.percent, styles.percentInside]}>{percent}%</Text>}
+                <Text style={styles.person} numberOfLines={2}>
+                  {debt.person}
+                </Text>
+                <View style={styles.chip}>
+                  <Text style={styles.chipLabel}>{lent ? 'Presté' : 'Me prestaron'}</Text>
+                </View>
+                <Text
+                  style={[styles.pendingAmount, { color: accent }]}
+                  accessibilityLabel={`Pendiente: ${formatAmount(debt.pending, code)}`}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.4}>
+                  {formatAmount(debt.pending, code)}
+                </Text>
+                <View style={styles.progressBlock}>
+                  <View style={styles.progressLabels}>
+                    <View
+                      style={styles.progressSide}
+                      accessible
+                      accessibilityLabel={`${settledLabel}: ${formatAmount(settled, code)}`}>
+                      <Text style={styles.progressLabel}>{settledLabel}</Text>
+                      <Text style={styles.progressValue}>{formatAmount(settled, code)}</Text>
                     </View>
-                  )}
-                  {!percentInside && <Text style={styles.percent}>{percent}%</Text>}
-                </View>
-              </View>
-            </View>
-            <View style={styles.details}>
-              <Text style={styles.sectionTitle} accessibilityRole="header">
-                Detalles
-              </Text>
-              <View style={styles.rows}>
-                <DetailRow label="Importe" value={formatAmount(debt.amount, code)} />
-                <DetailRow label="Fecha" value={dateLabel(debt.date)} />
-                <DetailRow label="Billetera" value={debt.wallet.name} />
-                {!!debt.description && <DetailRow label="Descripción" value={debt.description} />}
-              </View>
-              {error && (
-                <Text style={styles.error} accessibilityLiveRegion="polite">
-                  {error}
-                </Text>
-              )}
-              <View style={styles.buttons}>
-                <Button label="Registrar pago" onPress={() => setPaying(true)} disabled={deleting} />
-                <View style={styles.actions}>
-                  <View style={styles.action}>
-                    <Button label="Editar" onPress={() => editDebt(debt._id)} disabled={deleting} />
+                    <View
+                      style={[styles.progressSide, styles.progressRight]}
+                      accessible
+                      accessibilityLabel={`Restante: ${formatAmount(debt.pending, code)}`}>
+                      <Text style={styles.progressLabel}>Restante</Text>
+                      <Text style={styles.progressValue}>{formatAmount(debt.pending, code)}</Text>
+                    </View>
                   </View>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityState={{ disabled: deleting, busy: deleting }}
-                    disabled={deleting}
-                    onPress={remove}
-                    style={({ pressed }) => [styles.action, styles.danger, pressed && styles.pressed]}>
-                    {deleting ? <ActivityIndicator color={colors.danger} /> : <Text style={styles.dangerLabel}>Eliminar</Text>}
-                  </Pressable>
+                  <View
+                    style={styles.track}
+                    accessibilityRole="progressbar"
+                    accessibilityValue={{ min: 0, max: 100, now: percent }}>
+                    {progress > 0 && (
+                      <Grow axis="x" style={[styles.fill, { width: `${progress * 100}%`, backgroundColor: accent }]}>
+                        {percentInside && <Text style={[styles.percent, styles.percentInside]}>{percent}%</Text>}
+                      </Grow>
+                    )}
+                    {!percentInside && <Text style={styles.percent}>{percent}%</Text>}
+                  </View>
                 </View>
               </View>
-            </View>
-            <Text style={styles.listTitle} accessibilityRole="header">
-              Operaciones
-            </Text>
-            <View style={styles.list}>
-              <OperationDayList operations={detail.operations} onPress={operation => openOperation(operation._id)} />
-              {detail.hasMore && (
-                <Button label="Ver más" onPress={() => setSize(current => current + PAGE)} loading={loadingMore} />
-              )}
-            </View>
-          </>
-        )}
-      </ScrollView>
+              <View style={styles.details}>
+                <Text style={styles.sectionTitle} accessibilityRole="header">
+                  Detalles
+                </Text>
+                <View style={styles.rows}>
+                  <DetailRow label="Importe" value={formatAmount(debt.amount, code)} />
+                  <DetailRow label="Fecha" value={dateLabel(debt.date)} />
+                  <DetailRow label="Billetera" value={debt.wallet.name} />
+                  {!!debt.description && <DetailRow label="Descripción" value={debt.description} />}
+                </View>
+                {error && (
+                  <Text style={styles.error} accessibilityLiveRegion="polite">
+                    {error}
+                  </Text>
+                )}
+                <View style={styles.buttons}>
+                  <Button label="Registrar pago" onPress={() => setPaying(true)} disabled={deleting} />
+                  <View style={styles.actions}>
+                    <View style={styles.action}>
+                      <Button label="Editar" onPress={() => editDebt(debt._id)} disabled={deleting} />
+                    </View>
+                    <View style={styles.action}>
+                      <Button label="Eliminar" variant="danger" onPress={remove} loading={deleting} />
+                    </View>
+                  </View>
+                </View>
+              </View>
+              <Text style={styles.listTitle} accessibilityRole="header">
+                Operaciones
+              </Text>
+              <View style={styles.list}>
+                <OperationDayList operations={detail.operations} onPress={operation => openOperation(operation._id)} />
+                {detail.hasMore && (
+                  <Button label="Ver más" onPress={() => setSize(current => current + PAGE)} loading={loadingMore} />
+                )}
+              </View>
+            </>
+          )}
+        </Stagger>
+      </RevealScrollView>
       {detail && (
         <PaymentSheet
           visible={paying}
@@ -431,7 +440,8 @@ const styles = themedStyles(() => ({
     gap: spacing.md,
   },
   iconCircle: { width: 62, height: 62, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center' },
-  person: { ...typography.titleSection, color: colors.textSecondary, textAlign: 'center' },
+  person: { ...typography.titleSection, color: colors.textPrimary, textAlign: 'center' },
+  pendingAmount: { ...typography.displayAmount },
   chip: { borderRadius: radius.full, backgroundColor: colors.segment, paddingHorizontal: spacing.xl, paddingVertical: 6 },
   chipLabel: { ...typography.bodyRegular, lineHeight: 20, color: colors.textSecondary },
   progressBlock: { alignSelf: 'stretch', gap: spacing.sm, marginTop: spacing.xs },
@@ -441,19 +451,19 @@ const styles = themedStyles(() => ({
   progressLabel: { ...typography.labelOverline, color: colors.textSecondary },
   progressValue: { ...typography.bodyMedium, fontSize: 13, color: colors.textPrimary },
   track: {
-    height: 30,
+    minHeight: 30,
     padding: 4,
     borderRadius: 11,
     backgroundColor: colors.divider,
     flexDirection: 'row',
     alignItems: 'center',
   },
-  fill: { height: '100%', minWidth: 10, borderRadius: 10, justifyContent: 'center', alignItems: 'flex-end' },
+  fill: { alignSelf: 'stretch', minWidth: 10, borderRadius: 10, justifyContent: 'center', alignItems: 'flex-end' },
   percent: { ...typography.labelLegend, color: colors.textSecondary, paddingHorizontal: spacing.sm },
   percentInside: { color: colors.textOnBrand },
   details: {
     borderRadius: radius.lg,
-    backgroundColor: colors.row,
+    backgroundColor: colors.surface,
     paddingVertical: spacing.xxl,
     paddingHorizontal: spacing.xxl,
     gap: spacing.lg,
@@ -461,20 +471,11 @@ const styles = themedStyles(() => ({
   sectionTitle: { ...typography.bodyMedium, fontFamily: typography.titleSection.fontFamily, fontSize: 16, color: colors.textPrimary },
   rows: { gap: spacing.lg },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  detailLabel: { ...typography.labelOverline, width: 100, color: colors.textSecondary },
+  detailLabel: { ...typography.labelOverline, width: 120, maxWidth: '45%', flexShrink: 0, color: colors.textSecondary },
   detailValue: { ...typography.bodyMedium, fontSize: 13, flex: 1, textAlign: 'right', color: colors.textPrimary },
   buttons: { gap: 14, marginTop: spacing.sm },
   actions: { flexDirection: 'row', gap: 18 },
   action: { flex: 1 },
-  danger: {
-    minHeight: 50,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.danger,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dangerLabel: { ...typography.buttonLabel, color: colors.danger },
   pressed: { opacity: 0.85 },
   error: { ...typography.bodyMedium, color: colors.error, textAlign: 'center' },
   listTitle: { ...typography.bodyMedium, fontFamily: typography.titleSection.fontFamily, fontSize: 16, color: colors.textSecondary, marginTop: spacing.sm },

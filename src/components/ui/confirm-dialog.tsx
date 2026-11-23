@@ -1,6 +1,8 @@
 import { useSyncExternalStore } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { Easing, FadeIn, Keyframe, useReducedMotion } from 'react-native-reanimated';
 
+import { PressableScale } from '@/components/ui/pressable-scale';
 import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 
 type ConfirmRequest = {
@@ -12,6 +14,13 @@ type ConfirmRequest = {
 };
 
 let current: ConfirmRequest | null = null;
+const DIALOG_IN = new Keyframe({
+  0: { opacity: 0, transform: [{ scale: 0.95 }] },
+  100: { opacity: 1, transform: [{ scale: 1 }], easing: Easing.bezier(0.23, 1, 0.32, 1) },
+}).duration(200);
+
+const FADE_IN = FadeIn.duration(200);
+
 const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach(listener => listener());
@@ -33,6 +42,7 @@ const close = () => {
 
 export function ConfirmDialogHost() {
   const request = useSyncExternalStore(subscribe, () => current, () => null);
+  const reduced = useReducedMotion();
 
   const accept = () => {
     const action = request?.onConfirm;
@@ -45,26 +55,26 @@ export function ConfirmDialogHost() {
       <View style={styles.overlay}>
         <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel="Cancelar" />
         {request && (
-          <View style={styles.card} accessibilityViewIsModal>
+          <Animated.View entering={reduced ? FADE_IN : DIALOG_IN} style={styles.card} accessibilityViewIsModal>
             <Text style={styles.title} accessibilityRole="header">
               {request.title}
             </Text>
             <Text style={styles.message}>{request.message}</Text>
             <View style={styles.actions}>
-              <Pressable
+              <PressableScale
                 accessibilityRole="button"
                 onPress={close}
                 style={({ pressed }) => [styles.action, styles.cancel, pressed && styles.pressed]}>
                 <Text style={styles.cancelLabel}>{request.cancelLabel ?? 'Cancelar'}</Text>
-              </Pressable>
-              <Pressable
+              </PressableScale>
+              <PressableScale
                 accessibilityRole="button"
                 onPress={accept}
                 style={({ pressed }) => [styles.action, styles.confirm, pressed && styles.pressed]}>
                 <Text style={styles.confirmLabel}>{request.confirmLabel}</Text>
-              </Pressable>
+              </PressableScale>
             </View>
-          </View>
+          </Animated.View>
         )}
       </View>
     </Modal>

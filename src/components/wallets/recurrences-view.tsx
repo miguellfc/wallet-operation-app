@@ -4,6 +4,7 @@ import { View } from 'react-native';
 
 import { operationSign, walletAmount } from '@/components/operations/operation-row';
 import { InfoRow } from '@/components/ui/info-row';
+import { Reveal } from '@/components/ui/reveal';
 import { TabScroll } from '@/components/wallets/tab-scroll';
 import { loadRecurrences, type Recurrence, type RecurrenceItem } from '@/features/wallets/wallets-api';
 import { formatAmount, longDayLabel } from '@/lib/format';
@@ -37,7 +38,7 @@ function describe({ recurrence, template }: RecurrenceItem) {
   };
 }
 
-export function RecurrencesView({ header }: { header: ReactNode }) {
+export function RecurrencesView({ header }: { header?: ReactNode }) {
   const { data, error, retry, refresh, refreshing } = useApiData(loadRecurrences);
 
   return (
@@ -50,22 +51,23 @@ export function RecurrencesView({ header }: { header: ReactNode }) {
       onRefresh={refresh}
       onRetry={retry}>
       <View style={styles.list}>
-        {data?.map(item => {
+        {data?.map((item, index) => {
           const row = describe(item);
           const frequency = FREQUENCY[item.recurrence.recurrence];
           return (
-            <InfoRow
-              key={item.recurrence._id}
-              icon={row.icon}
-              iconColor={row.color}
-              iconBackground={row.background}
-              title={row.title}
-              detail={row.next}
-              amount={row.amount}
-              caption={frequency}
-              accessibilityLabel={`${row.title}, ${row.amount}, ${frequency}, ${row.next.replace('\n', ' ')}`}
-              onPress={() => openRecurrence(item.recurrence._id)}
-            />
+            <Reveal key={item.recurrence._id} index={index}>
+              <InfoRow
+                icon={row.icon}
+                iconColor={row.color}
+                iconBackground={row.background}
+                title={row.title}
+                detail={row.next}
+                amount={row.amount}
+                caption={frequency}
+                accessibilityLabel={`${row.title}, ${row.amount}, ${frequency}, ${row.next.replace('\n', ' ')}`}
+                onPress={() => openRecurrence(item.recurrence._id)}
+              />
+            </Reveal>
           );
         })}
       </View>

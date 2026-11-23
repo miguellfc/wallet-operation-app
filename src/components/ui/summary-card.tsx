@@ -1,13 +1,15 @@
 import { Image } from 'expo-image';
 import { Text, View } from 'react-native';
 
+import { AmountText, amountText, type Amount } from '@/components/ui/count-up';
 import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
-type SummaryCardProps = { kind: 'INCOME' | 'EXPENSE'; label: string; amount: string; caption?: string };
+type SummaryCardProps = { kind: 'INCOME' | 'EXPENSE'; label: string; amount: Amount; caption?: string };
 
 export function SummaryCard({ kind, label, amount, caption }: SummaryCardProps) {
   const income = kind === 'INCOME';
-  const description = caption ? `${label}: ${amount}, ${caption}` : `${label}: ${amount}`;
+  const text = amountText(amount);
+  const description = caption ? `${label}: ${text}, ${caption}` : `${label}: ${text}`;
   return (
     <View style={styles.card} accessible accessibilityLabel={description}>
       <View style={styles.row}>
@@ -25,7 +27,7 @@ export function SummaryCard({ kind, label, amount, caption }: SummaryCardProps) 
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.5}>
-            {amount}
+            <AmountText amount={amount} />
           </Text>
         </View>
       </View>

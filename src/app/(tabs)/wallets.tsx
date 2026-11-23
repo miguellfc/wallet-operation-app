@@ -1,6 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HomeHeader } from '@/components/home/home-header';
 import { ScreenBackground } from '@/components/ui/screen-background';
@@ -10,7 +11,7 @@ import { RecurrencesView } from '@/components/wallets/recurrences-view';
 import { WalletsView } from '@/components/wallets/wallets-view';
 import { loadProfile } from '@/features/wallets/wallets-api';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, spacing, themedStyles } from '@/theme';
+import { colors, layout, spacing, themedStyles } from '@/theme';
 import { useThemeName } from '@/features/theme/theme-store';
 
 type Section = 'WALLETS' | 'DEBTS' | 'RECURRENCES';
@@ -29,6 +30,7 @@ const GLOWS = [
 
 export default function WalletsScreen() {
   useThemeName();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ section?: string; at?: string }>();
   const [section, setSection] = useState<Section>('WALLETS');
   const [opened, setOpened] = useState<string>();
@@ -42,21 +44,37 @@ export default function WalletsScreen() {
   const { data: profile } = useApiData(loadProfile);
 
   const header = (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: insets.top + 18 }]}>
       <HomeHeader name={profile?.firstName ?? ''} />
-      <SegmentedControl options={SECTIONS} value={section} onChange={setSection} activeColor={colors.brand} compact />
+      <SegmentedControl
+        options={SECTIONS}
+        value={section}
+        onChange={setSection}
+        activeColor={colors.brand}
+        compact
+      />
     </View>
   );
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      {section === 'WALLETS' && <WalletsView header={header} />}
-      {section === 'DEBTS' && <DebtsView header={header} />}
-      {section === 'RECURRENCES' && <RecurrencesView header={header} />}
+      {header}
+      <View style={styles.body}>
+        {section === 'WALLETS' && <WalletsView />}
+        {section === 'DEBTS' && <DebtsView />}
+        {section === 'RECURRENCES' && <RecurrencesView />}
+      </View>
     </ScreenBackground>
   );
 }
 
 const styles = themedStyles(() => ({
-  header: { gap: spacing.lg },
+  header: {
+    gap: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    width: '100%',
+    maxWidth: layout.maxContentWidth,
+    alignSelf: 'center',
+  },
+  body: { flex: 1 },
 }));

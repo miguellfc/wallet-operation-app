@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';
 
 import { BalanceCard } from '@/components/home/balance-card';
+import { Reveal } from '@/components/ui/reveal';
 import { TabScroll } from '@/components/wallets/tab-scroll';
 import { WalletCard } from '@/components/wallets/wallet-card';
 import { loadWallets, type WalletSummary } from '@/features/wallets/wallets-api';
@@ -21,7 +22,7 @@ function pairs(wallets: WalletSummary[]) {
   return rows;
 }
 
-export function WalletsView({ header }: { header: ReactNode }) {
+export function WalletsView({ header }: { header?: ReactNode }) {
   const { data, error, retry, refresh, refreshing } = useApiData(loadWallets);
 
   return (
@@ -35,13 +36,17 @@ export function WalletsView({ header }: { header: ReactNode }) {
       onRetry={retry}>
       {data && (
         <>
-          <BalanceCard amount={formatAmount(data.balance, data.currencyCode)} />
+          <Reveal index={0}>
+            <BalanceCard amount={{ value: data.balance, format: value => formatAmount(value, data.currencyCode) }} />
+          </Reveal>
           <View style={styles.section}>
-            <Text style={styles.title} accessibilityRole="header">
-              Tus cuentas activas
-            </Text>
-            {pairs(data.wallets).map(row => (
-              <View key={row[0].id} style={styles.row}>
+            <Reveal index={1}>
+              <Text style={styles.title} accessibilityRole="header">
+                Tus cuentas activas
+              </Text>
+            </Reveal>
+            {pairs(data.wallets).map((row, index) => (
+              <Reveal key={row[0].id} index={index + 2} style={styles.row}>
                 {row.map(wallet => (
                   <WalletCard
                     key={wallet.id}
@@ -55,7 +60,7 @@ export function WalletsView({ header }: { header: ReactNode }) {
                   />
                 ))}
                 {row.length === 1 && <View style={styles.spacer} />}
-              </View>
+              </Reveal>
             ))}
           </View>
         </>

@@ -1,10 +1,11 @@
+import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
-import { AddHeader } from '@/components/add/add-header';
+import { BackHeader } from '@/components/settings/back-header';
 import { AmountField } from '@/components/ui/amount-field';
 import { Button } from '@/components/ui/button';
 import { ColorField } from '@/components/ui/color-field';
@@ -14,6 +15,8 @@ import { ScreenBackground } from '@/components/ui/screen-background';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { SelectField } from '@/components/ui/select-field';
 import { TextField } from '@/components/ui/text-field';
+import { Stagger } from '@/components/ui/stagger';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import {
   canPickContact,
   createDebt,
@@ -215,6 +218,7 @@ export default function AddDebtScreen() {
         color,
         description: description.trim() || undefined,
       });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => null);
       reset();
       openDebts();
     } catch (reason) {
@@ -226,99 +230,101 @@ export default function AddDebtScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView
+      <RevealScrollView
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}>
-        <AddHeader title={editId ? 'Editar deuda' : 'Añadir deuda'} />
-        {!data || (editId && !editing) ? (
-          <View style={styles.state}>
-            {loadError || (editId && editError) ? (
-              <>
-                <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadErrorMessage(loadError ?? editError)}
-                </Text>
-                <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
-              </>
-            ) : (
-              <ActivityIndicator color={colors.brand} />
-            )}
-          </View>
-        ) : (
-          <View style={styles.form}>
-            {!editing && (
-              <SegmentedControl
-                options={TYPES}
-                value={type}
-                onChange={next => {
-                  setType(next);
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
+        <Stagger>
+          <BackHeader title={editId ? 'Editar deuda' : 'Añadir deuda'} />
+          {!data || (editId && !editing) ? (
+            <View style={styles.state}>
+              {loadError || (editId && editError) ? (
+                <>
+                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                    {loadErrorMessage(loadError ?? editError)}
+                  </Text>
+                  <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
+                </>
+              ) : (
+                <ActivityIndicator color={colors.brand} />
+              )}
+            </View>
+          ) : (
+            <View style={styles.form}>
+              {!editing && (
+                <SegmentedControl
+                  options={TYPES}
+                  value={type}
+                  onChange={next => {
+                    setType(next);
+                    clearError();
+                  }}
+                  activeColor={colors.brand}
+                  compact
+                />
+              )}
+              <TextField
+                label="Nombre"
+                value={person}
+                onChangeText={value => {
+                  setPerson(value);
                   clearError();
                 }}
-                activeColor={colors.brand}
-                compact
+                placeholder={lent ? '¿A quién le prestaste?' : '¿De quién pediste prestado?'}
+                maxLength={60}
+                accessory={
+                  canPickContact && (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="Elegir de contactos"
+                      hitSlop={8}
+                      onPress={chooseContact}
+                      style={({ pressed }) => [styles.contact, pressed && styles.pressed]}>
+                      <SvgXml xml={USER_ICON} color={colors.income} width={20} height={20} />
+                    </Pressable>
+                  )
+                }
               />
-            )}
-            <TextField
-              label="Nombre"
-              value={person}
-              onChangeText={value => {
-                setPerson(value);
-                clearError();
-              }}
-              placeholder={lent ? '¿A quién le prestaste?' : '¿De quién pediste prestado?'}
-              maxLength={60}
-              accessory={
-                canPickContact && (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Elegir de contactos"
-                    hitSlop={8}
-                    onPress={chooseContact}
-                    style={({ pressed }) => [styles.contact, pressed && styles.pressed]}>
-                    <SvgXml xml={USER_ICON} color={colors.income} width={20} height={20} />
-                  </Pressable>
-                )
-              }
-            />
-            <AmountField
-              label="Importe"
-              value={amount}
-              currencyCode={selectedWallet?.currencyCode}
-              decimals={selectedWallet?.decimals}
-              onChange={value => {
-                setAmount(value);
-                clearError();
-              }}
-            />
-            <View style={styles.row}>
-              <DateTimeField label="Fecha" mode="date" value={date} style={styles.dateField} onChange={setDate} />
-              <DateTimeField label="Hora" mode="time" value={date} style={styles.dateField} onChange={setDate} />
+              <AmountField
+                label="Importe"
+                value={amount}
+                currencyCode={selectedWallet?.currencyCode}
+                decimals={selectedWallet?.decimals}
+                onChange={value => {
+                  setAmount(value);
+                  clearError();
+                }}
+              />
+              <View style={styles.row}>
+                <DateTimeField label="Fecha" mode="date" value={date} style={styles.dateField} onChange={setDate} />
+                <DateTimeField label="Hora" mode="time" value={date} style={styles.dateField} onChange={setDate} />
+              </View>
+              <ColorField label="Color" value={color} onChange={setColor} />
+              <TextField
+                label="Descripción"
+                value={description}
+                onChangeText={setDescription}
+                placeholder="¿Para qué es?"
+                maxLength={120}
+              />
+              <SelectField
+                label="Billetera"
+                value={selectedWallet && `${selectedWallet.name} · ${walletBalance(selectedWallet)}`}
+                placeholder="Selecciona una billetera"
+                onPress={() => setWalletSheet(true)}
+              />
+              {(error || warning) && (
+                <Text style={styles.error} accessibilityLiveRegion="polite">
+                  {error ?? warning}
+                </Text>
+              )}
+              <View style={styles.action}>
+                <Button label="Guardar" onPress={save} loading={saving} disabled={!complete} />
+              </View>
             </View>
-            <ColorField label="Color" value={color} onChange={setColor} />
-            <TextField
-              label="Descripción"
-              value={description}
-              onChangeText={setDescription}
-              placeholder="¿Para qué es?"
-              maxLength={120}
-            />
-            <SelectField
-              label="Billetera"
-              value={selectedWallet && `${selectedWallet.name} · ${walletBalance(selectedWallet)}`}
-              placeholder="Selecciona una billetera"
-              onPress={() => setWalletSheet(true)}
-            />
-            {(error || warning) && (
-              <Text style={styles.error} accessibilityLiveRegion="polite">
-                {error ?? warning}
-              </Text>
-            )}
-            <View style={styles.action}>
-              <Button label="Guardar" onPress={save} loading={saving} disabled={!complete} />
-            </View>
-          </View>
-        )}
-      </ScrollView>
+          )}
+        </Stagger>
+      </RevealScrollView>
       <OptionSheet
         visible={walletSheet}
         title="Billetera"

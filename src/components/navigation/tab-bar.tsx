@@ -1,9 +1,11 @@
 import { Image, type ImageSource } from 'expo-image';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { Fragment } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import Animated, { css } from 'react-native-reanimated';
 
-import { colors, currentTheme, spacing, themedStyles, typography } from '@/theme';
+import { CSS_EASE_BACK, CSS_EASE_OUT } from '@/lib/motion';
+import { colors, spacing, themedStyles, typography } from '@/theme';
 
 type TabConfig = { label: string; icon: ImageSource; width: number; height: number };
 
@@ -41,18 +43,21 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
               accessibilityState={{ selected: focused }}
               accessibilityLabel={tab.label}
               onPress={() => navigateToTab(route.key)}
-              style={[styles.tab, !focused && styles.inactive]}>
-              <View style={styles.iconSlot}>
+              style={styles.tab}>
+              <Animated.View style={[styles.iconSlot, motion.icon, focused && motion.iconActive]}>
                 <Image
                   contentFit="contain"
                   source={tab.icon}
-                  tintColor={colors.brand}
+                  tintColor={focused ? colors.brand : colors.textMuted}
                   style={{ width: tab.width, height: tab.height }}
                 />
-              </View>
-              <Text style={styles.label} numberOfLines={1}>
+              </Animated.View>
+              <Animated.Text
+                style={[styles.label, motion.label, !focused && styles.labelInactive]}
+                numberOfLines={1}
+                maxFontSizeMultiplier={1.3}>
                 {tab.label}
-              </Text>
+              </Animated.Text>
             </Pressable>
           </Fragment>
         );
@@ -60,6 +65,21 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
     </View>
   );
 }
+
+const motion = css.create({
+  icon: {
+    transform: [{ translateY: 0 }, { scale: 1 }],
+    transitionProperty: 'transform',
+    transitionDuration: 200,
+    transitionTimingFunction: CSS_EASE_OUT,
+  },
+  iconActive: {
+    transform: [{ translateY: -2 }, { scale: 1.12 }],
+    transitionDuration: 360,
+    transitionTimingFunction: CSS_EASE_BACK,
+  },
+  label: { transitionProperty: 'color', transitionDuration: 200, transitionTimingFunction: CSS_EASE_OUT },
+});
 
 const styles = themedStyles(() => ({
   bar: {
@@ -70,9 +90,9 @@ const styles = themedStyles(() => ({
     backgroundColor: colors.bgApp,
   },
   tab: { flex: 1, alignItems: 'center', gap: 4 },
-  inactive: { opacity: currentTheme() === 'light' ? 0.5 : 0.3 },
   iconSlot: { height: 33, justifyContent: 'center' },
   label: { ...typography.labelTab, color: colors.brand },
+  labelInactive: { color: colors.textMuted },
   addSlot: { width: 86, alignItems: 'center' },
   add: { width: 74, height: 74, marginTop: -20 },
 }));

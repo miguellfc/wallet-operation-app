@@ -1,6 +1,7 @@
 import { Text, View } from 'react-native';
 
 import { OperationRow } from '@/components/operations/operation-row';
+import { Reveal } from '@/components/ui/reveal';
 import type { Operation } from '@/features/operations/operations-api';
 import { utcDateLabel } from '@/lib/format';
 import { colors, spacing, themedStyles, typography } from '@/theme';
@@ -19,7 +20,7 @@ function headerLabel(day: string) {
   return utcDateLabel(`${day}T00:00:00.000Z`);
 }
 
-function groupByDay(operations: Operation[]) {
+export function groupByDay(operations: Operation[]) {
   const groups: { day: string; operations: Operation[] }[] = [];
   for (const operation of operations) {
     const day = dayOf(operation.date);
@@ -30,16 +31,24 @@ function groupByDay(operations: Operation[]) {
   return groups;
 }
 
+export function OperationDayHeader({ day }: { day: string }) {
+  return (
+    <Text style={styles.header} accessibilityRole="header">
+      {headerLabel(day)}
+    </Text>
+  );
+}
+
 export function OperationDayList({ operations, onPress }: OperationDayListProps) {
   return (
     <View style={styles.list}>
       {groupByDay(operations).map(group => (
         <View key={group.day} style={styles.group}>
-          <Text style={styles.header} accessibilityRole="header">
-            {headerLabel(group.day)}
-          </Text>
-          {group.operations.map(operation => (
-            <OperationRow key={operation._id} operation={operation} onPress={() => onPress(operation)} />
+          <OperationDayHeader day={group.day} />
+          {group.operations.map((operation, index) => (
+            <Reveal key={operation._id} index={index}>
+              <OperationRow operation={operation} onPress={() => onPress(operation)} />
+            </Reveal>
           ))}
         </View>
       ))}

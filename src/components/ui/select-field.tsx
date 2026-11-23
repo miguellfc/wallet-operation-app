@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
+import { PressableScale } from '@/components/ui/pressable-scale';
 import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type SelectFieldProps = {
@@ -14,7 +15,7 @@ export function SelectField({ label, value, placeholder, onPress }: SelectFieldP
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
-      <Pressable
+      <PressableScale
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityValue={{ text: value ?? placeholder }}
@@ -24,7 +25,7 @@ export function SelectField({ label, value, placeholder, onPress }: SelectFieldP
           {value ?? placeholder}
         </Text>
         <Image contentFit="contain" source={require('@/assets/icons/chevron-down.svg')} tintColor={colors.brand} style={styles.chevron} />
-      </Pressable>
+      </PressableScale>
     </View>
   );
 }

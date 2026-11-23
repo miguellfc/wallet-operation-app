@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 import { Pressable, Text, View, type LayoutChangeEvent } from 'react-native';
 import Svg, { Circle, Defs, G, Line, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 
+import { Grow } from '@/components/ui/grow';
 import { colors, themedStyles, typography } from '@/theme';
 
 const LINE_HEIGHT = 150;
@@ -48,29 +49,31 @@ export function LineChart({ values, labels, titles, color, format }: LineChartPr
       <View style={styles.line} onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}>
         {width > 0 && marker && (
           <>
-            <Svg width={width} height={LINE_HEIGHT}>
-              <Defs>
-                <LinearGradient id={`${id}-area`} x1={0} y1={0} x2={0} y2={1}>
-                  <Stop offset={0} stopColor={color} stopOpacity={0.3} />
-                  <Stop offset={1} stopColor={color} stopOpacity={0} />
-                </LinearGradient>
-              </Defs>
-              {guides.map((value, index) => (
-                <Line
-                  key={index}
-                  x1={0}
-                  x2={width}
-                  y1={yAt(value)}
-                  y2={yAt(value)}
-                  stroke={colors.divider}
-                  strokeDasharray="4 4"
-                />
-              ))}
-              <Path d={area} fill={`url(#${id}-area)`} />
-              <Path d={line} stroke={color} strokeWidth={2.5} fill="none" strokeLinejoin="round" />
-              <Line x1={marker.x} x2={marker.x} y1={marker.y} y2={LINE_BOTTOM} stroke={colors.textMuted} strokeDasharray="3 3" />
-              <Circle cx={marker.x} cy={marker.y} r={5} fill={colors.bgApp} stroke={color} strokeWidth={2.5} />
-            </Svg>
+            <Grow key={values.join(':')}>
+              <Svg width={width} height={LINE_HEIGHT}>
+                <Defs>
+                  <LinearGradient id={`${id}-area`} x1={0} y1={0} x2={0} y2={1}>
+                    <Stop offset={0} stopColor={color} stopOpacity={0.3} />
+                    <Stop offset={1} stopColor={color} stopOpacity={0} />
+                  </LinearGradient>
+                </Defs>
+                {guides.map((value, index) => (
+                  <Line
+                    key={index}
+                    x1={0}
+                    x2={width}
+                    y1={yAt(value)}
+                    y2={yAt(value)}
+                    stroke={colors.divider}
+                    strokeDasharray="4 4"
+                  />
+                ))}
+                <Path d={area} fill={`url(#${id}-area)`} />
+                <Path d={line} stroke={color} strokeWidth={2.5} fill="none" strokeLinejoin="round" />
+                <Line x1={marker.x} x2={marker.x} y1={marker.y} y2={LINE_BOTTOM} stroke={colors.textMuted} strokeDasharray="3 3" />
+                <Circle cx={marker.x} cy={marker.y} r={5} fill={colors.bgApp} stroke={color} strokeWidth={2.5} />
+              </Svg>
+            </Grow>
             {guides.map((value, index) => (
               <Text key={index} style={[styles.guideLabel, { top: yAt(value) - 14 }]} pointerEvents="none">
                 {format(value)}
@@ -120,28 +123,30 @@ export function DonutChart({ segments, size = 96 }: { segments: DonutSegment[]; 
 
   return (
     <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <Svg width={size} height={size}>
-        <Circle cx={size / 2} cy={size / 2} r={radius} stroke={colors.segment} strokeWidth={stroke} fill="none" />
-      {total > 0 &&
-        segments.map((segment, index) => {
-          const length = (segment.value / total) * circumference;
-          const rotation = (offset / circumference) * 360 - 90;
-          offset += length;
-          return (
-            <Circle
-              key={index}
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              stroke={segment.color}
-              strokeWidth={stroke}
-              strokeDasharray={`${Math.max(length - 1.5, 0.5)} ${circumference}`}
-              fill="none"
-              transform={`rotate(${rotation} ${size / 2} ${size / 2})`}
-            />
-          );
-        })}
-      </Svg>
+      <Grow key={segments.map(segment => segment.value).join(':')} axis="both">
+        <Svg width={size} height={size}>
+          <Circle cx={size / 2} cy={size / 2} r={radius} stroke={colors.segment} strokeWidth={stroke} fill="none" />
+        {total > 0 &&
+          segments.map((segment, index) => {
+            const length = (segment.value / total) * circumference;
+            const rotation = (offset / circumference) * 360 - 90;
+            offset += length;
+            return (
+              <Circle
+                key={index}
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                stroke={segment.color}
+                strokeWidth={stroke}
+                strokeDasharray={`${Math.max(length - 1.5, 0.5)} ${circumference}`}
+                fill="none"
+                transform={`rotate(${rotation} ${size / 2} ${size / 2})`}
+              />
+            );
+          })}
+        </Svg>
+      </Grow>
     </View>
   );
 }
@@ -161,31 +166,33 @@ export function PairedBars({ items }: PairedBarsProps) {
     <View>
       <View style={styles.bars} onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}>
         {width > 0 && (
-          <Svg width={width} height={BARS_HEIGHT}>
-            {items.map((item, index) => {
-              const center = slot * index + slot / 2;
-              return (
-                <G key={`${item.label}-${index}`}>
-                  <Rect
-                    x={center - bar - 1}
-                    y={BARS_HEIGHT - height(item.income)}
-                    width={bar}
-                    height={height(item.income)}
-                    rx={3}
-                    fill={colors.income}
-                  />
-                  <Rect
-                    x={center + 1}
-                    y={BARS_HEIGHT - height(item.expense)}
-                    width={bar}
-                    height={height(item.expense)}
-                    rx={3}
-                    fill={colors.expense}
-                  />
-                </G>
-              );
-            })}
-          </Svg>
+          <Grow key={items.map(item => `${item.income}:${item.expense}`).join('|')}>
+            <Svg width={width} height={BARS_HEIGHT}>
+              {items.map((item, index) => {
+                const center = slot * index + slot / 2;
+                return (
+                  <G key={`${item.label}-${index}`}>
+                    <Rect
+                      x={center - bar - 1}
+                      y={BARS_HEIGHT - height(item.income)}
+                      width={bar}
+                      height={height(item.income)}
+                      rx={3}
+                      fill={colors.income}
+                    />
+                    <Rect
+                      x={center + 1}
+                      y={BARS_HEIGHT - height(item.expense)}
+                      width={bar}
+                      height={height(item.expense)}
+                      rx={3}
+                      fill={colors.expense}
+                    />
+                  </G>
+                );
+              })}
+            </Svg>
+          </Grow>
         )}
       </View>
       <View style={styles.barAxis}>

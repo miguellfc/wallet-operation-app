@@ -1,9 +1,9 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AddHeader } from '@/components/add/add-header';
+import { BackHeader } from '@/components/settings/back-header';
 import { OperationDayList } from '@/components/operations/operation-day-list';
 import { operationSign, walletAmount } from '@/components/operations/operation-row';
 import { RecurrenceSheet } from '@/components/operations/recurrence-sheet';
@@ -11,6 +11,9 @@ import { Button } from '@/components/ui/button';
 import { CategoryIcon } from '@/components/ui/category-icon';
 import { showConfirm } from '@/components/ui/confirm-dialog';
 import { ScreenBackground } from '@/components/ui/screen-background';
+import { Grow } from '@/components/ui/grow';
+import { Stagger } from '@/components/ui/stagger';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import { categoryIconName } from '@/features/categories/categories-api';
 import type { Operation } from '@/features/operations/operations-api';
 import {
@@ -132,7 +135,7 @@ function EndProgress({ recurrence }: { recurrence: RecurrenceDocument }) {
         style={styles.track}
         accessibilityRole="progressbar"
         accessibilityValue={{ min: 0, max: end.times, now: executed }}>
-        {progress > 0 && <View style={[styles.fill, { width: `${progress * 100}%` }]} />}
+        {progress > 0 && <Grow axis="x" style={[styles.fill, { width: `${progress * 100}%` }]} />}
       </View>
     </View>
   );
@@ -210,128 +213,121 @@ export default function RecurrenceDetailScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}>
-        <AddHeader title="Recurrente" />
-        {!detail || !recurrence || !draft ? (
-          <View style={styles.state}>
-            {loadError ? (
-              <>
-                <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadErrorMessage(loadError)}
-                </Text>
-                <Button label="Reintentar" onPress={retry} />
-              </>
-            ) : (
-              <ActivityIndicator color={colors.brand} />
-            )}
-          </View>
-        ) : (
-          <>
-            <View style={styles.summary}>
-              <View style={[styles.iconCircle, { backgroundColor: iconBackground }]}>
-                <CategoryIcon name={iconOf(template)} color={accent} size={30} />
-              </View>
-              <Text style={styles.title} numberOfLines={2}>
-                {titleOf(template)}
-              </Text>
-              {template && (
-                <View style={styles.chip}>
-                  <Text style={styles.chipLabel}>
-                    {template.category ? `${TYPE_LABELS[template.type]} · ${template.category.name}` : TYPE_LABELS[template.type]}
+      <RevealScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
+        <Stagger>
+          <BackHeader title="Recurrente" />
+          {!detail || !recurrence || !draft ? (
+            <View style={styles.state}>
+              {loadError ? (
+                <>
+                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                    {loadErrorMessage(loadError)}
                   </Text>
-                </View>
-              )}
-              {amount && (
-                <Text style={[styles.amount, { color: accent }]}>{formatAmount(amount.amount, amount.currency, sign)}</Text>
-              )}
-              <View style={styles.meta}>
-                {template && <Text style={styles.metaText}>{walletsOf(template)}</Text>}
-                <View style={styles.frequency}>
-                  <Text style={styles.frequencyLabel}>{recurrenceShortLabel(draft)}</Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.card}>
-              <Text style={styles.overline}>Próxima ejecución</Text>
-              {recurrence.completed || !recurrence.nextExecution ? (
-                <Text style={styles.nextDate}>Finalizada</Text>
+                  <Button label="Reintentar" onPress={retry} />
+                </>
               ) : (
-                <View style={styles.nextRow}>
-                  <Text style={styles.nextDate}>{longDayLabel(recurrence.nextExecution)}</Text>
-                  <Text style={styles.nextRelative}>{relativeDay(recurrence.nextExecution)}</Text>
-                </View>
+                <ActivityIndicator color={colors.brand} />
               )}
-              <EndProgress recurrence={recurrence} />
             </View>
-
-            <View style={styles.details}>
-              <Text style={styles.sectionTitle} accessibilityRole="header">
-                Detalles
-              </Text>
-              {!recurrence.completed && (
-                <Text style={styles.summaryText}>{recurrenceSummary(remainingDraft(recurrence, draft), start)}</Text>
-              )}
-              <View style={styles.rows}>
-                <DetailRow label="Inicio" value={utcDateLabel(recurrence.startDate)} />
-                <DetailRow label="Última ejecución" value={utcDateLabel(recurrence.lastExecution)} />
-                {template && <DetailRow label="Billetera" value={walletsOf(template)} />}
-                {template?.category && <DetailRow label="Categoría" value={template.category.name} />}
-                {total && (
-                  <DetailRow label="Total generado" value={formatAmount(total.amount, total.currency, sign)} accent={accent} />
-                )}
-              </View>
-              {error && (
-                <Text style={styles.error} accessibilityLiveRegion="polite">
-                  {error}
+          ) : (
+            <>
+              <View style={styles.summary}>
+                <View style={[styles.iconCircle, { backgroundColor: iconBackground }]}>
+                  <CategoryIcon name={iconOf(template)} color={accent} size={30} />
+                </View>
+                <Text style={styles.title} numberOfLines={2}>
+                  {titleOf(template)}
                 </Text>
-              )}
-              <View style={styles.buttons}>
-                <Button label="Editar repetición" onPress={() => setEditing(true)} loading={busy} />
-                <View style={styles.actions}>
-                  {template && (
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityState={{ disabled: busy }}
-                      disabled={busy}
-                      onPress={() => editOperation(template._id)}
-                      style={({ pressed }) => [styles.action, styles.outline, pressed && styles.pressed]}>
-                      <Text style={styles.outlineLabel}>Editar operación</Text>
-                    </Pressable>
-                  )}
-                  {!recurrence.completed && (
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityState={{ disabled: busy }}
-                      disabled={busy}
-                      onPress={stop}
-                      style={({ pressed }) => [styles.action, styles.danger, pressed && styles.pressed]}>
-                      <Text style={styles.dangerLabel}>Detener</Text>
-                    </Pressable>
+                {template && (
+                  <View style={styles.chip}>
+                    <Text style={styles.chipLabel}>
+                      {template.category ? `${TYPE_LABELS[template.type]} · ${template.category.name}` : TYPE_LABELS[template.type]}
+                    </Text>
+                  </View>
+                )}
+                {amount && (
+                  <Text style={[styles.amount, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.4}>
+                    {formatAmount(amount.amount, amount.currency, sign)}</Text>
+                )}
+                <View style={styles.meta}>
+                  {template && <Text style={styles.metaText}>{walletsOf(template)}</Text>}
+                  <View style={styles.frequency}>
+                    <Text style={styles.frequencyLabel}>{recurrenceShortLabel(draft)}</Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.card}>
+                <Text style={styles.overline}>Próxima ejecución</Text>
+                {recurrence.completed || !recurrence.nextExecution ? (
+                  <Text style={styles.nextDate}>Finalizada</Text>
+                ) : (
+                  <View style={styles.nextRow}>
+                    <Text style={styles.nextDate}>{longDayLabel(recurrence.nextExecution)}</Text>
+                    <Text style={styles.nextRelative}>{relativeDay(recurrence.nextExecution)}</Text>
+                  </View>
+                )}
+                <EndProgress recurrence={recurrence} />
+              </View>
+
+              <View style={styles.details}>
+                <Text style={styles.sectionTitle} accessibilityRole="header">
+                  Detalles
+                </Text>
+                {!recurrence.completed && (
+                  <Text style={styles.summaryText}>{recurrenceSummary(remainingDraft(recurrence, draft), start)}</Text>
+                )}
+                <View style={styles.rows}>
+                  <DetailRow label="Inicio" value={utcDateLabel(recurrence.startDate)} />
+                  <DetailRow label="Última ejecución" value={utcDateLabel(recurrence.lastExecution)} />
+                  {template && <DetailRow label="Billetera" value={walletsOf(template)} />}
+                  {template?.category && <DetailRow label="Categoría" value={template.category.name} />}
+                  {total && (
+                    <DetailRow label="Total generado" value={formatAmount(total.amount, total.currency, sign)} accent={accent} />
                   )}
                 </View>
-                {template && (
-                  <Text style={styles.hint}>Los cambios en la operación se aplican a las próximas ejecuciones.</Text>
+                {error && (
+                  <Text style={styles.error} accessibilityLiveRegion="polite">
+                    {error}
+                  </Text>
+                )}
+                <View style={styles.buttons}>
+                  <Button label="Editar repetición" onPress={() => setEditing(true)} loading={busy} />
+                  <View style={styles.actions}>
+                    {template && (
+                      <View style={styles.action}>
+                        <Button label="Editar operación" variant="outline" onPress={() => editOperation(template._id)} disabled={busy} />
+                      </View>
+                    )}
+                    {!recurrence.completed && (
+                      <View style={styles.action}>
+                        <Button label="Detener" variant="danger" onPress={stop} disabled={busy} />
+                      </View>
+                    )}
+                  </View>
+                  {template && (
+                    <Text style={styles.hint}>Los cambios en la operación se aplican a las próximas ejecuciones.</Text>
+                  )}
+                </View>
+              </View>
+
+              <Text style={styles.listTitle} accessibilityRole="header">
+                Operaciones
+              </Text>
+              <View style={styles.list}>
+                {detail.operations.length === 0 ? (
+                  <Text style={styles.stateText}>Las operaciones de esta repetición ya no existen.</Text>
+                ) : (
+                  <OperationDayList operations={detail.operations} onPress={operation => openOperation(operation._id)} />
+                )}
+                {detail.hasMore && (
+                  <Button label="Ver más" onPress={() => setSize(current => current + PAGE)} loading={loadingMore} />
                 )}
               </View>
-            </View>
-
-            <Text style={styles.listTitle} accessibilityRole="header">
-              Operaciones
-            </Text>
-            <View style={styles.list}>
-              {detail.operations.length === 0 ? (
-                <Text style={styles.stateText}>Las operaciones de esta repetición ya no existen.</Text>
-              ) : (
-                <OperationDayList operations={detail.operations} onPress={operation => openOperation(operation._id)} />
-              )}
-              {detail.hasMore && (
-                <Button label="Ver más" onPress={() => setSize(current => current + PAGE)} loading={loadingMore} />
-              )}
-            </View>
-          </>
-        )}
-      </ScrollView>
+            </>
+          )}
+        </Stagger>
+      </RevealScrollView>
       {draft && (
         <RecurrenceSheet
           visible={editing}
@@ -379,7 +375,7 @@ const styles = themedStyles(() => ({
   frequencyLabel: { ...typography.bodyMedium, fontSize: 12, lineHeight: 18, color: colors.textAccent },
   card: {
     borderRadius: radius.lg,
-    backgroundColor: colors.row,
+    backgroundColor: colors.surface,
     paddingVertical: spacing.xl,
     paddingHorizontal: spacing.xxl,
     gap: spacing.md,
@@ -398,10 +394,10 @@ const styles = themedStyles(() => ({
   progressBlock: { gap: spacing.sm },
   progressLabels: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
   track: { height: 12, padding: 2, borderRadius: radius.full, backgroundColor: colors.divider, flexDirection: 'row' },
-  fill: { height: '100%', minWidth: 8, borderRadius: radius.full, backgroundColor: colors.brand },
+  fill: { alignSelf: 'stretch', minWidth: 8, borderRadius: radius.full, backgroundColor: colors.brand },
   details: {
     borderRadius: radius.lg,
-    backgroundColor: colors.row,
+    backgroundColor: colors.surface,
     paddingVertical: spacing.xxl,
     paddingHorizontal: spacing.xxl,
     gap: spacing.lg,
@@ -415,23 +411,11 @@ const styles = themedStyles(() => ({
   summaryText: { ...typography.bodyMedium, fontSize: 13, color: colors.textSecondary },
   rows: { gap: spacing.lg },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  detailLabel: { ...typography.labelOverline, width: 140, color: colors.textSecondary },
+  detailLabel: { ...typography.labelOverline, width: 120, maxWidth: '45%', flexShrink: 0, color: colors.textSecondary },
   detailValue: { ...typography.bodyMedium, fontSize: 13, flex: 1, textAlign: 'right', color: colors.textPrimary },
   buttons: { gap: 14, marginTop: spacing.sm },
-  actions: { flexDirection: 'row', gap: 18 },
-  action: {
-    flex: 1,
-    minHeight: 50,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.sm,
-  },
-  outline: { borderColor: colors.trackOn },
-  outlineLabel: { ...typography.buttonLabel, color: colors.textAccent, textAlign: 'center' },
-  danger: { borderColor: colors.danger },
-  dangerLabel: { ...typography.buttonLabel, color: colors.danger },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  action: { flexGrow: 1 },
   pressed: { opacity: 0.85 },
   hint: { ...typography.caption, fontSize: 12, lineHeight: 16, color: colors.textMuted },
   error: { ...typography.bodyMedium, color: colors.error, textAlign: 'center' },

@@ -1,6 +1,6 @@
 import { Redirect, type Href } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { showConfirm } from '@/components/ui/confirm-dialog';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { TextField } from '@/components/ui/text-field';
+import { Stagger } from '@/components/ui/stagger';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import {
   accountErrorMessage,
   changePassword,
@@ -319,88 +321,90 @@ function AccountScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView
+      <RevealScrollView
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
-        <BackHeader title="Mi cuenta" />
-        {!account ? (
-          <View style={styles.state}>
-            {loadError ? (
-              <>
-                <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadErrorMessage(loadError)}
-                </Text>
-                <Button label="Reintentar" onPress={retry} />
-              </>
-            ) : (
-              <ActivityIndicator color={colors.brand} />
-            )}
-          </View>
-        ) : (
-          <>
-            <View
-              style={styles.profile}
-              accessible
-              accessibilityLabel={`${account.firstName} ${account.lastName}, usuario ${account.nickname}, moneda principal ${account.currency.code}, no se puede cambiar`}>
-              <View style={styles.initials}>
-                <Text style={styles.initialsLabel}>{initials(account)}</Text>
-              </View>
-              <View style={styles.cardText}>
-                <Text style={styles.cardTitle} numberOfLines={1}>
-                  {account.firstName} {account.lastName}
-                </Text>
-                <Text style={styles.cardDetail} numberOfLines={1}>
-                  @{account.nickname}
-                </Text>
-                <View style={styles.currencyRow}>
-                  <SvgXml xml={LOCK_ICON} color={colors.textMuted} width={12} height={12} />
-                  <Text style={styles.cardDetail} numberOfLines={1}>
-                    {account.currency.code} · {account.currency.currency}
+        <Stagger>
+          <BackHeader title="Mi cuenta" />
+          {!account ? (
+            <View style={styles.state}>
+              {loadError ? (
+                <>
+                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                    {loadErrorMessage(loadError)}
                   </Text>
+                  <Button label="Reintentar" onPress={retry} />
+                </>
+              ) : (
+                <ActivityIndicator color={colors.brand} />
+              )}
+            </View>
+          ) : (
+            <>
+              <View
+                style={styles.profile}
+                accessible
+                accessibilityLabel={`${account.firstName} ${account.lastName}, usuario ${account.nickname}, moneda principal ${account.currency.code}, no se puede cambiar`}>
+                <View style={styles.initials}>
+                  <Text style={styles.initialsLabel}>{initials(account)}</Text>
+                </View>
+                <View style={styles.cardText}>
+                  <Text style={styles.cardTitle} numberOfLines={1}>
+                    {account.firstName} {account.lastName}
+                  </Text>
+                  <Text style={styles.cardDetail} numberOfLines={1}>
+                    @{account.nickname}
+                  </Text>
+                  <View style={styles.currencyRow}>
+                    <SvgXml xml={LOCK_ICON} color={colors.textMuted} width={12} height={12} />
+                    <Text style={styles.cardDetail} numberOfLines={1}>
+                      {account.currency.code} · {account.currency.currency}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-            <SectionTitle>Datos personales</SectionTitle>
-            <View style={styles.form}>
-              <TextField label="Nombre" value={firstName} onChangeText={edit(setFirstName)} maxLength={60} />
-              <TextField label="Apellidos" value={lastName} onChangeText={edit(setLastName)} maxLength={60} />
-              <TextField
-                label="Nombre de usuario"
-                value={nickname}
-                onChangeText={edit(setNickname)}
-                autoCapitalize="none"
-                autoCorrect={false}
-                maxLength={40}
-              />
-              {(error || notice) && (
-                <Text style={[styles.message, error && styles.hintError]} accessibilityLiveRegion="polite">
-                  {error ?? notice}
-                </Text>
-              )}
-              <Button label="Guardar cambios" onPress={save} loading={saving} disabled={!dirty || !complete} />
-            </View>
-            <SectionTitle>Seguridad</SectionTitle>
-            <View style={styles.list}>
-              <ActionCard
-                icon={KEY_ICON}
-                title="Cambiar contraseña"
-                detail="Se cerrarán tus otras sesiones"
-                onPress={() => setSheet('password')}
-              />
-              <ActionCard
-                icon={DEVICES_ICON}
-                title="Cerrar todas las sesiones"
-                detail="En todos tus dispositivos, también este"
-                onPress={signOutEverywhere}
-              />
-            </View>
-            <View style={styles.deleteAction}>
-              <DangerButton label="Eliminar cuenta" onPress={() => setSheet('delete')} />
-            </View>
-          </>
-        )}
-      </ScrollView>
+              <SectionTitle>Datos personales</SectionTitle>
+              <View style={styles.form}>
+                <TextField label="Nombre" value={firstName} onChangeText={edit(setFirstName)} maxLength={60} />
+                <TextField label="Apellidos" value={lastName} onChangeText={edit(setLastName)} maxLength={60} />
+                <TextField
+                  label="Nombre de usuario"
+                  value={nickname}
+                  onChangeText={edit(setNickname)}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  maxLength={40}
+                />
+                {(error || notice) && (
+                  <Text style={[styles.message, error && styles.hintError]} accessibilityLiveRegion="polite">
+                    {error ?? notice}
+                  </Text>
+                )}
+                <Button label="Guardar cambios" onPress={save} loading={saving} disabled={!dirty || !complete} />
+              </View>
+              <SectionTitle>Seguridad</SectionTitle>
+              <View style={styles.list}>
+                <ActionCard
+                  icon={KEY_ICON}
+                  title="Cambiar contraseña"
+                  detail="Se cerrarán tus otras sesiones"
+                  onPress={() => setSheet('password')}
+                />
+                <ActionCard
+                  icon={DEVICES_ICON}
+                  title="Cerrar todas las sesiones"
+                  detail="En todos tus dispositivos, también este"
+                  onPress={signOutEverywhere}
+                />
+              </View>
+              <View style={styles.deleteAction}>
+                <DangerButton label="Eliminar cuenta" onPress={() => setSheet('delete')} />
+              </View>
+            </>
+          )}
+        </Stagger>
+      </RevealScrollView>
       <PasswordSheet
         visible={sheet === 'password'}
         onClose={() => setSheet(null)}

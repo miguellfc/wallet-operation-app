@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SheetModal } from '@/components/ui/sheet-modal';
 import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 
 type GridItem = { value: string; label: string };
@@ -25,11 +26,7 @@ export function GridSheet({ visible, title, items, selected, renderItem, onSelec
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Cerrar" />
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.xl }]}>
-          <View style={styles.handle} />
+    <SheetModal visible={visible} onClose={onClose} style={[styles.sheet, { paddingBottom: insets.bottom + spacing.xl }]}>
           <Text style={styles.title} accessibilityRole="header">
             {title}
           </Text>
@@ -49,14 +46,11 @@ export function GridSheet({ visible, title, items, selected, renderItem, onSelec
               );
             })}
           </ScrollView>
-        </View>
-      </View>
-    </Modal>
+    </SheetModal>
   );
 }
 
 const styles = themedStyles(() => ({
-  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
   sheet: {
     maxHeight: '75%',
     width: '100%',
@@ -71,7 +65,6 @@ const styles = themedStyles(() => ({
     paddingTop: spacing.md,
     gap: spacing.lg,
   },
-  handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: radius.full, backgroundColor: colors.textMuted },
   title: { ...typography.titleSection, color: colors.textPrimary },
   grid: {
     flexDirection: 'row',

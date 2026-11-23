@@ -1,9 +1,11 @@
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackHeader } from '@/components/settings/back-header';
 import { BrandGradient } from '@/components/ui/brand-gradient';
 import { ScreenBackground } from '@/components/ui/screen-background';
+import { Stagger } from '@/components/ui/stagger';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import { setTheme, useThemeName } from '@/features/theme/theme-store';
 import { colors, layout, radius, spacing, themedStyles, themePalette, typography, type ThemeName } from '@/theme';
 
@@ -47,34 +49,36 @@ export default function ThemeScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView
+      <RevealScrollView
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
-        <BackHeader title="Tema" />
-        <View style={styles.list} accessibilityRole="radiogroup">
-          {OPTIONS.map(option => {
-            const selected = option.value === active;
-            return (
-              <Pressable
-                key={option.value}
-                accessibilityRole="radio"
-                accessibilityLabel={`${option.title}. ${option.detail}`}
-                accessibilityState={{ checked: selected }}
-                onPress={() => setTheme(option.value)}
-                style={({ pressed }) => [styles.card, selected && styles.cardSelected, pressed && styles.pressed]}>
-                <ThemePreview name={option.value} />
-                <View style={styles.choice}>
-                  <View style={[styles.radio, selected && styles.radioSelected]} />
-                  <View style={styles.choiceText}>
-                    <Text style={styles.title}>{option.title}</Text>
-                    <Text style={styles.detail}>{option.detail}</Text>
+        <Stagger>
+          <BackHeader title="Tema" />
+          <View style={styles.list} accessibilityRole="radiogroup">
+            {OPTIONS.map(option => {
+              const selected = option.value === active;
+              return (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${option.title}. ${option.detail}`}
+                  accessibilityState={{ checked: selected }}
+                  onPress={() => setTheme(option.value)}
+                  style={({ pressed }) => [styles.card, selected && styles.cardSelected, pressed && styles.pressed]}>
+                  <ThemePreview name={option.value} />
+                  <View style={styles.choice}>
+                    <View style={[styles.radio, selected && styles.radioSelected]} />
+                    <View style={styles.choiceText}>
+                      <Text style={styles.title}>{option.title}</Text>
+                      <Text style={styles.detail}>{option.detail}</Text>
+                    </View>
                   </View>
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
-        <Text style={styles.note}>Se aplica al momento y se guarda en este dispositivo.</Text>
-      </ScrollView>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={styles.note}>Se aplica al momento y se guarda en este dispositivo.</Text>
+        </Stagger>
+      </RevealScrollView>
     </ScreenBackground>
   );
 }

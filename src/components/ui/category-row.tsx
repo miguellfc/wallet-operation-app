@@ -22,7 +22,7 @@ export function CategoryRow({ name, icon, amount, percent, color, iconBackground
         <Text style={styles.name} numberOfLines={1}>
           {name}
         </Text>
-        <Text style={styles.amount} numberOfLines={1}>
+        <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
           {amount}
         </Text>
       </View>

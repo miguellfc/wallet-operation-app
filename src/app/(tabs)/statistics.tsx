@@ -1,15 +1,19 @@
 import { Image } from 'expo-image';
 import { useCallback, useState, type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { AddHeader } from '@/components/add/add-header';
 import { DonutChart, LineChart, PairedBars } from '@/components/statistics/charts';
 import { Button } from '@/components/ui/button';
+import { AmountText, type Amount } from '@/components/ui/count-up';
 import { FilterChips } from '@/components/ui/filter-chips';
+import { Grow } from '@/components/ui/grow';
+import { Reveal } from '@/components/ui/reveal';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { SegmentedControl } from '@/components/ui/segmented-control';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import { loadStatistics, type StatisticsData, type StatsPeriod } from '@/features/statistics/statistics-api';
 import { useThemeName } from '@/features/theme/theme-store';
 import { ApiError } from '@/lib/api';
@@ -79,23 +83,25 @@ function ChangeLabel({ change, tone, versus }: { change: number | null; tone: Ch
   );
 }
 
-type TileProps = { label: string; value: string; valueColor?: string; children: ReactNode };
+type TileProps = { label: string; value: Amount; valueColor?: string; children: ReactNode };
 
 function Tile({ label, value, valueColor, children }: TileProps) {
   return (
     <View style={styles.tile} accessible>
       <Text style={styles.tileLabel}>{label}</Text>
       <Text style={[styles.tileValue, valueColor ? { color: valueColor } : null]} numberOfLines={1} adjustsFontSizeToFit>
-        {value}
+        <AmountText amount={value} />
       </Text>
       {children}
     </View>
   );
 }
 
-function Card({ title, detail, children }: { title: string; detail?: string; children: ReactNode }) {
+type CardProps = { title: string; detail?: string; index: number; children: ReactNode };
+
+function Card({ title, detail, index, children }: CardProps) {
   return (
-    <View style={styles.card}>
+    <Reveal index={index} style={styles.card}>
       <View style={styles.cardHeader}>
         <Text style={styles.cardTitle} accessibilityRole="header">
           {title}
@@ -103,7 +109,7 @@ function Card({ title, detail, children }: { title: string; detail?: string; chi
         {detail && <Text style={styles.cardDetail}>{detail}</Text>}
       </View>
       {children}
-    </View>
+    </Reveal>
   );
 }
 
@@ -147,22 +153,29 @@ function StatisticsBody({ data, period, kind, onKind }: { data: StatisticsData; 
 
   return (
     <>
-      <View style={styles.tiles}>
-        <Tile label="Ingresos" value={formatAmount(summary.current.income, code)} valueColor={colors.income}>
+      <Reveal index={0} style={styles.tiles}>
+        <Tile
+          label="Ingresos"
+          value={{ value: summary.current.income, format: value => formatAmount(value, code) }}
+          valueColor={colors.income}>
           <ChangeLabel change={summary.changes.income} tone="up-good" versus={versus} />
         </Tile>
-        <Tile label="Gastos" value={formatAmount(summary.current.expense, code)} valueColor={colors.expense}>
+        <Tile
+          label="Gastos"
+          value={{ value: summary.current.expense, format: value => formatAmount(value, code) }}
+          valueColor={colors.expense}>
           <ChangeLabel change={summary.changes.expense} tone="up-bad" versus={versus} />
         </Tile>
-        <Tile label="Ahorro neto" value={formatAmount(summary.current.net, code)}>
+        <Tile label="Ahorro neto" value={{ value: summary.current.net, format: value => formatAmount(value, code) }}>
           <ChangeLabel change={summary.changes.net} tone="up-good" versus={versus} />
         </Tile>
         <Tile label="Tasa de ahorro" value={summary.savingsRate === null ? '—' : `${summary.savingsRate}%`}>
           <Text style={styles.note}>{summary.savingsRate === null ? 'Sin ingresos' : 'de lo que ingresaste'}</Text>
         </Tile>
-      </View>
+      </Reveal>
 
       <Card
+        index={1}
         title="Evolución del saldo"
         detail={`Tu saldo total al cierre de cada ${data.evolutionInterval === 'MONTH' ? 'mes' : 'día'}`}>
         <LineChart
@@ -188,7 +201,7 @@ function StatisticsBody({ data, period, kind, onKind }: { data: StatisticsData; 
         )}
       </Card>
 
-      <Card title={kind === 'EXPENSE' ? 'Gastos por categoría' : 'Ingresos por categoría'}>
+      <Card index={2} title={kind === 'EXPENSE' ? 'Gastos por categoría' : 'Ingresos por categoría'}>
         <SegmentedControl options={KINDS} value={kind} onChange={onKind} activeColor={accent} compact />
         {categories.length === 0 ? (
           <Text style={styles.empty}>
@@ -207,25 +220,26 @@ function StatisticsBody({ data, period, kind, onKind }: { data: StatisticsData; 
               </View>
             </View>
             <View style={styles.rows}>
-              {categories.map(item => {
+              {categories.map((item, index) => {
                 const share = categoryTotal > 0 ? Math.round((item.total / categoryTotal) * 100) : 0;
                 return (
-                  <View
-                    key={item.category.id}
-                    style={styles.categoryRow}
-                    accessible
-                    accessibilityLabel={`${item.category.name}, ${formatAmount(item.total, code)}, ${share}%`}>
-                    <View style={[styles.dot, { backgroundColor: colorOf(item.category.color) }]} />
-                    <Text style={styles.categoryName} numberOfLines={1}>
-                      {item.category.name}
-                    </Text>
-                    <Text style={styles.categoryShare}>{share}%</Text>
-                    {item.change === null ? (
-                      <Text style={styles.note}>nueva</Text>
-                    ) : (
-                      <ChangeLabel change={item.change} tone={kind === 'EXPENSE' ? 'up-bad' : 'up-good'} versus={versus} />
-                    )}
-                  </View>
+                  <Reveal key={`${kind}:${item.category.id}`} index={index}>
+                    <View
+                      style={styles.categoryRow}
+                      accessible
+                      accessibilityLabel={`${item.category.name}, ${formatAmount(item.total, code)}, ${share}%`}>
+                      <View style={[styles.dot, { backgroundColor: colorOf(item.category.color) }]} />
+                      <Text style={styles.categoryName} numberOfLines={1}>
+                        {item.category.name}
+                      </Text>
+                      <Text style={styles.categoryShare}>{share}%</Text>
+                      {item.change === null ? (
+                        <Text style={styles.note}>nueva</Text>
+                      ) : (
+                        <ChangeLabel change={item.change} tone={kind === 'EXPENSE' ? 'up-bad' : 'up-good'} versus={versus} />
+                      )}
+                    </View>
+                  </Reveal>
                 );
               })}
             </View>
@@ -233,7 +247,7 @@ function StatisticsBody({ data, period, kind, onKind }: { data: StatisticsData; 
         )}
       </Card>
 
-      <Card title="Ingresos vs gastos" detail={TREND_TITLES[period]}>
+      <Card index={3} title="Ingresos vs gastos" detail={TREND_TITLES[period]}>
         <View style={styles.legend}>
           <View style={styles.legendItem}>
             <View style={[styles.legendSwatch, { backgroundColor: colors.income }]} />
@@ -254,44 +268,49 @@ function StatisticsBody({ data, period, kind, onKind }: { data: StatisticsData; 
       </Card>
 
       {data.wallets.length > 0 && (
-        <Card title="Saldo por billetera" detail={`Barras en ${code}`}>
+        <Card index={4} title="Saldo por billetera" detail={`Barras en ${code}`}>
           <View style={styles.rows}>
-            {data.wallets.map(wallet => (
-              <View
-                key={wallet.id}
-                style={styles.walletRow}
-                accessible
-                accessibilityLabel={`${wallet.name}, ${formatAmount(wallet.balance, wallet.currency.code)}${wallet.excluded ? ", excluida del saldo" : ""}`}>
-                <View style={styles.walletLabel}>
-                  <Text style={styles.walletName} numberOfLines={1}>
-                    {wallet.name}
+            {data.wallets.map((wallet, index) => (
+              <Reveal key={wallet.id} index={index}>
+                <View
+                  style={styles.walletRow}
+                  accessible
+                  accessibilityLabel={`${wallet.name}, ${formatAmount(wallet.balance, wallet.currency.code)}${wallet.excluded ? ", excluida del saldo" : ""}`}>
+                  <View style={styles.walletLabel}>
+                    <Text style={styles.walletName} numberOfLines={1}>
+                      {wallet.name}
+                    </Text>
+                    {wallet.excluded && <Text style={styles.excludedTag}>Excluida</Text>}
+                  </View>
+                  <View style={[styles.walletTrack, wallet.excluded && styles.walletExcluded]}>
+                    <Grow
+                      key={wallet.userBalance}
+                      axis="x"
+                      style={[
+                        styles.walletBar,
+                        {
+                          width: `${maxWallet > 0 ? Math.max(0, (wallet.userBalance / maxWallet) * 100) : 0}%`,
+                          backgroundColor: isColor(wallet.color) ? wallet.color : colors.brand,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.walletAmount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
+                    {formatAmount(wallet.balance, wallet.currency.code)}
                   </Text>
-                  {wallet.excluded && <Text style={styles.excludedTag}>Excluida</Text>}
                 </View>
-                <View style={[styles.walletTrack, wallet.excluded && styles.walletExcluded]}>
-                  <View
-                    style={[
-                      styles.walletBar,
-                      {
-                        width: `${maxWallet > 0 ? Math.max(0, (wallet.userBalance / maxWallet) * 100) : 0}%`,
-                        backgroundColor: isColor(wallet.color) ? wallet.color : colors.brand,
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.walletAmount} numberOfLines={1}>
-                  {formatAmount(wallet.balance, wallet.currency.code)}
-                </Text>
-              </View>
+              </Reveal>
             ))}
           </View>
         </Card>
       )}
 
-      <Text style={styles.sectionTitle} accessibilityRole="header">
-        Destacados
-      </Text>
-      <View style={styles.rows}>
+      <Reveal index={5}>
+        <Text style={styles.sectionTitle} accessibilityRole="header">
+          Destacados
+        </Text>
+      </Reveal>
+      <Reveal index={6} style={styles.rows}>
         <Highlight icon={CALENDAR_ICON} title={`${formatAmount(summary.dailyAverage, code)} / día`} detail="Gasto medio diario" />
         {biggest && (
           <Highlight
@@ -307,7 +326,7 @@ function StatisticsBody({ data, period, kind, onKind }: { data: StatisticsData; 
             detail="La categoría de gasto que más subió"
           />
         )}
-      </View>
+      </Reveal>
     </>
   );
 }
@@ -330,7 +349,7 @@ export default function StatisticsScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView
+      <RevealScrollView
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}
         refreshControl={
           <RefreshControl
@@ -392,7 +411,7 @@ export default function StatisticsScreen() {
             )}
           </View>
         )}
-      </ScrollView>
+      </RevealScrollView>
     </ScreenBackground>
   );
 }
@@ -420,7 +439,13 @@ const styles = themedStyles(() => ({
   chevron: { width: 11.5, height: 5.5 },
   left: { transform: [{ rotate: '90deg' }] },
   right: { transform: [{ rotate: '-90deg' }] },
-  periodLabel: { ...typography.bodyMedium, fontFamily: typography.titleSection.fontFamily, color: colors.textPrimary },
+  periodLabel: {
+    ...typography.bodyMedium,
+    fontFamily: typography.titleSection.fontFamily,
+    color: colors.textPrimary,
+    flex: 1,
+    textAlign: 'center',
+  },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   tile: {
     flexBasis: '46%',
@@ -464,7 +489,7 @@ const styles = themedStyles(() => ({
   walletExcluded: { opacity: 0.45 },
   walletTrack: { flex: 1, height: 8, borderRadius: radius.full, backgroundColor: colors.segment, overflow: 'hidden' },
   walletBar: { height: '100%', borderRadius: radius.full },
-  walletAmount: { ...typography.caption, fontSize: 12, width: 96, textAlign: 'right', color: colors.textSecondary },
+  walletAmount: { ...typography.caption, fontSize: 12, maxWidth: '40%', textAlign: 'right', color: colors.textSecondary },
   sectionTitle: {
     ...typography.bodyMedium,
     fontFamily: typography.titleSection.fontFamily,
