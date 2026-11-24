@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackHeader } from '@/components/settings/back-header';
@@ -14,6 +14,7 @@ import { SegmentedControl } from '@/components/ui/segmented-control';
 import { TextField } from '@/components/ui/text-field';
 import { Stagger } from '@/components/ui/stagger';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
+import { Skeleton, SkeletonForm } from '@/components/ui/skeleton';
 import {
   CATEGORY_ICON_OPTIONS,
   DEFAULT_CATEGORY_ICON,
@@ -23,6 +24,7 @@ import {
   updateCategory,
   type CategoryType,
 } from '@/features/categories/categories-api';
+import { refreshCategoryColors } from '@/features/categories/category-colors';
 import { DEFAULT_WALLET_COLOR } from '@/features/wallets/wallet-options';
 import { ApiError } from '@/lib/api';
 import { normalizeName } from '@/lib/format';
@@ -99,6 +101,7 @@ export default function CategoryFormScreen() {
     try {
       if (editing) await updateCategory(editing._id, input);
       else await createCategory(type, input);
+      refreshCategoryColors();
       openList(type);
     } catch (reason) {
       setError(saveErrorMessage(reason));
@@ -116,20 +119,20 @@ export default function CategoryFormScreen() {
         <Stagger>
           <BackHeader title={editId ? 'Editar categoría' : 'Añadir categoría'} />
           {editId && !editing ? (
-            <View style={styles.state}>
-              {loadError ? (
-                <>
-                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                    {loadError instanceof ApiError && loadError.status === 404
-                      ? 'Esta categoría ya no existe.'
-                      : 'No se pudo cargar la categoría. Vuelve a intentarlo.'}
-                  </Text>
-                  <Button label="Reintentar" onPress={retry} />
-                </>
-              ) : (
-                <ActivityIndicator color={colors.brand} />
-              )}
-            </View>
+            loadError ? (
+              <View style={styles.state}>
+                <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                  {loadError instanceof ApiError && loadError.status === 404
+                    ? 'Esta categoría ya no existe.'
+                    : 'No se pudo cargar la categoría. Vuelve a intentarlo.'}
+                </Text>
+                <Button label="Reintentar" onPress={retry} />
+              </View>
+            ) : (
+              <Skeleton>
+                <SkeletonForm fields={3} />
+              </Skeleton>
+            )
           ) : (
             <View style={styles.form}>
               {!editing && (

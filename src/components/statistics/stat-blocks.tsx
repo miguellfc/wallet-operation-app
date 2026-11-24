@@ -11,6 +11,7 @@ import { SegmentedControl } from '@/components/ui/segmented-control';
 import type { CategoryComparison, PeriodRange, StatsPeriod } from '@/features/statistics/statistics-api';
 import { formatAmount } from '@/lib/format';
 import { colors, radius, spacing, themedStyles, typography } from '@/theme';
+import { useCategoryColor } from '@/features/categories/category-colors';
 
 export type StatsKind = 'EXPENSE' | 'INCOME';
 
@@ -198,7 +199,8 @@ export function CategoryCard({ index, kind, onKind, categories, code, versus }: 
   const rows = categories.filter(item => item.type === kind);
   const accent = kind === 'INCOME' ? colors.income : colors.expense;
   const total = rows.reduce((sum, item) => sum + item.total, 0);
-  const colorOf = (color?: string) => (isColor(color) ? color : accent);
+  const categoryColor = useCategoryColor();
+  const colorOf = (category: CategoryComparison['category']) => categoryColor(category, accent);
 
   return (
     <Card index={index} title={kind === 'EXPENSE' ? 'Gastos por categoría' : 'Ingresos por categoría'}>
@@ -208,7 +210,7 @@ export function CategoryCard({ index, kind, onKind, categories, code, versus }: 
       ) : (
         <>
           <View style={styles.donutRow}>
-            <DonutChart segments={rows.map(item => ({ value: item.total, color: colorOf(item.category.color) }))} />
+            <DonutChart segments={rows.map(item => ({ value: item.total, color: colorOf(item.category) }))} />
             <View>
               <Text style={styles.cardDetail}>Total</Text>
               <Text style={styles.donutTotal}>{formatAmount(total, code)}</Text>
@@ -226,7 +228,7 @@ export function CategoryCard({ index, kind, onKind, categories, code, versus }: 
                     style={styles.categoryRow}
                     accessible
                     accessibilityLabel={`${item.category.name}, ${formatAmount(item.total, code)}, ${share}%`}>
-                    <View style={[styles.dot, { backgroundColor: colorOf(item.category.color) }]} />
+                    <View style={[styles.dot, { backgroundColor: colorOf(item.category) }]} />
                     <Text style={styles.categoryName} numberOfLines={1}>
                       {item.category.name}
                     </Text>

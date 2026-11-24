@@ -1,12 +1,11 @@
 import { router, type Href } from 'expo-router';
-import { ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 
 import { AddOption } from '@/components/add/add-option';
-import { HomeHeader } from '@/components/home/home-header';
+import { StickyHeader } from '@/components/home/sticky-header';
+import { Reveal } from '@/components/ui/reveal';
 import { ScreenBackground } from '@/components/ui/screen-background';
-import { loadProfile } from '@/features/wallets/wallets-api';
-import { useApiData } from '@/lib/use-api-data';
+import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import { layout, spacing, themedStyles } from '@/theme';
 import { useThemeName } from '@/features/theme/theme-store';
 
@@ -51,26 +50,25 @@ const OPTIONS = [
 
 export default function AddScreen() {
   useThemeName();
-  const insets = useSafeAreaInsets();
-  const { data: profile } = useApiData(loadProfile);
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}>
-        <HomeHeader name={profile?.firstName ?? ''} />
+      <StickyHeader />
+      <RevealScrollView contentContainerStyle={[styles.content, styles.contentTop]}>
         <View style={styles.list}>
-          {OPTIONS.map(option => (
-            <AddOption
-              key={option.label}
-              label={option.label}
-              icon={option.icon}
-              iconWidth={option.width}
-              iconHeight={option.height}
-              onPress={option.onPress}
-            />
+          {OPTIONS.map((option, index) => (
+            <Reveal key={option.label} index={index}>
+              <AddOption
+                label={option.label}
+                icon={option.icon}
+                iconWidth={option.width}
+                iconHeight={option.height}
+                onPress={option.onPress}
+              />
+            </Reveal>
           ))}
         </View>
-      </ScrollView>
+      </RevealScrollView>
     </ScreenBackground>
   );
 }
@@ -84,5 +82,6 @@ const styles = themedStyles(() => ({
     maxWidth: layout.maxContentWidth,
     alignSelf: 'center',
   },
+  contentTop: { paddingTop: spacing.sm },
   list: { gap: 12 },
 }));

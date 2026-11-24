@@ -2,10 +2,11 @@ import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState, type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { readable } from '@/lib/color';
+import { StickyHeader } from '@/components/home/sticky-header';
 import { BackHeader } from '@/components/settings/back-header';
 import { AmountField } from '@/components/ui/amount-field';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import { TextField } from '@/components/ui/text-field';
 import { WalletIcon } from '@/components/wallets/wallet-icon';
 import { Stagger } from '@/components/ui/stagger';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
+import { Skeleton, SkeletonForm } from '@/components/ui/skeleton';
 import type { Currency } from '@/features/currencies/currency-api';
 import { CurrencySheet } from '@/features/currencies/currency-sheet';
 import { createWallet, loadWalletForm } from '@/features/wallets/wallet-form-api';
@@ -210,25 +212,26 @@ export default function AddWalletScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
+      <StickyHeader />
       <RevealScrollView
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
+        contentContainerStyle={[styles.content, { paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.xxl }]}>
         <Stagger>
           <BackHeader title={editId ? 'Editar billetera' : 'Añadir billetera'} />
           {!data || (editId && !editing) ? (
-            <View style={styles.state}>
-              {loadError || (editId && editError) ? (
-                <>
-                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                    {loadError ? loadErrorMessage(loadError) : 'No se pudo cargar la billetera. Vuelve a intentarlo.'}
-                  </Text>
-                  <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
-                </>
-              ) : (
-                <ActivityIndicator color={colors.brand} />
-              )}
-            </View>
+            loadError || (editId && editError) ? (
+              <View style={styles.state}>
+                <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                  {loadError ? loadErrorMessage(loadError) : 'No se pudo cargar la billetera. Vuelve a intentarlo.'}
+                </Text>
+                <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
+              </View>
+            ) : (
+              <Skeleton>
+                <SkeletonForm fields={5} />
+              </Skeleton>
+            )
           ) : (
             <View style={styles.form}>
               <TextField

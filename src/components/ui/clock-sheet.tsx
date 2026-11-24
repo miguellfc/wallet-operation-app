@@ -2,6 +2,7 @@ import { useRef, useState, type ComponentRef } from 'react';
 import { Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native';
 import Svg, { Circle, Line } from 'react-native-svg';
 
+import { textOn } from '@/lib/color';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
 import { colors, radius, spacing, themedStyles, typography } from '@/theme';
@@ -169,7 +170,7 @@ const styles = themedStyles(() => ({
   periodOption: { borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: 6 },
   periodActive: { backgroundColor: colors.brand },
   periodLabel: { ...typography.labelLegend, color: colors.textSecondary },
-  periodLabelActive: { color: colors.textOnBrand },
+  periodLabelActive: { color: textOn(colors.brand) },
   dial: {
     width: DIAL,
     height: DIAL,
@@ -186,5 +187,5 @@ const styles = themedStyles(() => ({
     textAlign: 'center',
     color: colors.textPrimary,
   },
-  dialLabelActive: { color: colors.textOnBrand, fontFamily: typography.titleSection.fontFamily },
+  dialLabelActive: { color: textOn(colors.brand), fontFamily: typography.titleSection.fontFamily },
 }));

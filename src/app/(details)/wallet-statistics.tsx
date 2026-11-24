@@ -1,9 +1,10 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { StickyHeader } from '@/components/home/sticky-header';
 import { BackHeader } from '@/components/settings/back-header';
 import { LineChart } from '@/components/statistics/charts';
 import {
@@ -32,11 +33,12 @@ import { Reveal } from '@/components/ui/reveal';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import { WalletIcon } from '@/components/wallets/wallet-icon';
+import { Skeleton, SkeletonChart, SkeletonHero, SkeletonRows, SkeletonSummaryPair } from '@/components/ui/skeleton';
 import type { StatsPeriod } from '@/features/statistics/statistics-api';
 import { useThemeName } from '@/features/theme/theme-store';
 import { loadWalletStatistics, type TransferTotal, type WalletStatistics } from '@/features/wallets/wallet-statistics-api';
 import { ApiError } from '@/lib/api';
-import { onColor } from '@/lib/color';
+import { badgeIcon } from '@/lib/color';
 import { formatAmount, formatNumber, periodLabel, periodTitle, utcDateLabel } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
 import { colors, fonts, layout, radius, spacing, themedStyles, typography } from '@/theme';
@@ -120,7 +122,7 @@ function WalletStatisticsBody({ data, period, kind, onKind }: BodyProps) {
           <Grow key={wallet._id} axis="pop" delay={180} style={StyleSheet.absoluteFill}>
             <View style={[styles.badgeRing, { borderColor: color }]} />
             <View style={[styles.badgeCircle, { backgroundColor: color }]}>
-              <WalletIcon name={wallet.icon} color={onColor(color)} size={26} />
+              <WalletIcon name={wallet.icon} color={badgeIcon()} size={26} />
             </View>
           </Grow>
         </View>
@@ -236,8 +238,9 @@ export default function WalletStatisticsScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
+      <StickyHeader />
       <RevealScrollView
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
+        contentContainerStyle={[styles.content, { paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.xxl }]}>
         <BackHeader title="Estadísticas" />
         <PeriodNavigator
           period={period}
@@ -250,18 +253,21 @@ export default function WalletStatisticsScreen() {
         {data ? (
           <WalletStatisticsBody data={data} period={period} kind={kind} onKind={setKind} />
         ) : (
-          <View style={styles.state}>
-            {error ? (
-              <>
-                <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadErrorMessage(error)}
-                </Text>
-                <Button label="Reintentar" onPress={retry} />
-              </>
-            ) : (
-              <ActivityIndicator color={colors.brand} />
-            )}
-          </View>
+          error ? (
+            <View style={styles.state}>
+              <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                {loadErrorMessage(error)}
+              </Text>
+              <Button label="Reintentar" onPress={retry} />
+            </View>
+          ) : (
+            <Skeleton>
+              <SkeletonHero />
+              <SkeletonSummaryPair />
+              <SkeletonChart chips={false} />
+              <SkeletonRows count={3} title />
+            </Skeleton>
+          )
         )}
       </RevealScrollView>
     </ScreenBackground>

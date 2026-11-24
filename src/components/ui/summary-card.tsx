@@ -16,7 +16,8 @@ export function SummaryCard({ kind, label, amount, caption }: SummaryCardProps) 
         <View style={[styles.badge, { backgroundColor: income ? colors.incomeSoft : colors.expenseSoft }]}>
           <Image
             contentFit="contain"
-            source={require('@/assets/icons/arrow-down.svg')} tintColor={colors.iconAccent}
+            source={require('@/assets/icons/arrow-down.svg')}
+            tintColor={income ? colors.income : colors.expense}
             style={[styles.arrow, !income && styles.arrowUp]}
           />
         </View>

@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 import { Pressable, Text, View, type LayoutChangeEvent } from 'react-native';
 import Svg, { Circle, Defs, G, Line, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 
+import { valuesKey } from '@/lib/motion';
 import { Grow } from '@/components/ui/grow';
 import { colors, themedStyles, typography } from '@/theme';
 
@@ -49,7 +50,7 @@ export function LineChart({ values, labels, titles, color, format }: LineChartPr
       <View style={styles.line} onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}>
         {width > 0 && marker && (
           <>
-            <Grow key={values.join(':')}>
+            <Grow key={valuesKey(values)}>
               <Svg width={width} height={LINE_HEIGHT}>
                 <Defs>
                   <LinearGradient id={`${id}-area`} x1={0} y1={0} x2={0} y2={1}>
@@ -123,7 +124,7 @@ export function DonutChart({ segments, size = 96 }: { segments: DonutSegment[]; 
 
   return (
     <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <Grow key={segments.map(segment => segment.value).join(':')} axis="both">
+      <Grow key={valuesKey(segments.map(segment => segment.value))} axis="both">
         <Svg width={size} height={size}>
           <Circle cx={size / 2} cy={size / 2} r={radius} stroke={colors.segment} strokeWidth={stroke} fill="none" />
         {total > 0 &&
@@ -166,7 +167,7 @@ export function PairedBars({ items }: PairedBarsProps) {
     <View>
       <View style={styles.bars} onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}>
         {width > 0 && (
-          <Grow key={items.map(item => `${item.income}:${item.expense}`).join('|')}>
+          <Grow key={valuesKey(items.flatMap(item => [item.income, item.expense]))}>
             <Svg width={width} height={BARS_HEIGHT}>
               {items.map((item, index) => {
                 const center = slot * index + slot / 2;

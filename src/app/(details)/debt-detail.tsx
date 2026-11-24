@@ -1,9 +1,10 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { onColor } from '@/lib/color';
+import { StickyHeader } from '@/components/home/sticky-header';
 import { BackHeader } from '@/components/settings/back-header';
 import { OperationDayList } from '@/components/operations/operation-day-list';
 import { AmountField } from '@/components/ui/amount-field';
@@ -17,6 +18,7 @@ import { SelectField } from '@/components/ui/select-field';
 import { Grow } from '@/components/ui/grow';
 import { Stagger } from '@/components/ui/stagger';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
+import { Skeleton, SkeletonDetails, SkeletonList, SkeletonRows, SkeletonSummary } from '@/components/ui/skeleton';
 import {
   addDebtOperation,
   deleteDebt,
@@ -182,7 +184,9 @@ function PaymentSheet({ visible, detail, wallets, onClose, onDone }: PaymentShee
       {choosing ? (
         <ScrollView style={styles.walletList} contentContainerStyle={styles.walletListContent}>
           {!wallets ? (
-            <ActivityIndicator color={colors.brand} />
+            <Skeleton>
+              <SkeletonList count={4} />
+            </Skeleton>
           ) : (
             wallets.map(item => {
               const active = item.id === wallet;
@@ -300,22 +304,25 @@ export default function DebtDetailScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <RevealScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
+      <StickyHeader />
+      <RevealScrollView contentContainerStyle={[styles.content, { paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.xxl }]}>
         <Stagger>
           <BackHeader title="Deuda" />
           {!detail || !debt ? (
-            <View style={styles.state}>
-              {loadError ? (
-                <>
-                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                    {loadErrorMessage(loadError)}
-                  </Text>
-                  <Button label="Reintentar" onPress={retry} />
-                </>
-              ) : (
-                <ActivityIndicator color={colors.brand} />
-              )}
-            </View>
+            loadError ? (
+              <View style={styles.state}>
+                <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                  {loadErrorMessage(loadError)}
+                </Text>
+                <Button label="Reintentar" onPress={retry} />
+              </View>
+            ) : (
+              <Skeleton>
+                <SkeletonSummary />
+                <SkeletonDetails rows={4} actions={2} />
+                <SkeletonRows count={2} title />
+              </Skeleton>
+            )
           ) : (
             <>
               <View style={styles.summary}>

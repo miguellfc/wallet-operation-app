@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { Pressable, ScrollView, Text } from 'react-native';
+import { useEffect, useRef, useState, type ComponentRef, type ReactNode } from 'react';
+import { Pressable, ScrollView, Text, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SheetModal } from '@/components/ui/sheet-modal';
@@ -19,6 +19,32 @@ type GridSheetProps = {
 
 export function GridSheet({ visible, title, items, selected, renderItem, onSelect, onClose }: GridSheetProps) {
   const insets = useSafeAreaInsets();
+  const scroller = useRef<ComponentRef<typeof ScrollView>>(null);
+  const centered = useRef(false);
+  const [view, setView] = useState(0);
+  const [cell, setCell] = useState<{ value: string; y: number; height: number } | null>(null);
+
+  if (!visible && (cell || view > 0)) {
+    setCell(null);
+    setView(0);
+  }
+
+  useEffect(() => {
+    if (!visible) {
+      centered.current = false;
+      return;
+    }
+    if (centered.current || !cell || cell.value !== selected || view === 0) return;
+    centered.current = true;
+    scroller.current?.scrollTo({ y: Math.max(cell.y + cell.height / 2 - view / 2, 0), animated: false });
+  }, [visible, cell, view, selected]);
+
+  const measureCell = (value: string) => (event: LayoutChangeEvent) => {
+    const { y, height } = event.nativeEvent.layout;
+    setCell(current =>
+      current?.value === value && current.y === y && current.height === height ? current : { value, y, height },
+    );
+  };
 
   const choose = (value: string) => {
     onSelect(value);
@@ -30,7 +56,10 @@ export function GridSheet({ visible, title, items, selected, renderItem, onSelec
           <Text style={styles.title} accessibilityRole="header">
             {title}
           </Text>
-          <ScrollView contentContainerStyle={styles.grid}>
+          <ScrollView
+            ref={scroller}
+            onLayout={event => setView(event.nativeEvent.layout.height)}
+            contentContainerStyle={styles.grid}>
             {items.map(item => {
               const active = item.value === selected;
               return (
@@ -40,6 +69,7 @@ export function GridSheet({ visible, title, items, selected, renderItem, onSelec
                   accessibilityLabel={item.label}
                   accessibilityState={{ selected: active }}
                   onPress={() => choose(item.value)}
+                  onLayout={active ? measureCell(item.value) : undefined}
                   style={({ pressed }) => [styles.cell, active && styles.selected, pressed && styles.pressed]}>
                   {renderItem(item)}
                 </Pressable>

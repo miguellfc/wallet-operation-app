@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Text, TextInput, View } from 'react-native';
+import { FlatList, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SheetModal } from '@/components/ui/sheet-modal';
 import { Button } from '@/components/ui/button';
 import { ListOption } from '@/components/ui/list-option';
+import { Skeleton, SkeletonList } from '@/components/ui/skeleton';
 import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 import { fetchCurrencies, type Currency } from './currency-api';
@@ -76,9 +77,9 @@ export function CurrencySheet({
               <Button label="Reintentar" onPress={() => setFailed(false)} />
             </View>
           ) : !currencies ? (
-            <View style={styles.state}>
-              <ActivityIndicator color={colors.brand} />
-            </View>
+            <Skeleton>
+              <SkeletonList count={8} />
+            </Skeleton>
           ) : (
             <FlatList
               data={filtered}

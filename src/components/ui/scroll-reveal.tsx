@@ -1,6 +1,6 @@
 import { useFocusEffect } from 'expo-router';
 import { createContext, useCallback, useContext, type PropsWithChildren } from 'react';
-import type { LayoutChangeEvent, ScrollViewProps, StyleProp, ViewStyle } from 'react-native';
+import { View, type LayoutChangeEvent, type ScrollViewProps, type StyleProp, type ViewStyle } from 'react-native';
 import { LegacyScrollView } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedReaction,
@@ -142,24 +142,18 @@ export function ScrollReveal({ scroll, index, style, children }: ScrollRevealPro
   });
 
   const onLayout = (event: LayoutChangeEvent) => {
-    const { y, height } = event.nativeEvent.layout;
+    const { y, height, width } = event.nativeEvent.layout;
+    if (height === 0 && width === 0) return;
     size.set(height);
     pageTop(event, pageY => {
-      if (pageY === null) {
-        position.set(y);
-      } else {
-        const value = progress.get();
-        const scale = ENTER.scale + (1 - ENTER.scale) * value;
-        const shift = (1 - value) * ENTER.distance * direction.get() + ((1 - scale) * height) / 2;
-        position.set(pageY - shift - scroll.top.get() + scroll.offset.get());
-      }
+      position.set(pageY === null ? y : pageY - scroll.top.get() + scroll.offset.get());
       measured.set(true);
     });
   };
 
   return (
-    <Animated.View onLayout={onLayout} style={[style, animated]}>
-      {children}
-    </Animated.View>
+    <View onLayout={onLayout}>
+      <Animated.View style={[style, animated]}>{children}</Animated.View>
+    </View>
   );
 }

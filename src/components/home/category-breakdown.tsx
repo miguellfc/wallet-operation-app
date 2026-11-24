@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { readable } from '@/lib/color';
 import { CategoryRow } from '@/components/ui/category-row';
 import { Reveal } from '@/components/ui/reveal';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { SegmentedProgress } from '@/components/ui/segmented-progress';
+import { useCategoryColor } from '@/features/categories/category-colors';
 import type { CategoryTotal, OperationKind } from '@/features/home/home-api';
 import { softColor } from '@/features/wallets/wallet-options';
 import { formatAmount } from '@/lib/format';
@@ -24,7 +24,8 @@ export function CategoryBreakdown({ categories, currencyCode }: CategoryBreakdow
   const color = income ? colors.income : colors.expense;
   const rows = categories.filter(item => item.type === kind);
   const total = rows.reduce((sum, item) => sum + item.total, 0);
-  const colorOf = (item: CategoryTotal) => (/^#[0-9a-f]{3,8}$/i.test(item.category.color) ? item.category.color : color);
+  const categoryColor = useCategoryColor();
+  const colorOf = (item: CategoryTotal) => categoryColor(item.category, color);
 
   return (
     <View style={styles.section}>
@@ -42,7 +43,7 @@ export function CategoryBreakdown({ categories, currencyCode }: CategoryBreakdow
                   icon={item.category.icon}
                   amount={formatAmount(item.total, currencyCode)}
                   percent={`${Math.round((item.total / total) * 100)}%`}
-                  color={readable(colorOf(item))}
+                  color={colorOf(item)}
                   iconBackground={softColor(colorOf(item), 0.1)}
                 />
               </Reveal>

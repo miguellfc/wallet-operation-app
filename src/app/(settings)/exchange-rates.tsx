@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
@@ -13,6 +13,7 @@ import { SelectField } from '@/components/ui/select-field';
 import { Stagger } from '@/components/ui/stagger';
 import { Reveal } from '@/components/ui/reveal';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
+import { Skeleton, SkeletonRows } from '@/components/ui/skeleton';
 import type { Currency } from '@/features/currencies/currency-api';
 import { CurrencySheet } from '@/features/currencies/currency-sheet';
 import {
@@ -211,18 +212,18 @@ export default function ExchangeRatesScreen() {
             </Text>
           )}
           {!data ? (
-            <View style={styles.state}>
-              {loadError ? (
-                <>
-                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                    {loadErrorMessage(loadError)}
-                  </Text>
-                  <Button label="Reintentar" onPress={retry} />
-                </>
-              ) : (
-                <ActivityIndicator color={colors.brand} />
-              )}
-            </View>
+            loadError ? (
+              <View style={styles.state}>
+                <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                  {loadErrorMessage(loadError)}
+                </Text>
+                <Button label="Reintentar" onPress={retry} />
+              </View>
+            ) : (
+              <Skeleton>
+                <SkeletonRows count={4} />
+              </Skeleton>
+            )
           ) : data.rates.length === 0 ? (
             <Text style={styles.stateText}>Aún no tienes tasas de cambio. Añade una con el botón +.</Text>
           ) : (

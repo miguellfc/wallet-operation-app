@@ -1,10 +1,11 @@
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
+import { StickyHeader } from '@/components/home/sticky-header';
 import { BackHeader } from '@/components/settings/back-header';
 import { AmountField } from '@/components/ui/amount-field';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import { SelectField } from '@/components/ui/select-field';
 import { TextField } from '@/components/ui/text-field';
 import { Stagger } from '@/components/ui/stagger';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
+import { Skeleton, SkeletonForm } from '@/components/ui/skeleton';
 import {
   canPickContact,
   createDebt,
@@ -230,25 +232,26 @@ export default function AddDebtScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
+      <StickyHeader />
       <RevealScrollView
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
+        contentContainerStyle={[styles.content, { paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.xxl }]}>
         <Stagger>
           <BackHeader title={editId ? 'Editar deuda' : 'Añadir deuda'} />
           {!data || (editId && !editing) ? (
-            <View style={styles.state}>
-              {loadError || (editId && editError) ? (
-                <>
-                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                    {loadErrorMessage(loadError ?? editError)}
-                  </Text>
-                  <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
-                </>
-              ) : (
-                <ActivityIndicator color={colors.brand} />
-              )}
-            </View>
+            loadError || (editId && editError) ? (
+              <View style={styles.state}>
+                <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                  {loadErrorMessage(loadError ?? editError)}
+                </Text>
+                <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
+              </View>
+            ) : (
+              <Skeleton>
+                <SkeletonForm fields={5} />
+              </Skeleton>
+            )
           ) : (
             <View style={styles.form}>
               {!editing && (

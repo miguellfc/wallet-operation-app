@@ -4,7 +4,8 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
-import { onColor } from '@/lib/color';
+import { badgeIcon, textOn } from '@/lib/color';
+import { StickyHeader } from '@/components/home/sticky-header';
 import { BackHeader } from '@/components/settings/back-header';
 import { OperationDayList } from '@/components/operations/operation-day-list';
 import { AmountField } from '@/components/ui/amount-field';
@@ -18,14 +19,18 @@ import { Stagger } from '@/components/ui/stagger';
 import { AmountText } from '@/components/ui/count-up';
 import { Grow } from '@/components/ui/grow';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
+import { Skeleton, SkeletonDetails, SkeletonHero, SkeletonRows } from '@/components/ui/skeleton';
 import { adjustWalletBalance, deleteWallet, loadWalletDetail, type WalletDetail } from '@/features/wallets/wallets-api';
 import { ApiError } from '@/lib/api';
 import { formatAmount, formatNumber, roundTo } from '@/lib/format';
+import { ReplayOnFocus } from '@/lib/motion';
 import { useApiData } from '@/lib/use-api-data';
 import { colors, fonts, layout, radius, spacing, themedStyles, typography } from '@/theme';
 import { useThemeName } from '@/features/theme/theme-store';
 
 const PAGE = 20;
+
+const DETAIL_REPLAY = { counts: false, charts: false };
 
 const GLOWS = [
   { left: '20%', top: '14%' },
@@ -232,121 +237,132 @@ export default function WalletDetailScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <RevealScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
-        <Stagger>
-          <BackHeader title="Billetera" />
-          {!detail ? (
-            <View style={styles.state}>
-              {loadError ? (
-                <>
+      <ReplayOnFocus value={DETAIL_REPLAY}>
+        <StickyHeader />
+        <RevealScrollView contentContainerStyle={[styles.content, { paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.xxl }]}>
+          <Stagger>
+            <BackHeader title="Billetera" />
+            {!detail ? (
+              loadError ? (
+                <View style={styles.state}>
                   <Text style={styles.stateText} accessibilityLiveRegion="polite">
                     {loadErrorMessage(loadError)}
                   </Text>
                   <Button label="Reintentar" onPress={retry} />
-                </>
+                </View>
               ) : (
-                <ActivityIndicator color={colors.brand} />
-              )}
-            </View>
-          ) : (
-            <>
-              <View
-                key={detail.wallet._id}
-                style={styles.card}
-                accessible={false}
-                accessibilityLabel={`${detail.wallet.name}, saldo ${formatAmount(detail.balance, code)}`}>
-                <View style={styles.badge} importantForAccessibility="no-hide-descendants">
-                  <Grow axis="pop" delay={180} style={StyleSheet.absoluteFill}>
-                    <View style={[styles.badgeRing, { borderColor: color }]} />
-                    <View style={[styles.badgeCircle, { backgroundColor: color }]}>
-                      <WalletIcon name={detail.wallet.icon} color={onColor(color)} size={26} />
-                    </View>
-                  </Grow>
-                </View>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`Billetera ${detail.wallet.name}`}
-                  accessibilityHint="Elige otra billetera para ver su detalle"
-                  hitSlop={8}
-                  onPress={() => setSwitcher(true)}
-                  style={({ pressed }) => [styles.nameRow, pressed && styles.pressed]}>
-                  <Text style={styles.name} numberOfLines={1}>
-                    {detail.wallet.name}
-                  </Text>
-                  <SvgXml xml={CHEVRON_ICON} color={colors.textPrimary} width={14} height={14} />
-                </Pressable>
-                <View style={styles.amountRow}>
-                  <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
-                    <AmountText amount={{ value: detail.balance, format: value => formatNumber(value) }} />
-                  </Text>
-                  <Text style={styles.code}>{code}</Text>
-                </View>
-              </View>
-              <View style={styles.details}>
-                <Text style={styles.sectionTitle} accessibilityRole="header">
-                  Detalles
-                </Text>
-                <View style={styles.rows}>
-                  <DetailRow label="Saldo inicial" value={formatAmount(detail.wallet.initAmount ?? 0, code)} />
-                  <DetailRow label="Ingresos" value={countLabel(detail.counts.income)} />
-                  <DetailRow label="Gastos" value={countLabel(detail.counts.expense)} />
-                  <DetailRow label="Transferencias" value={countLabel(detail.counts.transfer)} />
-                </View>
-                <View style={styles.actions}>
-                  <Button label="Reajustar saldo" onPress={() => setAdjusting(true)} />
-                  <View style={styles.iconActions}>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel="Editar billetera"
-                      onPress={() => editWallet(id)}
-                      style={({ pressed }) => [styles.round, pressed && styles.pressed]}>
-                      <SvgXml xml={PEN_ICON} color={colors.textOnBrand} width={20} height={20} />
-                    </Pressable>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel="Estadísticas de la billetera"
-                      onPress={() => openStatistics(id)}
-                      style={({ pressed }) => [styles.round, pressed && styles.pressed]}>
-                      <SvgXml xml={PIE_ICON} color={colors.textOnBrand} width={22} height={22} />
-                    </Pressable>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel="Eliminar billetera"
-                      accessibilityState={{ disabled: deleting, busy: deleting }}
-                      disabled={deleting}
-                      onPress={() => remove(detail)}
-                      style={({ pressed }) => [styles.round, styles.roundDanger, pressed && styles.pressed]}>
-                      {deleting ? (
-                        <ActivityIndicator color={colors.danger} />
-                      ) : (
-                        <SvgXml xml={TRASH_ICON} color={colors.danger} width={22} height={22} />
-                      )}
-                    </Pressable>
+                <Skeleton>
+                  <SkeletonHero />
+                  <SkeletonDetails rows={4} actions={3} />
+                  <SkeletonRows count={3} title />
+                </Skeleton>
+              )
+            ) : (
+              <>
+                <View
+                  key={detail.wallet._id}
+                  style={styles.card}
+                  accessible={false}
+                  accessibilityLabel={`${detail.wallet.name}, saldo ${formatAmount(detail.balance, code)}`}>
+                  <View style={styles.badge} importantForAccessibility="no-hide-descendants">
+                    <Grow axis="pop" delay={180} once={`wallet-badge:${detail.wallet._id}`} style={StyleSheet.absoluteFill}>
+                      <View style={[styles.badgeRing, { borderColor: color }]} />
+                      <View style={[styles.badgeCircle, { backgroundColor: color }]}>
+                        <WalletIcon name={detail.wallet.icon} color={badgeIcon()} size={26} />
+                      </View>
+                    </Grow>
+                  </View>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Billetera ${detail.wallet.name}`}
+                    accessibilityHint="Elige otra billetera para ver su detalle"
+                    hitSlop={8}
+                    onPress={() => setSwitcher(true)}
+                    style={({ pressed }) => [styles.nameRow, pressed && styles.pressed]}>
+                    <Text style={styles.name} numberOfLines={1}>
+                      {detail.wallet.name}
+                    </Text>
+                    <SvgXml xml={CHEVRON_ICON} color={colors.textPrimary} width={14} height={14} />
+                  </Pressable>
+                  <View style={styles.amountRow}>
+                    <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
+                      <AmountText
+                        amount={{
+                          value: detail.balance,
+                          format: value => formatNumber(value),
+                          memory: `wallet-detail:${detail.wallet._id}`,
+                        }}
+                      />
+                    </Text>
+                    <Text style={styles.code}>{code}</Text>
                   </View>
                 </View>
-                {deleteError && (
-                  <Text style={styles.error} accessibilityLiveRegion="polite">
-                    {deleteError}
+                <View style={styles.details}>
+                  <Text style={styles.sectionTitle} accessibilityRole="header">
+                    Detalles
                   </Text>
-                )}
-              </View>
-              <Text style={styles.listTitle} accessibilityRole="header">
-                Operaciones
-              </Text>
-              {detail.operations.length === 0 ? (
-                <Text style={styles.stateText}>Esta billetera aún no tiene operaciones.</Text>
-              ) : (
-                <View style={styles.list}>
-                  <OperationDayList operations={detail.operations} onPress={operation => openOperation(operation._id)} />
-                  {detail.hasMore && (
-                    <Button label="Ver más" onPress={() => setSize(current => current + PAGE)} loading={loadingMore} />
+                  <View style={styles.rows}>
+                    <DetailRow label="Saldo inicial" value={formatAmount(detail.wallet.initAmount ?? 0, code)} />
+                    <DetailRow label="Ingresos" value={countLabel(detail.counts.income)} />
+                    <DetailRow label="Gastos" value={countLabel(detail.counts.expense)} />
+                    <DetailRow label="Transferencias" value={countLabel(detail.counts.transfer)} />
+                  </View>
+                  <View style={styles.actions}>
+                    <Button label="Reajustar saldo" onPress={() => setAdjusting(true)} />
+                    <View style={styles.iconActions}>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Editar billetera"
+                        onPress={() => editWallet(id)}
+                        style={({ pressed }) => [styles.round, pressed && styles.pressed]}>
+                        <SvgXml xml={PEN_ICON} color={textOn(colors.brand)} width={20} height={20} />
+                      </Pressable>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Estadísticas de la billetera"
+                        onPress={() => openStatistics(id)}
+                        style={({ pressed }) => [styles.round, pressed && styles.pressed]}>
+                        <SvgXml xml={PIE_ICON} color={textOn(colors.brand)} width={22} height={22} />
+                      </Pressable>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Eliminar billetera"
+                        accessibilityState={{ disabled: deleting, busy: deleting }}
+                        disabled={deleting}
+                        onPress={() => remove(detail)}
+                        style={({ pressed }) => [styles.round, styles.roundDanger, pressed && styles.pressed]}>
+                        {deleting ? (
+                          <ActivityIndicator color={colors.danger} />
+                        ) : (
+                          <SvgXml xml={TRASH_ICON} color={colors.danger} width={22} height={22} />
+                        )}
+                      </Pressable>
+                    </View>
+                  </View>
+                  {deleteError && (
+                    <Text style={styles.error} accessibilityLiveRegion="polite">
+                      {deleteError}
+                    </Text>
                   )}
                 </View>
-              )}
-            </>
-          )}
-        </Stagger>
-      </RevealScrollView>
+                <Text style={styles.listTitle} accessibilityRole="header">
+                  Operaciones
+                </Text>
+                {detail.operations.length === 0 ? (
+                  <Text style={styles.stateText}>Esta billetera aún no tiene operaciones.</Text>
+                ) : (
+                  <View style={styles.list}>
+                    <OperationDayList operations={detail.operations} onPress={operation => openOperation(operation._id)} />
+                    {detail.hasMore && (
+                      <Button label="Ver más" onPress={() => setSize(current => current + PAGE)} loading={loadingMore} />
+                    )}
+                  </View>
+                )}
+              </>
+            )}
+          </Stagger>
+        </RevealScrollView>
+      </ReplayOnFocus>
       {detail && (
         <>
           <OptionSheet

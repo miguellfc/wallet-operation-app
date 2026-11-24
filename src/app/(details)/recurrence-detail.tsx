@@ -1,8 +1,9 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { StickyHeader } from '@/components/home/sticky-header';
 import { BackHeader } from '@/components/settings/back-header';
 import { OperationDayList } from '@/components/operations/operation-day-list';
 import { operationSign, walletAmount } from '@/components/operations/operation-row';
@@ -14,6 +15,7 @@ import { ScreenBackground } from '@/components/ui/screen-background';
 import { Grow } from '@/components/ui/grow';
 import { Stagger } from '@/components/ui/stagger';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
+import { Skeleton, SkeletonDetails, SkeletonRows, SkeletonSummary } from '@/components/ui/skeleton';
 import { categoryIconName } from '@/features/categories/categories-api';
 import type { Operation } from '@/features/operations/operations-api';
 import {
@@ -32,6 +34,8 @@ import { ApiError } from '@/lib/api';
 import { formatAmount, longDayLabel, utcDateLabel } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
 import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
+import { useCategoryColor } from '@/features/categories/category-colors';
+import { softColor } from '@/features/wallets/wallet-options';
 
 const PAGE = 20;
 
@@ -164,12 +168,20 @@ export default function RecurrenceDetailScreen() {
 
   const recurrence = detail?.recurrence;
   const template = detail?.template;
+  const categoryColor = useCategoryColor();
   const draft = recurrence ? draftFromRecurrence(recurrence) : null;
   const start = recurrence ? recurrenceStart(recurrence) : new Date();
   const income = template?.type === 'INCOME';
   const expense = template?.type === 'EXPENSE';
   const accent = income ? colors.income : expense ? colors.expense : colors.brand;
-  const iconBackground = income ? colors.categoryIconIncome : expense ? colors.categoryIcon : colors.incomeSoft;
+  const iconColor = template?.category ? categoryColor(template.category, accent) : accent;
+  const iconBackground = template?.category
+    ? softColor(iconColor, 0.12)
+    : income
+      ? colors.categoryIconIncome
+      : expense
+        ? colors.categoryIcon
+        : colors.incomeSoft;
   const amount = template ? walletAmount(template) : null;
   const total = detail?.total;
   const sign = template ? operationSign(template.type) : '';
@@ -213,27 +225,30 @@ export default function RecurrenceDetailScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <RevealScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
+      <StickyHeader />
+      <RevealScrollView contentContainerStyle={[styles.content, { paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.xxl }]}>
         <Stagger>
           <BackHeader title="Recurrente" />
           {!detail || !recurrence || !draft ? (
-            <View style={styles.state}>
-              {loadError ? (
-                <>
-                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                    {loadErrorMessage(loadError)}
-                  </Text>
-                  <Button label="Reintentar" onPress={retry} />
-                </>
-              ) : (
-                <ActivityIndicator color={colors.brand} />
-              )}
-            </View>
+            loadError ? (
+              <View style={styles.state}>
+                <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                  {loadErrorMessage(loadError)}
+                </Text>
+                <Button label="Reintentar" onPress={retry} />
+              </View>
+            ) : (
+              <Skeleton>
+                <SkeletonSummary />
+                <SkeletonDetails rows={5} actions={2} />
+                <SkeletonRows count={2} title />
+              </Skeleton>
+            )
           ) : (
             <>
               <View style={styles.summary}>
                 <View style={[styles.iconCircle, { backgroundColor: iconBackground }]}>
-                  <CategoryIcon name={iconOf(template)} color={accent} size={30} />
+                  <CategoryIcon name={iconOf(template)} color={iconColor} size={30} />
                 </View>
                 <Text style={styles.title} numberOfLines={2}>
                   {titleOf(template)}

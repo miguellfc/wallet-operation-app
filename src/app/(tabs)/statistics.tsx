@@ -1,8 +1,7 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, RefreshControl, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { RefreshControl, Text, View } from 'react-native';
 
-import { AddHeader } from '@/components/add/add-header';
+import { StickyHeader } from '@/components/home/sticky-header';
 import { LineChart } from '@/components/statistics/charts';
 import {
   CALENDAR_ICON,
@@ -28,11 +27,13 @@ import { Button } from '@/components/ui/button';
 import { Grow } from '@/components/ui/grow';
 import { Reveal } from '@/components/ui/reveal';
 import { ScreenBackground } from '@/components/ui/screen-background';
+import { Skeleton, SkeletonChart, SkeletonHero, SkeletonRows, SkeletonSummaryPair } from '@/components/ui/skeleton';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
-import { loadStatistics, type StatisticsData, type StatsPeriod } from '@/features/statistics/statistics-api';
+import { loadStatistics, periodRange, type StatisticsData, type StatsPeriod } from '@/features/statistics/statistics-api';
 import { useThemeName } from '@/features/theme/theme-store';
 import { ApiError } from '@/lib/api';
 import { formatAmount, periodLabel, periodTitle, utcDateLabel } from '@/lib/format';
+import { ReplayOnFocus, valuesKey } from '@/lib/motion';
 import { useApiData } from '@/lib/use-api-data';
 import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 
@@ -41,6 +42,10 @@ const TREND_TITLES: Record<StatsPeriod, string> = {
   MONTH: 'Últimos 6 meses',
   YEAR: 'Últimos 5 años',
 };
+
+const STATS_REPLAY = { counts: false, charts: false };
+
+const MAX_PERIODS = 6;
 
 const GLOWS = [
   { left: '82%', top: '16%' },
@@ -152,7 +157,7 @@ function StatisticsBody({ data, period, kind, onKind }: BodyProps) {
                   </View>
                   <View style={[styles.walletTrack, wallet.excluded && styles.walletExcluded]}>
                     <Grow
-                      key={wallet.userBalance}
+                      key={valuesKey([wallet.userBalance])}
                       axis="x"
                       style={[
                         styles.walletBar,
@@ -197,14 +202,27 @@ function StatisticsBody({ data, period, kind, onKind }: BodyProps) {
 
 export default function StatisticsScreen() {
   useThemeName();
-  const insets = useSafeAreaInsets();
   const [period, setPeriod] = useState<StatsPeriod>('MONTH');
   const [offset, setOffset] = useState(0);
   const [kind, setKind] = useState<StatsKind>('EXPENSE');
 
   const load = useCallback(() => loadStatistics(period, offset), [period, offset]);
   const { data: loaded, error, retry, refresh, refreshing } = useApiData(load);
-  const data = loaded?.key === `${period}:${offset}` ? loaded : null;
+  const key = `${period}:${offset}`;
+  const [visited, setVisited] = useState<StatisticsData[]>([]);
+  const [shown, setShown] = useState<string | null>(null);
+
+  if (loaded && !visited.includes(loaded)) {
+    const known = visited.some(item => item.key === loaded.key);
+    setVisited(
+      known
+        ? visited.map(item => (item.key === loaded.key ? loaded : item))
+        : [...visited, loaded].slice(-MAX_PERIODS),
+    );
+  }
+  const current = visited.find(item => item.key === key);
+  if (current && shown !== key) setShown(key);
+  const visible = current ? key : error ? null : shown;
 
   const changePeriod = (next: StatsPeriod) => {
     setPeriod(next);
@@ -213,8 +231,9 @@ export default function StatisticsScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
+      <StickyHeader />
       <RevealScrollView
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}
+        contentContainerStyle={[styles.content, styles.contentTop]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -224,37 +243,58 @@ export default function StatisticsScreen() {
             progressBackgroundColor={colors.bgApp}
           />
         }>
-        <AddHeader title="Estadística" />
+        <Text style={styles.title} accessibilityRole="header">
+          Estadística
+        </Text>
         <PeriodNavigator
           period={period}
-          label={data?.range.label ?? ''}
+          label={periodRange(period, offset).label}
           canNext={offset < 0}
           onPeriod={changePeriod}
           onPrevious={() => setOffset(current => current - 1)}
           onNext={() => setOffset(current => Math.min(0, current + 1))}
         />
-        {data ? (
-          <StatisticsBody data={data} period={period} kind={kind} onKind={setKind} />
-        ) : (
-          <View style={styles.state}>
-            {error ? (
-              <>
-                <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                  {loadErrorMessage(error)}
-                </Text>
-                <Button label="Reintentar" onPress={retry} />
-              </>
-            ) : (
-              <ActivityIndicator color={colors.brand} />
-            )}
-          </View>
-        )}
+        <ReplayOnFocus value={STATS_REPLAY}>
+          {visited.map(item => (
+            <View
+              key={item.key}
+              style={item.key === visible ? styles.body : styles.hidden}
+              pointerEvents={item.key === visible ? 'auto' : 'none'}
+              accessibilityElementsHidden={item.key !== visible}
+              importantForAccessibility={item.key === visible ? 'auto' : 'no-hide-descendants'}>
+              <StatisticsBody
+                data={item}
+                period={item.key.split(':')[0] as StatsPeriod}
+                kind={kind}
+                onKind={setKind}
+              />
+            </View>
+          ))}
+        </ReplayOnFocus>
+        {!visible &&
+          (error ? (
+            <View style={styles.state}>
+              <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                {loadErrorMessage(error)}
+              </Text>
+              <Button label="Reintentar" onPress={retry} />
+            </View>
+          ) : (
+            <Skeleton style={styles.body}>
+              <SkeletonHero />
+              <SkeletonSummaryPair />
+              <SkeletonChart chips={false} />
+              <SkeletonRows count={3} title />
+            </Skeleton>
+          ))}
       </RevealScrollView>
     </ScreenBackground>
   );
 }
 
 const styles = themedStyles(() => ({
+  contentTop: { paddingTop: spacing.sm },
+  title: { ...typography.titleSection, color: colors.textPrimary },
   content: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xxl,
@@ -271,6 +311,8 @@ const styles = themedStyles(() => ({
   walletTrack: { flex: 1, height: 8, borderRadius: radius.full, backgroundColor: colors.segment, overflow: 'hidden' },
   walletBar: { height: '100%', borderRadius: radius.full },
   walletAmount: { ...typography.caption, fontSize: 12, maxWidth: '40%', textAlign: 'right', color: colors.textSecondary },
+  body: { gap: 15 },
+  hidden: { position: 'absolute', top: 0, left: spacing.xl, right: spacing.xl, gap: 15, opacity: 0 },
   state: { paddingVertical: spacing.xxl, justifyContent: 'center', gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
 }));

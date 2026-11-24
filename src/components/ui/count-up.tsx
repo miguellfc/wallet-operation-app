@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useReducedMotion } from 'react-native-reanimated';
 
-import { useFocusCount } from '@/lib/motion';
+import { sameValue, useReplayKey } from '@/lib/motion';
 
-export type Amount = string | { value: number; format: (value: number) => string };
+export type Amount = string | { value: number; format: (value: number) => string; memory?: string };
+
+const remembered = new Map<string, number>();
 
 const DURATION = 1000;
 
@@ -18,24 +20,37 @@ const decimalsOf = (value: number) => {
 export const amountText = (amount: Amount) => (typeof amount === 'string' ? amount : amount.format(amount.value));
 
 export function AmountText({ amount }: { amount: Amount }) {
-  return typeof amount === 'string' ? amount : <CountUp value={amount.value} format={amount.format} />;
+  return typeof amount === 'string' ? (
+    amount
+  ) : (
+    <CountUp value={amount.value} format={amount.format} memory={amount.memory} />
+  );
 }
 
-function CountUp({ value, format }: { value: number; format: (value: number) => string }) {
+type CountUpProps = { value: number; format: (value: number) => string; memory?: string };
+
+function CountUp({ value, format, memory }: CountUpProps) {
   const reduced = useReducedMotion();
-  const [shown, setShown] = useState(0);
-  const current = useRef(0);
-  const focus = useFocusCount();
-  const lastFocus = useRef(focus);
+  const [start] = useState(() => (memory ? (remembered.get(memory) ?? 0) : 0));
+  const [shown, setShown] = useState(start);
+  const current = useRef(start);
+  const replay = useReplayKey('counts');
+  const lastReplay = useRef(replay);
 
   useEffect(() => {
+    if (memory) remembered.set(memory, value);
     if (reduced) return;
-    if (lastFocus.current !== focus) {
-      if (lastFocus.current > 0) current.current = 0;
-      lastFocus.current = focus;
+    if (lastReplay.current !== replay) {
+      current.current = 0;
+      lastReplay.current = replay;
     }
     const from = current.current;
     if (from === value) return;
+    if (sameValue(from, value)) {
+      current.current = value;
+      const frame = requestAnimationFrame(() => setShown(value));
+      return () => cancelAnimationFrame(frame);
+    }
     const scale = 10 ** decimalsOf(value);
     let frame = 0;
     let start: number | null = null;
@@ -49,7 +64,7 @@ function CountUp({ value, format }: { value: number; format: (value: number) => 
     };
     frame = requestAnimationFrame(step);
     return () => cancelAnimationFrame(frame);
-  }, [value, reduced, focus]);
+  }, [value, reduced, replay, memory]);
 
   return format(reduced ? value : shown);
 }
