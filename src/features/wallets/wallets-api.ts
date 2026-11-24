@@ -165,6 +165,11 @@ export async function adjustWalletBalance(id: string, balance: number, date: str
   return authRequest<{ _id: string }>(`/wallets/${id}/adjust`, { method: 'POST', body: { balance, date } });
 }
 
+export async function deleteWallet(id: string) {
+  if (isLocal) return local.deleteWallet(id);
+  return authRequest<unknown>(`/wallets/${id}`, { method: 'DELETE' });
+}
+
 export async function updateWallet(id: string, changes: Record<string, unknown>) {
   if (isLocal) return local.updateWallet(id, changes as local.WalletChanges);
   return authRequest<{ _id: string }>(`/wallets/${id}`, { method: 'PATCH', body: changes });

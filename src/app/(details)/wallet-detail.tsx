@@ -10,6 +10,7 @@ import { OperationDayList } from '@/components/operations/operation-day-list';
 import { AmountField } from '@/components/ui/amount-field';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
+import { showConfirm } from '@/components/ui/confirm-dialog';
 import { OptionSheet } from '@/components/ui/option-sheet';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { WalletIcon } from '@/components/wallets/wallet-icon';
@@ -17,7 +18,7 @@ import { Stagger } from '@/components/ui/stagger';
 import { AmountText } from '@/components/ui/count-up';
 import { Grow } from '@/components/ui/grow';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
-import { adjustWalletBalance, loadWalletDetail, type WalletDetail } from '@/features/wallets/wallets-api';
+import { adjustWalletBalance, deleteWallet, loadWalletDetail, type WalletDetail } from '@/features/wallets/wallets-api';
 import { ApiError } from '@/lib/api';
 import { formatAmount, formatNumber, roundTo } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
@@ -38,6 +39,9 @@ const PEN_ICON =
 const PIE_ICON =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"><path d="M8.10577 2.7894C7.52766 3.03383 6.97115 3.33327 6.4443 3.6853C4.79981 4.78412 3.51809 6.3459 2.76121 8.17316C2.00433 10.0004 1.8063 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92894 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C20.6667 17.0288 20.9662 16.4723 21.2106 15.8942C21.8037 14.4913 22.1003 13.7899 21.507 12.8949C20.9138 12 19.9425 12 18 12H16C14.1144 12 13.1716 12 12.5858 11.4142C12 10.8284 12 9.88561 12 8V6C12 4.05748 12 3.08623 11.1051 2.49296C10.2101 1.8997 9.50868 2.19627 8.10577 2.7894Z"/><path d="M14.5 2.31506C18.014 3.21951 20.7805 5.986 21.685 9.50002"/></g></svg>';
 
+const TRASH_ICON =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"><path d="M20.5 6h-17m15.333 2.5l-.46 6.9c-.177 2.654-.265 3.981-1.13 4.79s-2.196.81-4.856.81h-.774c-2.66 0-3.991 0-4.856-.81c-.865-.809-.954-2.136-1.13-4.79l-.46-6.9"/><path d="M6.5 6h.11a2 2 0 0 0 1.83-1.32l.034-.103l.097-.291c.083-.249.125-.373.18-.479a1.5 1.5 0 0 1 1.094-.788C9.962 3 10.093 3 10.355 3h3.29c.262 0 .393 0 .51.019a1.5 1.5 0 0 1 1.094.788c.055.106.097.23.18.479l.097.291A2 2 0 0 0 17.5 6"/></g></svg>';
+
 const CHEVRON_ICON =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9L12 15L5 9"/></svg>';
 
@@ -56,6 +60,12 @@ const openWallet = (walletId: string) =>
 const editWallet = (walletId: string) =>
   router.navigate({ pathname: '/add-wallet', params: { edit: walletId, at: stamp() } } as Href);
 
+const openStatistics = (walletId: string) =>
+  router.navigate({ pathname: '/wallet-statistics', params: { id: walletId, at: stamp() } } as Href);
+
+const openWallets = () =>
+  router.navigate({ pathname: '/wallets', params: { section: 'WALLETS', at: stamp() } } as Href);
+
 const openOperation = (operationId: string) =>
   router.navigate({ pathname: '/operation-detail', params: { id: operationId, at: stamp() } } as Href);
 
@@ -67,6 +77,12 @@ function loadErrorMessage(error: unknown) {
   if (!(error instanceof ApiError)) return 'No se pudo conectar con el servidor. Revisa tu conexión y vuelve a intentarlo.';
   if (error.status === 404) return 'Esta billetera ya no existe.';
   return 'El servidor no pudo cargar la billetera. Vuelve a intentarlo en un momento.';
+}
+
+function deleteErrorMessage(error: unknown) {
+  if (!(error instanceof ApiError)) return 'No se pudo conectar con el servidor. Revisa tu conexión y vuelve a intentarlo.';
+  if (error.status === 404) return 'Esta billetera ya no existe.';
+  return 'No se pudo eliminar la billetera. Vuelve a intentarlo.';
 }
 
 function adjustErrorMessage(error: unknown, currency: string) {
@@ -156,10 +172,13 @@ export default function WalletDetailScreen() {
   const [openedId, setOpenedId] = useState(id);
   const [switcher, setSwitcher] = useState(false);
   const [adjusting, setAdjusting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   if (openedId !== id) {
     setOpenedId(id);
     setSize(PAGE);
+    setDeleteError(null);
   }
 
   const load = useCallback(() => loadWalletDetail(id, size), [id, size]);
@@ -169,6 +188,47 @@ export default function WalletDetailScreen() {
 
   const color = detail && isColor(detail.wallet.color) ? detail.wallet.color : colors.brand;
   const code = detail?.wallet.currency.code ?? '';
+
+  const explainBalance = (target: WalletDetail) =>
+    showConfirm({
+      title: 'Saldo pendiente',
+      message: `${target.wallet.name} tiene ${formatAmount(target.balance, target.wallet.currency.code)}. Para eliminarla su saldo debe quedar en 0: transfiere el dinero a otra billetera o reajusta el saldo.`,
+      confirmLabel: 'Reajustar saldo',
+      cancelLabel: 'Cerrar',
+      onConfirm: () => setAdjusting(true),
+    });
+
+  const remove = (target: WalletDetail) => {
+    if (target.balance !== 0) {
+      setDeleteError(null);
+      explainBalance(target);
+      return;
+    }
+    const { income, expense, transfer } = target.counts;
+    const kept = income + expense + transfer > 0 ? ' Sus operaciones se conservarán en tu historial.' : '';
+    setDeleteError(null);
+    showConfirm({
+      title: 'Eliminar billetera',
+      message: `Se eliminará ${target.wallet.name}.${kept} Esta acción no se puede deshacer.`,
+      confirmLabel: 'Eliminar',
+      onConfirm: async () => {
+        setDeleting(true);
+        try {
+          await deleteWallet(target.wallet._id);
+          openWallets();
+        } catch (reason) {
+          if (reason instanceof ApiError && reason.reference === 'WALLET_BALANCE_NOT_ZERO') {
+            refresh();
+            explainBalance(target);
+          } else {
+            setDeleteError(deleteErrorMessage(reason));
+          }
+        } finally {
+          setDeleting(false);
+        }
+      },
+    });
+  };
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
@@ -233,26 +293,42 @@ export default function WalletDetailScreen() {
                   <DetailRow label="Transferencias" value={countLabel(detail.counts.transfer)} />
                 </View>
                 <View style={styles.actions}>
-                  <View style={styles.adjust}>
-                    <Button label="Reajustar saldo" onPress={() => setAdjusting(true)} />
+                  <Button label="Reajustar saldo" onPress={() => setAdjusting(true)} />
+                  <View style={styles.iconActions}>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="Editar billetera"
+                      onPress={() => editWallet(id)}
+                      style={({ pressed }) => [styles.round, pressed && styles.pressed]}>
+                      <SvgXml xml={PEN_ICON} color={colors.textOnBrand} width={20} height={20} />
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="Estadísticas de la billetera"
+                      onPress={() => openStatistics(id)}
+                      style={({ pressed }) => [styles.round, pressed && styles.pressed]}>
+                      <SvgXml xml={PIE_ICON} color={colors.textOnBrand} width={22} height={22} />
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="Eliminar billetera"
+                      accessibilityState={{ disabled: deleting, busy: deleting }}
+                      disabled={deleting}
+                      onPress={() => remove(detail)}
+                      style={({ pressed }) => [styles.round, styles.roundDanger, pressed && styles.pressed]}>
+                      {deleting ? (
+                        <ActivityIndicator color={colors.danger} />
+                      ) : (
+                        <SvgXml xml={TRASH_ICON} color={colors.danger} width={22} height={22} />
+                      )}
+                    </Pressable>
                   </View>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Editar billetera"
-                    onPress={() => editWallet(id)}
-                    style={({ pressed }) => [styles.round, pressed && styles.pressed]}>
-                    <SvgXml xml={PEN_ICON} color={colors.textOnBrand} width={20} height={20} />
-                  </Pressable>
-                  <Pressable
-                    disabled
-                    accessibilityRole="button"
-                    accessibilityLabel="Estadísticas de la billetera"
-                    accessibilityHint="Disponible próximamente"
-                    accessibilityState={{ disabled: true }}
-                    style={[styles.round, styles.disabled]}>
-                    <SvgXml xml={PIE_ICON} color={colors.textOnBrand} width={22} height={22} />
-                  </Pressable>
                 </View>
+                {deleteError && (
+                  <Text style={styles.error} accessibilityLiveRegion="polite">
+                    {deleteError}
+                  </Text>
+                )}
               </View>
               <Text style={styles.listTitle} accessibilityRole="header">
                 Operaciones
@@ -337,18 +413,19 @@ const styles = themedStyles(() => ({
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   detailLabel: { ...typography.labelOverline, width: 120, maxWidth: '45%', flexShrink: 0, color: colors.textSecondary },
   detailValue: { ...typography.bodyMedium, fontSize: 13, flex: 1, textAlign: 'right', color: colors.textPrimary },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: spacing.sm },
-  adjust: { flex: 1 },
+  actions: { gap: 12, marginTop: spacing.sm },
+  iconActions: { flexDirection: 'row', gap: 12 },
   round: {
-    width: 50,
+    flex: 1,
     height: 50,
     borderRadius: radius.full,
     backgroundColor: colors.brand,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  disabled: { opacity: 0.4 },
+  roundDanger: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.danger },
   pressed: { opacity: 0.85 },
+  error: { ...typography.bodyMedium, fontSize: 13, color: colors.error, textAlign: 'center' },
   listTitle: { ...typography.bodyMedium, fontFamily: typography.titleSection.fontFamily, fontSize: 16, color: colors.textSecondary, marginTop: spacing.sm },
   list: { gap: spacing.sm },
   hint: { ...typography.bodyMedium, fontSize: 13, color: colors.textSecondary },

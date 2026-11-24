@@ -358,6 +358,16 @@ export async function walletCounts(db: SQLiteDatabase, walletId: string) {
   return row ?? { income: 0, expense: 0, transfer: 0 };
 }
 
+export async function walletOperationsSince(db: SQLiteDatabase, walletId: string, from: string) {
+  const rows = await db.getAllAsync<OperationRow>(
+    `SELECT ${OPERATION_COLUMNS} FROM operations
+     WHERE deleted = 0 AND (wallet_from_id = ?1 OR wallet_to_id = ?1) AND date >= ?2
+     ORDER BY date DESC, id DESC`,
+    [walletId, from],
+  );
+  return rows.map(toOperation);
+}
+
 export async function walletOperations(db: SQLiteDatabase, walletId: string, limit: number) {
   const rows = await db.getAllAsync<OperationRow>(
     `SELECT ${OPERATION_COLUMNS} FROM operations

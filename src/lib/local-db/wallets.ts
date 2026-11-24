@@ -22,6 +22,7 @@ import {
   walletBalances,
   walletCounts,
   walletOperations,
+  walletOperationsSince,
   type WalletSnapshot,
 } from './operations';
 import { requireProfile, type LocalProfile } from './profile';
@@ -167,6 +168,28 @@ export async function getWalletDetail(id: string, size: number): Promise<WalletD
     operations: operations.slice(0, size),
     hasMore: operations.length > size,
   };
+}
+
+export async function deleteWallet(id: string) {
+  const db = await getDatabase();
+  const row = await findWalletRow(db, id);
+  if ((await walletBalance(db, { id, currency: currencyOf(row) })) !== 0) {
+    throw new ApiError(409, 'WALLET_BALANCE_NOT_ZERO');
+  }
+  const now = new Date().toISOString();
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('UPDATE wallets SET deleted = 1, deleted_at = ?, updated_at = ? WHERE id = ? AND deleted = 0', [
+      now,
+      now,
+      id,
+    ]);
+    await removeOpening(db, id);
+  });
+}
+
+export async function getWalletOperationsSince(id: string, from: string) {
+  const db = await getDatabase();
+  return walletOperationsSince(db, id, from);
 }
 
 export async function createWallet({ exchangeRate, ...input }: NewWallet) {
