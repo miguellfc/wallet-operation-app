@@ -12,6 +12,7 @@ import { ScreenBackground } from '@/components/ui/screen-background';
 import { TextField } from '@/components/ui/text-field';
 import { Stagger } from '@/components/ui/stagger';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
+import { Skeleton, SkeletonForm } from '@/components/ui/skeleton';
 import {
   accountErrorMessage,
   changePassword,
@@ -328,18 +329,18 @@ function AccountScreen() {
         <Stagger>
           <BackHeader title="Mi cuenta" />
           {!account ? (
-            <View style={styles.state}>
-              {loadError ? (
-                <>
-                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                    {loadErrorMessage(loadError)}
-                  </Text>
-                  <Button label="Reintentar" onPress={retry} />
-                </>
-              ) : (
-                <ActivityIndicator color={colors.brand} />
-              )}
-            </View>
+            loadError ? (
+              <View style={styles.state}>
+                <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                  {loadErrorMessage(loadError)}
+                </Text>
+                <Button label="Reintentar" onPress={retry} />
+              </View>
+            ) : (
+              <Skeleton>
+                <SkeletonForm fields={4} />
+              </Skeleton>
+            )
           ) : (
             <>
               <View

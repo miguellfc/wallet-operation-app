@@ -1,9 +1,10 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { onColor } from '@/lib/color';
+import { StickyHeader } from '@/components/home/sticky-header';
 import { BackHeader } from '@/components/settings/back-header';
 import { operationSign, walletAmount } from '@/components/operations/operation-row';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { showConfirm } from '@/components/ui/confirm-dialog';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { Stagger } from '@/components/ui/stagger';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
+import { Skeleton, SkeletonDetails, SkeletonSummary } from '@/components/ui/skeleton';
 import { categoryIconName } from '@/features/categories/categories-api';
 import { deleteOperation, loadOperation, type Operation } from '@/features/operations/operations-api';
 import { ApiError } from '@/lib/api';
@@ -19,6 +21,7 @@ import { formatAmount } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
 import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 import { useThemeName } from '@/features/theme/theme-store';
+import { useCategoryColor } from '@/features/categories/category-colors';
 
 const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
@@ -48,8 +51,6 @@ function dateLabel(iso: string) {
 }
 
 const dayParam = (iso: string) => iso.slice(0, 10);
-
-const isColor = (value?: string): value is string => !!value && /^#[0-9a-f]{3,8}$/i.test(value);
 
 function deleteErrorMessage(error: unknown) {
   if (!(error instanceof ApiError)) return 'No se pudo conectar con el servidor. Revisa tu conexión y vuelve a intentarlo.';
@@ -105,11 +106,12 @@ export default function OperationDetailScreen() {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const categoryColor = useCategoryColor();
   const current = operation && operation._id === id ? operation : null;
   const opening = current?.type === 'OPENING';
   const debtOpening = current?.debt?.action === 'OPENING';
   const chip = current?.type === 'TRANSFER' ? 'Transferencia' : opening ? 'Saldo inicial' : (current?.category?.name ?? '');
-  const accent = current ? (isColor(current.category?.color) ? current.category.color : typeColor(current.type)) : colors.brand;
+  const accent = current ? categoryColor(current.category, typeColor(current.type)) : colors.brand;
   const icon =
     current?.type === 'TRANSFER'
       ? 'Transferencia'
@@ -149,22 +151,24 @@ export default function OperationDetailScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <RevealScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
+      <StickyHeader />
+      <RevealScrollView contentContainerStyle={[styles.content, { paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.xxl }]}>
         <Stagger>
           <BackHeader title="Operación" />
           {!current ? (
-            <View style={styles.state}>
-              {loadError ? (
-                <>
-                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                    {loadErrorMessage(loadError)}
-                  </Text>
-                  <Button label="Reintentar" onPress={retry} />
-                </>
-              ) : (
-                <ActivityIndicator color={colors.brand} />
-              )}
-            </View>
+            loadError ? (
+              <View style={styles.state}>
+                <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                  {loadErrorMessage(loadError)}
+                </Text>
+                <Button label="Reintentar" onPress={retry} />
+              </View>
+            ) : (
+              <Skeleton>
+                <SkeletonSummary />
+                <SkeletonDetails rows={5} />
+              </Skeleton>
+            )
           ) : (
             <>
               <View style={styles.summary}>

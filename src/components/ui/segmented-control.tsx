@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, Text, View, type LayoutChangeEvent } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 
+import { textOn } from '@/lib/color';
 import { colors, radius, themedStyles, typography } from '@/theme';
 
 const EASE_IN_OUT = Easing.bezier(0.77, 0, 0.175, 1);
@@ -77,7 +78,7 @@ export function SegmentedControl<T extends string>({
             onLayout={measure(option.value)}
             onPress={() => select(option.value)}
             style={[styles.segment, selected && !active && { backgroundColor: activeColor }]}>
-            <Text style={[styles.label, compact && styles.labelCompact, selected && styles.labelActive]} numberOfLines={1}>
+            <Text style={[styles.label, compact && styles.labelCompact, selected && { color: textOn(activeColor) }]} numberOfLines={1}>
               {option.label}
             </Text>
           </Pressable>
@@ -107,5 +108,4 @@ const styles = themedStyles(() => ({
   },
   label: { ...typography.segmentLabel, color: colors.textSecondary },
   labelCompact: { fontSize: 13, letterSpacing: 0.3 },
-  labelActive: { color: colors.textOnBrand },
 }));

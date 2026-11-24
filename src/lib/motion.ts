@@ -1,5 +1,5 @@
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { createContext, useCallback, useContext, useState } from 'react';
 import { cubicBezier, Easing } from 'react-native-reanimated';
 
 export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
@@ -14,6 +14,10 @@ export function enterDelay(index: number) {
   return Math.min(Math.max(index, 0), ENTER.maxSteps) * ENTER.stagger;
 }
 
+export const valuesKey = (values: number[]) => values.map(value => Math.round(value * 100)).join(':');
+
+export const sameValue = (a: number, b: number) => Math.round(a * 100) === Math.round(b * 100);
+
 export function useFocusCount() {
   const [count, setCount] = useState(0);
   useFocusEffect(
@@ -22,4 +26,16 @@ export function useFocusCount() {
     }, []),
   );
   return count;
+}
+
+type Replay = { counts: boolean; charts: boolean };
+
+const ReplayContext = createContext<Replay>({ counts: true, charts: true });
+
+export const ReplayOnFocus = ReplayContext.Provider;
+
+export function useReplayKey(kind: keyof Replay) {
+  const replay = useContext(ReplayContext)[kind];
+  const focus = useFocusCount();
+  return replay ? Math.max(focus, 1) : 1;
 }

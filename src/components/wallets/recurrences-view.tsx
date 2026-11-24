@@ -10,6 +10,8 @@ import { loadRecurrences, type Recurrence, type RecurrenceItem } from '@/feature
 import { formatAmount, longDayLabel } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
 import { colors, spacing, themedStyles } from '@/theme';
+import { useCategoryColor } from '@/features/categories/category-colors';
+import { softColor } from '@/features/wallets/wallet-options';
 
 const openRecurrence = (id: string) =>
   router.navigate({ pathname: '/recurrence-detail', params: { id, at: String(Date.now()) } } as Href);
@@ -40,6 +42,7 @@ function describe({ recurrence, template }: RecurrenceItem) {
 
 export function RecurrencesView({ header }: { header?: ReactNode }) {
   const { data, error, retry, refresh, refreshing } = useApiData(loadRecurrences);
+  const categoryColor = useCategoryColor();
 
   return (
     <TabScroll
@@ -58,8 +61,10 @@ export function RecurrencesView({ header }: { header?: ReactNode }) {
             <Reveal key={item.recurrence._id} index={index}>
               <InfoRow
                 icon={row.icon}
-                iconColor={row.color}
-                iconBackground={row.background}
+                iconColor={item.template?.category ? categoryColor(item.template.category, row.color) : row.color}
+                iconBackground={
+                  item.template?.category ? softColor(categoryColor(item.template.category, row.color), 0.12) : row.background
+                }
                 title={row.title}
                 detail={row.next}
                 amount={row.amount}

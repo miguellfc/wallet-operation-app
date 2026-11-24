@@ -1,16 +1,28 @@
-import type { PropsWithChildren } from 'react';
+import { useEffect, useState, type PropsWithChildren } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import Animated, { css, useReducedMotion } from 'react-native-reanimated';
 
-import { CSS_EASE_BACK, CSS_EASE_GENTLE, useFocusCount } from '@/lib/motion';
+import { CSS_EASE_BACK, CSS_EASE_GENTLE, useReplayKey } from '@/lib/motion';
 
-type GrowProps = PropsWithChildren<{ axis?: 'x' | 'y' | 'both' | 'pop'; delay?: number; style?: StyleProp<ViewStyle> }>;
+type GrowProps = PropsWithChildren<{
+  axis?: 'x' | 'y' | 'both' | 'pop';
+  delay?: number;
+  once?: string;
+  style?: StyleProp<ViewStyle>;
+}>;
 
-export function Grow({ axis = 'y', delay = 0, style, children }: GrowProps) {
+const grown = new Set<string>();
+
+export function Grow({ axis = 'y', delay = 0, once, style, children }: GrowProps) {
   const reduced = useReducedMotion();
-  const focus = useFocusCount();
+  const [fresh] = useState(() => !once || !grown.has(once));
+  useEffect(() => {
+    if (once) grown.add(once);
+  }, [once]);
+  const animate = !reduced && fresh;
+  const replay = useReplayKey('charts');
   return (
-    <Animated.View key={Math.max(focus, 1)} style={[style, !reduced && motion[axis], !reduced && { animationDelay: delay }]}>
+    <Animated.View key={replay} style={[style, animate && motion[axis], animate && { animationDelay: delay }]}>
       {children}
     </Animated.View>
   );

@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { textOn } from '@/lib/color';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
 import { colors, radius, spacing, themedStyles, typography } from '@/theme';
@@ -226,5 +227,5 @@ const styles = themedStyles(() => ({
   hint: { ...typography.bodyMedium, fontSize: 13, color: colors.textSecondary },
   dayLabel: { ...typography.bodyMedium, color: colors.textPrimary },
   dayDisabled: { color: colors.textMuted, opacity: 0.5 },
-  dayLabelSelected: { color: colors.textOnBrand, fontFamily: typography.titleSection.fontFamily },
+  dayLabelSelected: { color: textOn(colors.brand), fontFamily: typography.titleSection.fontFamily },
 }));

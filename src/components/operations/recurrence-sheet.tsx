@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { textOn } from '@/lib/color';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
 import { DateTimeField } from '@/components/ui/date-time-field';
@@ -232,7 +233,7 @@ const styles = themedStyles(() => ({
   },
   daySelected: { backgroundColor: colors.brand, borderColor: colors.brand },
   dayLabel: { ...typography.bodyMedium, color: colors.textPrimary },
-  dayLabelSelected: { color: colors.textOnBrand, fontFamily: typography.titleSection.fontFamily },
+  dayLabelSelected: { color: textOn(colors.brand), fontFamily: typography.titleSection.fontFamily },
   suffix: { ...typography.bodyMedium, color: colors.textSecondary },
   summary: { ...typography.bodyMedium, fontSize: 13, color: colors.textSecondary },
   problem: { color: colors.error },

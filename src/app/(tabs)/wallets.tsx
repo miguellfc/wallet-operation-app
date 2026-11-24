@@ -10,6 +10,7 @@ import { DebtsView } from '@/components/wallets/debts-view';
 import { RecurrencesView } from '@/components/wallets/recurrences-view';
 import { WalletsView } from '@/components/wallets/wallets-view';
 import { loadProfile } from '@/features/wallets/wallets-api';
+import { ReplayOnFocus } from '@/lib/motion';
 import { useApiData } from '@/lib/use-api-data';
 import { colors, layout, spacing, themedStyles } from '@/theme';
 import { useThemeName } from '@/features/theme/theme-store';
@@ -21,6 +22,10 @@ const SECTIONS: { value: Section; label: string }[] = [
   { value: 'DEBTS', label: 'Deudas' },
   { value: 'RECURRENCES', label: 'Recurrentes' },
 ];
+
+const VIEWS = { WALLETS: WalletsView, DEBTS: DebtsView, RECURRENCES: RecurrencesView };
+
+const WALLETS_REPLAY = { counts: false, charts: false };
 
 const GLOWS = [
   { left: '82%', top: '30%' },
@@ -34,6 +39,7 @@ export default function WalletsScreen() {
   const params = useLocalSearchParams<{ section?: string; at?: string }>();
   const [section, setSection] = useState<Section>('WALLETS');
   const [opened, setOpened] = useState<string>();
+  const [visited, setVisited] = useState<Section[]>([section]);
 
   const request = `${params.section}:${params.at}`;
   const requested = SECTIONS.find(item => item.value === params.section)?.value;
@@ -41,6 +47,7 @@ export default function WalletsScreen() {
     setOpened(request);
     setSection(requested);
   }
+  if (!visited.includes(section)) setVisited([...visited, section]);
   const { data: profile } = useApiData(loadProfile);
 
   const header = (
@@ -60,9 +67,22 @@ export default function WalletsScreen() {
     <ScreenBackground glows={[...GLOWS]}>
       {header}
       <View style={styles.body}>
-        {section === 'WALLETS' && <WalletsView />}
-        {section === 'DEBTS' && <DebtsView />}
-        {section === 'RECURRENCES' && <RecurrencesView />}
+        <ReplayOnFocus value={WALLETS_REPLAY}>
+          {visited.map(item => {
+            const Page = VIEWS[item];
+            const active = item === section;
+            return (
+              <View
+                key={item}
+                style={active ? styles.page : styles.hidden}
+                pointerEvents={active ? 'auto' : 'none'}
+                accessibilityElementsHidden={!active}
+                importantForAccessibility={active ? 'auto' : 'no-hide-descendants'}>
+                <Page />
+              </View>
+            );
+          })}
+        </ReplayOnFocus>
       </View>
     </ScreenBackground>
   );
@@ -77,4 +97,6 @@ const styles = themedStyles(() => ({
     alignSelf: 'center',
   },
   body: { flex: 1 },
+  page: { flex: 1 },
+  hidden: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0 },
 }));

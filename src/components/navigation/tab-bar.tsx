@@ -1,11 +1,25 @@
+import * as Haptics from 'expo-haptics';
 import { Image, type ImageSource } from 'expo-image';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { Fragment } from 'react';
 import { Pressable, View } from 'react-native';
-import Animated, { css } from 'react-native-reanimated';
+import Animated, {
+  css,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import { SvgXml } from 'react-native-svg';
 
-import { CSS_EASE_BACK, CSS_EASE_OUT } from '@/lib/motion';
+import { textOn } from '@/lib/color';
+import { CSS_EASE_BACK, CSS_EASE_OUT, EASE_OUT } from '@/lib/motion';
 import { colors, spacing, themedStyles, typography } from '@/theme';
+
+const PLUS_ICON =
+  '<svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg"><path d="M14 0v28M27 14H1" stroke="currentColor" stroke-width="3"/></svg>';
 
 type TabConfig = { label: string; icon: ImageSource; width: number; height: number };
 
@@ -16,6 +30,50 @@ const TABS: Record<string, TabConfig> = {
   operations: { label: 'Operaciones', icon: require('@/assets/icons/operations.svg'), width: 26.875, height: 24.375 },
 };
 
+const PRESSED_SCALE = 0.86;
+
+const tapHaptic =() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
+
+function AddButton({ focused, onPress }: { focused: boolean; onPress: () => void }) {
+  const reduced = useReducedMotion();
+  const scale = useSharedValue(1);
+  const turn = useSharedValue(0);
+
+  const buttonStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.get() }] }));
+  const iconStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${turn.get()}deg` }] }));
+
+  return (
+    <Pressable
+      accessibilityRole="tab"
+      accessibilityLabel="Añadir"
+      accessibilityState={{ selected: focused }}
+      onPressIn={() => {
+        if (!reduced) scale.set(withTiming(PRESSED_SCALE, { duration: 110, easing: EASE_OUT }));
+      }}
+      onPressOut={() => {
+        if (reduced) return;
+        scale.set(
+          withSequence(
+            withTiming(Math.min(scale.get(), PRESSED_SCALE), { duration: 80, easing: EASE_OUT }),
+            withSpring(1, { duration: 450, dampingRatio: 0.45 }),
+          ),
+        );
+      }}
+      onPress={() => {
+        tapHaptic();
+        if (!reduced) turn.set(withSpring(turn.get() + 90, { duration: 550, dampingRatio: 0.6 }));
+        onPress();
+      }}
+      style={styles.addSlot}>
+      <Animated.View style={[styles.add, buttonStyle]}>
+        <Animated.View style={iconStyle}>
+          <SvgXml xml={PLUS_ICON} color={textOn(colors.brand)} width={28} height={28} />
+        </Animated.View>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
 export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
   return (
     <View style={[styles.bar, { paddingBottom: insets.bottom + spacing.sm }]} accessibilityRole="tablist">
@@ -23,15 +81,7 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
         const focused = state.index === index;
         if (route.name === 'add') {
           return (
-            <Pressable
-              key={route.key}
-              accessibilityRole="tab"
-              accessibilityLabel="Añadir"
-              accessibilityState={{ selected: focused }}
-              onPress={() => navigateToTab(route.key)}
-              style={styles.addSlot}>
-              <Image contentFit="contain" source={require('@/assets/icons/add-button.svg')} style={styles.add} />
-            </Pressable>
+            <AddButton key={route.key} focused={focused} onPress={() => navigateToTab(route.key)} />
           );
         }
         const tab = TABS[route.name];
@@ -94,5 +144,13 @@ const styles = themedStyles(() => ({
   label: { ...typography.labelTab, color: colors.brand },
   labelInactive: { color: colors.textMuted },
   addSlot: { width: 86, alignItems: 'center' },
-  add: { width: 74, height: 74, marginTop: -20 },
+  add: {
+    width: 74,
+    height: 74,
+    marginTop: -20,
+    borderRadius: 37,
+    backgroundColor: colors.brand,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 }));

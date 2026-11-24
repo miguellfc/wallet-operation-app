@@ -14,11 +14,12 @@ type OptionSheetProps = {
   selected?: string;
   emptyText: string;
   iconFor: (option: SheetOption) => string;
+  colorFor?: (option: SheetOption) => string;
   onSelect: (value: string) => void;
   onClose: () => void;
 };
 
-export function OptionSheet({ visible, title, options, selected, emptyText, iconFor, onSelect, onClose }: OptionSheetProps) {
+export function OptionSheet({ visible, title, options, selected, emptyText, iconFor, colorFor, onSelect, onClose }: OptionSheetProps) {
   const insets = useSafeAreaInsets();
 
   const choose = (value: string) => {
@@ -44,7 +45,7 @@ export function OptionSheet({ visible, title, options, selected, emptyText, icon
                   onPress={() => choose(item.value)}
                   style={({ pressed }) => [styles.row, active && styles.selected, pressed && styles.pressed]}>
                   <View style={styles.icon}>
-                    <CategoryIcon name={iconFor(item)} color={colors.brand} size={18} />
+                    <CategoryIcon name={iconFor(item)} color={colorFor?.(item) ?? colors.brand} size={18} />
                   </View>
                   <Text style={[styles.label, active && styles.labelSelected]} numberOfLines={1}>
                     {item.label}

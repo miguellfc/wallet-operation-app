@@ -1,14 +1,16 @@
 import type { PropsWithChildren, ReactNode } from 'react';
-import { ActivityIndicator, RefreshControl, Text, View } from 'react-native';
+import { RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
+import { Skeleton, SkeletonRows } from '@/components/ui/skeleton';
 import { ApiError } from '@/lib/api';
 import { colors, layout, spacing, themedStyles, typography } from '@/theme';
 
 type TabScrollProps = PropsWithChildren<{
   header?: ReactNode;
+  skeleton?: ReactNode;
   loading: boolean;
   error: unknown;
   empty?: string;
@@ -22,7 +24,7 @@ function loadErrorMessage(error: unknown) {
   return 'El servidor no pudo cargar estos datos. Vuelve a intentarlo en un momento.';
 }
 
-export function TabScroll({ header, loading, error, empty, refreshing, onRefresh, onRetry, children }: TabScrollProps) {
+export function TabScroll({ header, skeleton, loading, error, empty, refreshing, onRefresh, onRetry, children }: TabScrollProps) {
   const insets = useSafeAreaInsets();
   let body = children;
   if (error && loading) {
@@ -35,11 +37,7 @@ export function TabScroll({ header, loading, error, empty, refreshing, onRefresh
       </View>
     );
   } else if (loading) {
-    body = (
-      <View style={styles.state}>
-        <ActivityIndicator color={colors.brand} />
-      </View>
-    );
+    body = <Skeleton>{skeleton ?? <SkeletonRows count={5} />}</Skeleton>;
   } else if (empty) {
     body = <Text style={[styles.stateText, styles.empty]}>{empty}</Text>;
   }

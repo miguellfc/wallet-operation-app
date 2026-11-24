@@ -1,9 +1,8 @@
 import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, RefreshControl, SectionList, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { HomeHeader } from '@/components/home/home-header';
+import { StickyHeader } from '@/components/home/sticky-header';
 import { DatePickerChip } from '@/components/operations/date-picker-chip';
 import { DayBalanceCard } from '@/components/operations/day-balance-card';
 import { groupByDay, OperationDayHeader } from '@/components/operations/operation-day-list';
@@ -13,12 +12,21 @@ import { FilterChips } from '@/components/ui/filter-chips';
 import { Reveal } from '@/components/ui/reveal';
 import { createRevealStore, REVEAL_VIEWABILITY, ViewReveal } from '@/components/ui/view-reveal';
 import { ScreenBackground } from '@/components/ui/screen-background';
+import {
+  Bone,
+  Skeleton,
+  SkeletonChips,
+  SkeletonHero,
+  SkeletonRows,
+  SkeletonSummaryPair,
+} from '@/components/ui/skeleton';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { loadRangeOperations, type Operation, type OperationsRange } from '@/features/operations/operations-api';
 import { ApiError } from '@/lib/api';
 import { formatAmount } from '@/lib/format';
+import { ReplayOnFocus } from '@/lib/motion';
 import { useApiData } from '@/lib/use-api-data';
-import { colors, layout, spacing, themedStyles, typography } from '@/theme';
+import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 import { useThemeName } from '@/features/theme/theme-store';
 
 type Filter = 'ALL' | 'EXPENSE' | 'INCOME' | 'TRANSFER';
@@ -38,6 +46,8 @@ const EMPTY: Record<Filter, string> = {
 };
 
 const PAGE = 100;
+
+const OPERATIONS_REPLAY = { counts: false, charts: false };
 
 const today = (): OperationsRange => {
   const now = new Date();
@@ -82,7 +92,6 @@ function loadErrorMessage(error: unknown) {
 
 export default function OperationsScreen() {
   useThemeName();
-  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ day?: string; at?: string }>();
   const [range, setRange] = useState(today);
   const [size, setSize] = useState(PAGE);
@@ -111,18 +120,28 @@ export default function OperationsScreen() {
   if (!data) {
     return (
       <ScreenBackground glows={[...GLOWS]}>
-        <View style={styles.state}>
-          {error ? (
-            <>
-              <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                {loadErrorMessage(error)}
-              </Text>
-              <Button label="Reintentar" onPress={retry} />
-            </>
-          ) : (
-            <ActivityIndicator color={colors.brand} />
-          )}
-        </View>
+        <StickyHeader />
+        {error ? (
+          <View style={styles.state}>
+            <Text style={styles.stateText} accessibilityLiveRegion="polite">
+              {loadErrorMessage(error)}
+            </Text>
+            <Button label="Reintentar" onPress={retry} />
+          </View>
+        ) : (
+          <Skeleton style={[styles.content, styles.contentTop]}>
+            <View style={styles.header}>
+              <View style={styles.subheader}>
+                <Bone width={130} height={10} />
+                <Bone width={110} height={28} round={radius.full} />
+              </View>
+              <SkeletonHero bar />
+              <SkeletonSummaryPair captions />
+              <SkeletonChips />
+            </View>
+            <SkeletonRows count={5} title />
+          </Skeleton>
+        )}
       </ScreenBackground>
     );
   }
@@ -139,12 +158,9 @@ export default function OperationsScreen() {
 
   const header = (
     <View style={styles.header}>
-      <View style={styles.top}>
-        <HomeHeader name={data.firstName} />
-        <View style={styles.subheader}>
-          <Text style={styles.overline}>Cierre en tiempo real</Text>
-          <DatePickerChip value={range} onChange={changeRange} />
-        </View>
+      <View style={styles.subheader}>
+        <Text style={styles.overline}>Cierre en tiempo real</Text>
+        <DatePickerChip value={range} onChange={changeRange} />
       </View>
       <Reveal index={0}>
         <DayBalanceCard
@@ -186,48 +202,51 @@ export default function OperationsScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <SectionList
-        sections={toSections(visible, singleDay)}
-        keyExtractor={operation => operation._id}
-        renderItem={({ item }) => (
-          <ViewReveal store={reveal} id={item._id}>
-            <OperationRow operation={item} onPress={() => openOperation(item._id)} />
-          </ViewReveal>
-        )}
-        viewabilityConfig={REVEAL_VIEWABILITY}
-        onViewableItemsChanged={reveal.onViewableItemsChanged}
-        onScroll={reveal.onScroll}
-        scrollEventThrottle={32}
-        renderSectionHeader={({ section }) =>
-          section.day ? (
-            <View style={section.first ? styles.sectionHeaderFirst : styles.sectionHeader}>
-              <OperationDayHeader day={section.day} />
-            </View>
-          ) : null
-        }
-        ItemSeparatorComponent={Separator}
-        ListHeaderComponent={header}
-        ListEmptyComponent={
-          <Text style={styles.empty}>{`${EMPTY[filter]} ${singleDay ? 'este día' : 'en estas fechas'}`}</Text>
-        }
-        ListFooterComponent={footer}
-        stickySectionHeadersEnabled={false}
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.5}
-        initialNumToRender={20}
-        maxToRenderPerBatch={20}
-        windowSize={11}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 18 }]}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={refresh}
-            tintColor={colors.brand}
-            colors={[colors.brand]}
-            progressBackgroundColor={colors.bgApp}
-          />
-        }
-      />
+      <StickyHeader />
+      <ReplayOnFocus value={OPERATIONS_REPLAY}>
+        <SectionList
+          sections={toSections(visible, singleDay)}
+          keyExtractor={operation => operation._id}
+          renderItem={({ item }) => (
+            <ViewReveal store={reveal} id={item._id}>
+              <OperationRow operation={item} onPress={() => openOperation(item._id)} />
+            </ViewReveal>
+          )}
+          viewabilityConfig={REVEAL_VIEWABILITY}
+          onViewableItemsChanged={reveal.onViewableItemsChanged}
+          onScroll={reveal.onScroll}
+          scrollEventThrottle={32}
+          renderSectionHeader={({ section }) =>
+            section.day ? (
+              <View style={section.first ? styles.sectionHeaderFirst : styles.sectionHeader}>
+                <OperationDayHeader day={section.day} />
+              </View>
+            ) : null
+          }
+          ItemSeparatorComponent={Separator}
+          ListHeaderComponent={header}
+          ListEmptyComponent={
+            <Text style={styles.empty}>{`${EMPTY[filter]} ${singleDay ? 'este día' : 'en estas fechas'}`}</Text>
+          }
+          ListFooterComponent={footer}
+          stickySectionHeadersEnabled={false}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          initialNumToRender={20}
+          maxToRenderPerBatch={20}
+          windowSize={11}
+          contentContainerStyle={[styles.content, styles.contentTop]}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={refresh}
+              tintColor={colors.brand}
+              colors={[colors.brand]}
+              progressBackgroundColor={colors.bgApp}
+            />
+          }
+        />
+      </ReplayOnFocus>
     </ScreenBackground>
   );
 }
@@ -241,7 +260,7 @@ const styles = themedStyles(() => ({
     alignSelf: 'center',
   },
   header: { gap: spacing.xl, paddingBottom: spacing.xl },
-  top: { gap: spacing.md },
+  contentTop: { paddingTop: spacing.sm },
   subheader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
   overline: { ...typography.labelOverline, color: colors.textSecondary, flexShrink: 1 },
   totals: { flexDirection: 'row', gap: 21 },

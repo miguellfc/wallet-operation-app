@@ -21,7 +21,14 @@ const INTERNAL_ICONS = new Set([
   'default',
 ]);
 
-const ICON_LABELS: Record<string, string> = { educacion: 'Educación', loteria: 'Lotería' };
+const ICON_LABELS: Record<string, string> = {
+  educacion: 'Educación',
+  loteria: 'Lotería',
+  cafe: 'Café',
+  telefono: 'Teléfono',
+  musica: 'Música',
+  tecnologia: 'Tecnología',
+};
 
 export const CATEGORY_ICON_OPTIONS = Object.keys(CATEGORY_ICONS)
   .filter(key => !INTERNAL_ICONS.has(key))

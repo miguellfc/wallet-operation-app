@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { Text, View } from 'react-native';
 
+import { valuesKey } from '@/lib/motion';
 import { AmountText, amountText, type Amount } from '@/components/ui/count-up';
 import { Grow } from '@/components/ui/grow';
 import { colors, fonts, radius, spacing, themedStyles, typography } from '@/theme';
@@ -18,7 +19,7 @@ export function DayBalanceCard({ label, amount, income, expense }: DayBalanceCar
       <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.3}>
         <AmountText amount={amount} />
       </Text>
-      <Grow key={`${income}:${expense}`} axis="x" delay={150} style={styles.bar}>
+      <Grow key={valuesKey([income, expense])} axis="x" delay={150} style={styles.bar}>
         {total === 0 ? (
           <View style={[styles.segment, styles.empty]} />
         ) : (

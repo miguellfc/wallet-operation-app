@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, FadeIn, Keyframe, useReducedMotion } from 'react-native-reanimated';
 
+import { textOn } from '@/lib/color';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 
@@ -102,5 +103,5 @@ const styles = themedStyles(() => ({
   confirm: { backgroundColor: colors.brand },
   pressed: { opacity: 0.85 },
   cancelLabel: { ...typography.buttonLabel, fontSize: 14, color: colors.textPrimary },
-  confirmLabel: { ...typography.buttonLabel, fontSize: 14, color: colors.textOnBrand },
+  confirmLabel: { ...typography.buttonLabel, fontSize: 14, color: textOn(colors.brand) },
 }));

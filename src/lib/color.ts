@@ -19,6 +19,9 @@ export function luminance(color: string) {
   return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
 }
 
+export const textOn = (background: string) =>
+  1.05 / (luminance(background) + 0.05) >= 3 ? colors.textInverse : colors.textOnBrand;
+
 export const onColor = (background: string) => (luminance(background) > 0.4 ? colors.textOnBrand : colors.textInverse);
 
 function mix(color: string, target: string, amount: number) {
@@ -28,6 +31,8 @@ function mix(color: string, target: string, amount: number) {
   const mixed = from.map((value, index) => Math.round(value + (to[index] - value) * amount));
   return `#${mixed.map(value => value.toString(16).padStart(2, '0')).join('')}`;
 }
+
+export const badgeIcon = () => (currentTheme() === 'light' ? colors.textInverse : colors.textOnBrand);
 
 export function readable(color: string) {
   if (currentTheme() !== 'light' || luminance(color) < 0.35) return color;

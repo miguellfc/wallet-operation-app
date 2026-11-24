@@ -2,9 +2,11 @@ import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { textOn } from '@/lib/color';
+import { StickyHeader } from '@/components/home/sticky-header';
 import { BackHeader } from '@/components/settings/back-header';
 import { RecurrenceSheet } from '@/components/operations/recurrence-sheet';
 import { AmountField } from '@/components/ui/amount-field';
@@ -17,6 +19,7 @@ import { SelectField } from '@/components/ui/select-field';
 import { TextField } from '@/components/ui/text-field';
 import { Stagger } from '@/components/ui/stagger';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
+import { Skeleton, SkeletonChips, SkeletonForm } from '@/components/ui/skeleton';
 import {
   convertAmount,
   createOperation,
@@ -37,6 +40,7 @@ import { formatAmount, roundTo } from '@/lib/format';
 import { useApiData } from '@/lib/use-api-data';
 import { colors, layout, radius, spacing, themedStyles, typography } from '@/theme';
 import { useThemeName } from '@/features/theme/theme-store';
+import { useCategoryColor } from '@/features/categories/category-colors';
 
 type Sheet = 'category' | 'wallet' | 'target';
 
@@ -166,6 +170,7 @@ export default function AddOperationScreen() {
   const [wallet, setWallet] = useState<string>();
   const [target, setTarget] = useState<string>();
   const [sheet, setSheet] = useState<Sheet | null>(null);
+  const categoryColor = useCategoryColor();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recurrence, setRecurrence] = useState<RecurrenceDraft | null>(null);
@@ -343,25 +348,27 @@ export default function AddOperationScreen() {
 
   return (
     <ScreenBackground glows={[...GLOWS]}>
+      <StickyHeader />
       <RevealScrollView
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
+        contentContainerStyle={[styles.content, { paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.xxl }]}>
         <Stagger>
           <BackHeader title={editId ? 'Editar operación' : 'Añadir operación'} />
           {!data || (editId && !editing) ? (
-            <View style={styles.state}>
-              {loadError || (editId && editError) ? (
-                <>
-                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                    {loadError ? loadErrorMessage(loadError) : 'No se pudo cargar la operación. Vuelve a intentarlo.'}
-                  </Text>
-                  <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
-                </>
-              ) : (
-                <ActivityIndicator color={colors.brand} />
-              )}
-            </View>
+            loadError || (editId && editError) ? (
+              <View style={styles.state}>
+                <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                  {loadError ? loadErrorMessage(loadError) : 'No se pudo cargar la operación. Vuelve a intentarlo.'}
+                </Text>
+                <Button label="Reintentar" onPress={loadError ? retry : retryEditing} />
+              </View>
+            ) : (
+              <Skeleton>
+                <SkeletonChips count={3} />
+                <SkeletonForm fields={5} />
+              </Skeleton>
+            )
           ) : (
             <View style={styles.form}>
               {!debtLocked && (
@@ -386,7 +393,7 @@ export default function AddOperationScreen() {
                     <Image
                       contentFit="contain"
                       source={require('@/assets/icons/recurrent.svg')}
-                      tintColor={recurrence ? colors.textOnBrand : colors.brand}
+                      tintColor={recurrence ? textOn(colors.brand) : colors.brand}
                       style={styles.recurrentIcon}
                     />
                     <Text
@@ -477,6 +484,7 @@ export default function AddOperationScreen() {
             ? (categories.find(item => item.id === option.value)?.icon ?? option.label)
             : 'billetera'
         }
+        colorFor={option => (sheet === 'category' ? categoryColor({ id: option.value }, colors.brand) : colors.brand)}
         onSelect={selectFromSheet}
         onClose={() => setSheet(null)}
       />
@@ -516,7 +524,7 @@ const styles = themedStyles(() => ({
   },
   recurrentOff: { backgroundColor: colors.input, borderWidth: 1, borderColor: colors.brand },
   recurrentIcon: { width: 17, height: 14 },
-  recurrentLabel: { ...typography.labelOverline, textTransform: 'none', color: colors.textOnBrand, flexShrink: 1 },
+  recurrentLabel: { ...typography.labelOverline, textTransform: 'none', color: textOn(colors.brand), flexShrink: 1 },
   recurrentLabelOff: { color: colors.brand },
   pressed: { opacity: 0.85 },
   error: { ...typography.bodyMedium, color: colors.error, textAlign: 'center' },

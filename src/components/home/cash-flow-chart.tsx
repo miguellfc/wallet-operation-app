@@ -1,10 +1,12 @@
 import { useId, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 
+import { valuesKey } from '@/lib/motion';
 import { FilterChips } from '@/components/ui/filter-chips';
 import { Grow } from '@/components/ui/grow';
-import type { CashFlowInterval, CashFlowPeriod } from '@/features/home/home-api';
+import { Skeleton, SkeletonBars } from '@/components/ui/skeleton';
+import type { CashFlowData, CashFlowInterval, CashFlowPeriod } from '@/features/home/home-api';
 import { formatAmount, periodLabel, periodTitle } from '@/lib/format';
 import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
@@ -48,13 +50,13 @@ const INTERVALS: { value: CashFlowInterval; label: string }[] = [
 ];
 
 type CashFlowChartProps = {
-  periods: CashFlowPeriod[] | undefined;
+  data: CashFlowData | undefined;
   interval: CashFlowInterval;
   currencyCode: string;
   onIntervalChange: (interval: CashFlowInterval) => void;
 };
 
-export function CashFlowChart({ periods, interval, currencyCode, onIntervalChange }: CashFlowChartProps) {
+export function CashFlowChart({ data, interval, currencyCode, onIntervalChange }: CashFlowChartProps) {
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Flujo Financiero</Text>
@@ -65,12 +67,12 @@ export function CashFlowChart({ periods, interval, currencyCode, onIntervalChang
         <LegendItem color={colors.income} label="Ingresos" />
         <LegendItem color={colors.expense} label="Gastos" />
       </View>
-      {periods ? (
-        <Chart key={interval} periods={periods} interval={interval} currencyCode={currencyCode} />
+      {data ? (
+        <Chart key={data.interval} periods={data.periods} interval={data.interval} currencyCode={currencyCode} />
       ) : (
-        <View style={styles.loading}>
-          <ActivityIndicator color={colors.brand} />
-        </View>
+        <Skeleton style={styles.loading}>
+          <SkeletonBars height={CHART_HEIGHT} />
+        </Skeleton>
       )}
     </View>
   );
@@ -103,7 +105,7 @@ function Chart({ periods, interval, currencyCode }: ChartProps) {
       <View style={styles.chart} onLayout={onLayout}>
         {width > 0 && periods.length > 0 && (
           <>
-            <Grow key={`${interval}:${periods.map(period => `${period.income}:${period.expense}`).join('|')}`}>
+            <Grow key={`${interval}:${valuesKey(periods.flatMap(period => [period.income, period.expense]))}`}>
               <Svg width={width} height={CHART_HEIGHT}>
                 <Defs>
                   <LinearGradient id={`${id}-income`} x1={0} y1={0} x2={0} y2={1}>
@@ -199,7 +201,7 @@ const styles = themedStyles(() => ({
   },
   title: { ...typography.titleSection, color: colors.textPrimary },
   intervals: { marginTop: 12 },
-  loading: { height: CHART_HEIGHT + 30, alignItems: 'center', justifyContent: 'center' },
+  loading: { height: CHART_HEIGHT + 30, justifyContent: 'flex-end', paddingTop: spacing.lg },
   legend: { flexDirection: 'row', gap: spacing.lg, marginTop: 12 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendSwatch: { width: 10, height: 10, borderRadius: 2 },

@@ -1,6 +1,7 @@
 import { ActivityIndicator, Text } from 'react-native';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { textOn } from '@/lib/color';
 import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
 type ButtonProps = {
@@ -13,7 +14,7 @@ type ButtonProps = {
 
 export function Button({ label, onPress, loading = false, disabled = false, variant = 'primary' }: ButtonProps) {
   const inactive = disabled || loading;
-  const tint = variant === 'danger' ? colors.danger : variant === 'outline' ? colors.textAccent : colors.textOnBrand;
+  const tint = variant === 'danger' ? colors.danger : variant === 'outline' ? colors.textAccent : textOn(colors.brand);
   return (
     <PressableScale
       accessibilityRole="button"
@@ -54,5 +55,5 @@ const styles = themedStyles(() => ({
   danger: { borderColor: colors.danger },
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.5 },
-  label: { ...typography.buttonLabel, color: colors.textOnBrand },
+  label: { ...typography.buttonLabel, color: textOn(colors.brand) },
 }));

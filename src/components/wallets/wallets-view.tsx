@@ -4,6 +4,7 @@ import { Text, View } from 'react-native';
 
 import { BalanceCard } from '@/components/home/balance-card';
 import { Reveal } from '@/components/ui/reveal';
+import { SkeletonHero, SkeletonWalletGrid } from '@/components/ui/skeleton';
 import { TabScroll } from '@/components/wallets/tab-scroll';
 import { WalletCard } from '@/components/wallets/wallet-card';
 import { loadWallets, type WalletSummary } from '@/features/wallets/wallets-api';
@@ -28,6 +29,12 @@ export function WalletsView({ header }: { header?: ReactNode }) {
   return (
     <TabScroll
       header={header}
+      skeleton={
+        <>
+          <SkeletonHero />
+          <SkeletonWalletGrid />
+        </>
+      }
       loading={!data}
       error={error}
       empty={data && data.wallets.length === 0 ? 'Aún no tienes billeteras' : undefined}

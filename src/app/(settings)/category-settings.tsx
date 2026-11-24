@@ -1,10 +1,9 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
-import { readable } from '@/lib/color';
 import { BackHeader } from '@/components/settings/back-header';
 import { Button } from '@/components/ui/button';
 import { CategoryIcon } from '@/components/ui/category-icon';
@@ -14,6 +13,7 @@ import { SegmentedControl } from '@/components/ui/segmented-control';
 import { Stagger } from '@/components/ui/stagger';
 import { Reveal } from '@/components/ui/reveal';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
+import { Skeleton, SkeletonRows } from '@/components/ui/skeleton';
 import {
   categoryIconName,
   deleteCategory,
@@ -21,6 +21,7 @@ import {
   type Category,
   type CategoryType,
 } from '@/features/categories/categories-api';
+import { refreshCategoryColors } from '@/features/categories/category-colors';
 import { softColor } from '@/features/wallets/wallet-options';
 import { ApiError } from '@/lib/api';
 import { useApiData } from '@/lib/use-api-data';
@@ -72,7 +73,7 @@ function CategoryItem({ category, accent, onEdit, onDelete }: CategoryItemProps)
         onPress={onEdit}
         style={({ pressed }) => [styles.rowMain, pressed && styles.pressed]}>
         <View style={[styles.iconBox, { backgroundColor: softColor(color, 0.12) }]}>
-          <CategoryIcon name={categoryIconName(category)} color={readable(color)} />
+          <CategoryIcon name={categoryIconName(category)} color={color} />
         </View>
         <Text style={styles.name} numberOfLines={1}>
           {category.name}
@@ -119,6 +120,7 @@ export default function CategorySettingsScreen() {
         setError(null);
         try {
           await deleteCategory(category._id);
+          refreshCategoryColors();
           refresh();
         } catch (reason) {
           setError(deleteErrorMessage(reason));
@@ -148,18 +150,18 @@ export default function CategorySettingsScreen() {
             </Text>
           )}
           {!categories ? (
-            <View style={styles.state}>
-              {loadError ? (
-                <>
-                  <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                    {loadErrorMessage(loadError)}
-                  </Text>
-                  <Button label="Reintentar" onPress={retry} />
-                </>
-              ) : (
-                <ActivityIndicator color={colors.brand} />
-              )}
-            </View>
+            loadError ? (
+              <View style={styles.state}>
+                <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                  {loadErrorMessage(loadError)}
+                </Text>
+                <Button label="Reintentar" onPress={retry} />
+              </View>
+            ) : (
+              <Skeleton>
+                <SkeletonRows count={6} />
+              </Skeleton>
+            )
           ) : (
             <View style={styles.list}>
               {categories.length === 0 ? (
