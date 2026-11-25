@@ -186,7 +186,7 @@ export default function AddWalletScreen() {
             exchangeRate: rateNeeded ? parsedRate : undefined,
           }),
         });
-        router.navigate({ pathname: '/wallet-detail', params: { id: editing._id, at: String(Date.now()) } } as Href);
+        router.dismissTo({ pathname: '/wallet-detail', params: { id: editing._id, at: String(Date.now()) } } as Href);
         return;
       }
       await createWallet({
@@ -203,7 +203,7 @@ export default function AddWalletScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => null);
       reset();
       if (params.setup && router.canGoBack()) router.back();
-      else router.navigate('/wallets' as Href);
+      else router.dismissTo('/wallets' as Href);
     } catch (reason) {
       setError(saveErrorMessage(reason, code));
     } finally {

@@ -106,8 +106,10 @@ function saveErrorMessage(error: unknown) {
 const RECURRENCE_FAILED =
   'La operación se guardó, pero no se pudo programar la repetición. Vuelve a intentarlo o sigue sin repetición.';
 
+// dismissTo goes back to the screen if it's already in the history instead of stacking a new one on top of the
+// form, so "Atrás" never returns to the form after saving.
 const openOperations = (day: string) =>
-  router.navigate({ pathname: '/operations', params: { day, at: String(Date.now()) } } as Href);
+  router.dismissTo({ pathname: '/operations', params: { day, at: String(Date.now()) } } as Href);
 
 function loadErrorMessage(error: unknown) {
   if (!(error instanceof ApiError)) return 'No se pudo conectar con el servidor. Revisa tu conexión y vuelve a intentarlo.';
@@ -305,7 +307,7 @@ export default function AddOperationScreen() {
           from: type === 'INCOME' ? undefined : wallet,
           to: type === 'INCOME' ? wallet : transfer ? target : undefined,
         });
-        router.navigate({ pathname: '/operation-detail', params: { id: editing._id, at: String(Date.now()) } } as Href);
+        router.dismissTo({ pathname: '/operation-detail', params: { id: editing._id, at: String(Date.now()) } } as Href);
         return;
       }
       const created = await createOperation({

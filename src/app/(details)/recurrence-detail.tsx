@@ -64,8 +64,10 @@ const openOperation = (operationId: string) =>
 const editOperation = (operationId: string) =>
   router.navigate({ pathname: '/add-operation', params: { edit: operationId, at: stamp() } } as Href);
 
+// After a delete: dismissTo closes this detail instead of stacking the list on top of it, so "Atrás" never
+// returns to something that no longer exists.
 const openRecurrences = () =>
-  router.navigate({ pathname: '/wallets', params: { section: 'RECURRENCES', at: stamp() } } as Href);
+  router.dismissTo({ pathname: '/wallets', params: { section: 'RECURRENCES', at: stamp() } } as Href);
 
 function loadErrorMessage(error: unknown) {
   if (!(error instanceof ApiError)) return CONNECTION_ERROR;

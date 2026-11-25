@@ -72,8 +72,10 @@ const openOperation = (operationId: string) =>
 const editDebt = (debtId: string) =>
   router.navigate({ pathname: '/add-debt', params: { edit: debtId, at: stamp() } } as Href);
 
+// After a delete: dismissTo closes this detail instead of stacking the list on top of it, so "Atrás" never
+// returns to something that no longer exists.
 const openDebts = () =>
-  router.navigate({ pathname: '/wallets', params: { section: 'DEBTS', at: stamp() } } as Href);
+  router.dismissTo({ pathname: '/wallets', params: { section: 'DEBTS', at: stamp() } } as Href);
 
 const isColor = (value?: string): value is string => !!value && /^#[0-9a-f]{3,8}$/i.test(value);
 

@@ -68,8 +68,10 @@ const editWallet = (walletId: string) =>
 const openStatistics = (walletId: string) =>
   router.navigate({ pathname: '/wallet-statistics', params: { id: walletId, at: stamp() } } as Href);
 
+// After a delete: dismissTo closes this detail instead of stacking the list on top of it, so "Atrás" never
+// returns to something that no longer exists.
 const openWallets = () =>
-  router.navigate({ pathname: '/wallets', params: { section: 'WALLETS', at: stamp() } } as Href);
+  router.dismissTo({ pathname: '/wallets', params: { section: 'WALLETS', at: stamp() } } as Href);
 
 const openOperation = (operationId: string) =>
   router.navigate({ pathname: '/operation-detail', params: { id: operationId, at: stamp() } } as Href);
