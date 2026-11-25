@@ -52,3 +52,6 @@ example
 .settings/
 /.vscode
 *.sublime-workspace
+
+# graphify
+graphify-out/
