@@ -2,6 +2,7 @@ import { useFocusEffect } from 'expo-router';
 import { createContext, useCallback, useContext, type PropsWithChildren } from 'react';
 import { View, type LayoutChangeEvent, type ScrollViewProps, type StyleProp, type ViewStyle } from 'react-native';
 import { LegacyScrollView } from 'react-native-gesture-handler';
+import { KeyboardAwareScrollView, type KeyboardAwareScrollViewProps } from 'react-native-keyboard-controller';
 import Animated, {
   useAnimatedReaction,
   useAnimatedScrollHandler,
@@ -43,7 +44,21 @@ export function useScrollReveal() {
   return useContext(ScrollRevealContext);
 }
 
-export function RevealScrollView({ children, onLayout, onContentSizeChange, ...props }: ScrollViewProps) {
+/** Space kept between the focused field and the top of the keyboard. */
+const KEYBOARD_GAP = 24;
+
+type RevealScrollViewProps = ScrollViewProps & {
+  /** For screens with text fields: scrolls the focused field above the keyboard, on Android as well as iOS. */
+  keyboardAware?: boolean;
+};
+
+export function RevealScrollView({
+  children,
+  onLayout,
+  onContentSizeChange,
+  keyboardAware = false,
+  ...props
+}: RevealScrollViewProps) {
   const offset = useSharedValue(0);
   const height = useSharedValue(0);
   const top = useSharedValue(0);
@@ -65,23 +80,34 @@ export function RevealScrollView({ children, onLayout, onContentSizeChange, ...p
     if (!moved.get() && Math.abs(event.contentOffset.y - anchor.get()) > 4) moved.set(true);
   });
 
+  const scrollProps = {
+    ...props,
+    onScroll,
+    scrollEventThrottle: 16,
+    onContentSizeChange: (width: number, contentHeight: number) => {
+      content.set(contentHeight);
+      onContentSizeChange?.(width, contentHeight);
+    },
+    onLayout: (event: LayoutChangeEvent) => {
+      height.set(event.nativeEvent.layout.height);
+      pageTop(event, pageY => top.set(pageY ?? 0));
+      onLayout?.(event);
+    },
+  };
+
   return (
     <ScrollRevealContext value={{ offset, height, top, content, epoch, moved }}>
-      <GestureScrollView
-        {...props}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        onContentSizeChange={(width, contentHeight) => {
-          content.set(contentHeight);
-          onContentSizeChange?.(width, contentHeight);
-        }}
-        onLayout={event => {
-          height.set(event.nativeEvent.layout.height);
-          pageTop(event, pageY => top.set(pageY ?? 0));
-          onLayout?.(event);
-        }}>
-        {children}
-      </GestureScrollView>
+      {keyboardAware ? (
+        <KeyboardAwareScrollView
+          {...scrollProps}
+          bottomOffset={KEYBOARD_GAP}
+          keyboardShouldPersistTaps={props.keyboardShouldPersistTaps ?? 'handled'}
+          ScrollViewComponent={GestureScrollView as unknown as KeyboardAwareScrollViewProps['ScrollViewComponent']}>
+          {children}
+        </KeyboardAwareScrollView>
+      ) : (
+        <GestureScrollView {...scrollProps}>{children}</GestureScrollView>
+      )}
     </ScrollRevealContext>
   );
 }

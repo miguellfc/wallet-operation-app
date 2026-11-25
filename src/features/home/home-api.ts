@@ -16,9 +16,19 @@ export type CategoryTotal = {
 
 export type CashFlowPeriod = { period: string; income: number; expense: number; net: number };
 
+/** The chip the user picks. */
 export type CashFlowInterval = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
 
-export type CashFlowData = { interval: CashFlowInterval; periods: CashFlowPeriod[] };
+/** How a series is grouped (the API's STATISTICS_INTERVAL). */
+export type SeriesInterval = 'HOUR' | 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
+
+export type CashFlowData = {
+  interval: CashFlowInterval;
+  /** Grouping of `periods`: hours for Día, days for Semana, months for Mes and years for Año. */
+  grouping: SeriesInterval;
+  /** The last few periods, ending with the one we are in now. */
+  periods: CashFlowPeriod[];
+};
 
 export type HomeData = {
   firstName: string;
@@ -27,41 +37,46 @@ export type HomeData = {
   categories: CategoryTotal[];
 };
 
-const PERIODS_IN_CHART: Record<CashFlowInterval, number> = { DAY: 7, WEEK: 8, MONTH: 6, YEAR: 5 };
+/** Día: the last 6 hours. Semana: the last 7 days. Mes: the last 6 months. Año: the last 5 years. */
+const GROUPING: Record<CashFlowInterval, SeriesInterval> = {
+  DAY: 'HOUR',
+  WEEK: 'DAY',
+  MONTH: 'MONTH',
+  YEAR: 'YEAR',
+};
 
-function chartEnd() {
-  const now = new Date();
-  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999));
-}
+const PERIODS_IN_CHART: Record<CashFlowInterval, number> = { DAY: 6, WEEK: 7, MONTH: 6, YEAR: 5 };
 
-function chartStart(interval: CashFlowInterval) {
-  const now = new Date();
+/**
+ * The last periods up to now, so the last point of the chart is the present. Operations store the local wall time as
+ * UTC, so the bounds are the local calendar written as UTC.
+ */
+function chartRange(interval: CashFlowInterval, now = new Date()) {
   const year = now.getFullYear();
   const month = now.getMonth();
   const day = now.getDate();
+  const hour = now.getHours();
   const back = PERIODS_IN_CHART[interval] - 1;
-  if (interval === 'DAY') return new Date(Date.UTC(year, month, day - back));
-  if (interval === 'WEEK') {
-    const monday = day - ((now.getDay() + 6) % 7);
-    return new Date(Date.UTC(year, month, monday - back * 7));
-  }
-  if (interval === 'MONTH') return new Date(Date.UTC(year, month - back, 1));
-  return new Date(Date.UTC(year - back, 0, 1));
+  const to = new Date(Date.UTC(year, month, day, hour, now.getMinutes(), 59, 999));
+  if (interval === 'DAY') return { from: new Date(Date.UTC(year, month, day, hour - back)), to };
+  if (interval === 'WEEK') return { from: new Date(Date.UTC(year, month, day - back)), to };
+  if (interval === 'MONTH') return { from: new Date(Date.UTC(year, month - back, 1)), to };
+  return { from: new Date(Date.UTC(year - back, 0, 1)), to };
 }
 
 export async function loadCashFlow(interval: CashFlowInterval): Promise<CashFlowData> {
-  if (isLocal) {
-    const periods = await localCashFlow(
-      { from: chartStart(interval).toISOString(), to: chartEnd().toISOString() },
-      interval,
-    );
-    return { interval, periods: periods.slice(-PERIODS_IN_CHART[interval]) };
-  }
-  const cashFlow = await authRequest<{ periods: CashFlowPeriod[] }>('/statistics/cash-flow', {
-    method: 'POST',
-    body: { from: chartStart(interval).toISOString(), to: chartEnd().toISOString(), interval },
-  });
-  return { interval, periods: cashFlow.periods.slice(-PERIODS_IN_CHART[interval]) };
+  const grouping = GROUPING[interval];
+  const { from, to } = chartRange(interval);
+  const range = { from: from.toISOString(), to: to.toISOString() };
+  const periods = isLocal
+    ? await localCashFlow(range, grouping)
+    : (
+        await authRequest<{ periods: CashFlowPeriod[] }>('/statistics/cash-flow', {
+          method: 'POST',
+          body: { ...range, interval: grouping },
+        })
+      ).periods;
+  return { interval, grouping, periods };
 }
 
 export async function loadHome(): Promise<HomeData> {

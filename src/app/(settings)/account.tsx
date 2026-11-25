@@ -321,7 +321,7 @@ function AccountScreen() {
     <ScreenBackground glows={[...GLOWS]}>
       <RevealScrollView
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+        keyboardAware
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
         <Stagger>
           <BackHeader title="Mi cuenta" />
