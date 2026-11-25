@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
-import { createProfile, readProfile, type LocalProfile } from '@/lib/local-db/profile';
+import type { Currency } from '@/features/currencies/currency-api';
+import { changeProfileCurrency, createProfile, readProfile, type LocalProfile } from '@/lib/local-db/profile';
 
 const listeners = new Set<() => void>();
 let current: LocalProfile | null = null;
@@ -23,6 +24,12 @@ export async function restoreLocalProfile() {
 export async function saveLocalProfile(profile: LocalProfile) {
   current = await createProfile(profile);
   emit();
+}
+
+export async function changeLocalCurrency(currency: Currency) {
+  current = await changeProfileCurrency(currency);
+  emit();
+  return current;
 }
 
 export async function getLocalProfile() {
