@@ -24,6 +24,10 @@ export type WalletStatistics = {
   previous: PeriodRange;
   closingBalance: number;
   previousClosing: number;
+  /** Set when the wallet was created inside this period: there is nothing before it to compare with. */
+  created: { date: string; initAmount: number } | null;
+  /** Whether the wallet already existed before this period started. */
+  canPrevious: boolean;
   current: WalletTotals;
   changes: { income: number | null; expense: number | null };
   savingsRate: number | null;
@@ -156,7 +160,10 @@ function flowOf(kind: StatsPeriod, start: Date, entries: Entry[]): FlowPoint[] {
   return buckets.map(item => ({ ...item, income: round(item.income), expense: round(item.expense) }));
 }
 
-function evolutionOf(kind: StatsPeriod, range: PeriodRange, opening: number, entries: Entry[]) {
+const dateOfKey = (key: string) => new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, Number(key.slice(8, 10)));
+
+/** `since` is the day the wallet was created when that falls inside the range: the series starts there. */
+function evolutionOf(kind: StatsPeriod, range: PeriodRange, opening: number, entries: Entry[], since: string | null) {
   const net = new Map<string, number>();
   for (const entry of entries) {
     const key = kind === 'YEAR' ? entry.day.slice(0, 7) : entry.day;
@@ -165,13 +172,14 @@ function evolutionOf(kind: StatsPeriod, range: PeriodRange, opening: number, ent
   const points: { period: string; balance: number }[] = [];
   let balance = opening;
   if (kind === 'YEAR') {
-    for (let month = range.start.getMonth(); month <= range.end.getMonth(); month += 1) {
+    const first = since ? Number(since.slice(5, 7)) - 1 : range.start.getMonth();
+    for (let month = first; month <= range.end.getMonth(); month += 1) {
       const key = `${range.start.getFullYear()}-${pad(month + 1)}`;
       balance += net.get(key) ?? 0;
       points.push({ period: isoDay(`${key}-01`), balance: round(balance) });
     }
   } else {
-    for (let day = range.start; day.getTime() <= range.end.getTime(); day = addDays(day, 1)) {
+    for (let day = since ? dateOfKey(since) : range.start; day.getTime() <= range.end.getTime(); day = addDays(day, 1)) {
       const key = dayKey(day);
       balance += net.get(key) ?? 0;
       points.push({ period: isoDay(key), balance: round(balance) });
@@ -213,6 +221,11 @@ export function buildWalletStatistics(
     null,
   );
   const days = Math.round((range.end.getTime() - range.start.getTime()) / 86_400_000) + 1;
+  // Days are compared as the operations store them, so the creation day comes from the opening operation when there
+  // is one, and otherwise from the same slice of the wallet's timestamp.
+  const opening = entries.find(entry => entry.operation.type === 'OPENING');
+  const createdKey = opening?.day ?? wallet.createdAt?.slice(0, 10) ?? null;
+  const createdInPeriod = createdKey !== null && createdKey >= startKey && createdKey <= endKey;
 
   return {
     key: `${wallet._id}:${kind}:${offset}`,
@@ -221,10 +234,14 @@ export function buildWalletStatistics(
     previous,
     closingBalance,
     previousClosing,
+    created: createdInPeriod && createdKey
+      ? { date: isoDay(createdKey), initAmount: round(opening?.amount ?? wallet.initAmount ?? 0) }
+      : null,
+    canPrevious: createdKey === null || createdKey < startKey,
     current: totals,
     changes: { income: change(totals.income, previousTotals.income), expense: change(totals.expense, previousTotals.expense) },
     savingsRate: totals.income > 0 ? Math.round(((totals.income - totals.expense) / totals.income) * 100) : null,
-    evolution: evolutionOf(kind, range, previousClosing, current),
+    evolution: evolutionOf(kind, range, previousClosing, current, createdInPeriod ? createdKey : null),
     evolutionInterval: kind === 'YEAR' ? 'MONTH' : 'DAY',
     flow: flowOf(kind, range.start, current),
     categories: categoriesOf(current, before),

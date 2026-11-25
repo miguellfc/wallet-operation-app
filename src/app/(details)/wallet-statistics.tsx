@@ -114,6 +114,8 @@ function WalletStatisticsBody({ data, period, kind, onKind }: BodyProps) {
   ];
   const biggest = data.biggestExpense;
   const busiest = data.busiestDay;
+  const created = data.created;
+  const unit = data.evolutionInterval === 'MONTH' ? 'mes' : 'día';
 
   return (
     <>
@@ -133,11 +135,17 @@ function WalletStatisticsBody({ data, period, kind, onKind }: BodyProps) {
           </Text>
           <Text style={styles.code}>{code}</Text>
         </View>
-        <Text style={[styles.difference, { color: difference === 0 ? colors.textMuted : difference > 0 ? colors.income : colors.danger }]}>
-          {difference === 0
-            ? `Sin cambios vs ${versus}`
-            : `${difference > 0 ? '▲ +' : '▼ −'}${formatAmount(Math.abs(difference), code)} vs ${versus}`}
-        </Text>
+        {created ? (
+          <Text style={[styles.difference, { color: colors.textMuted }]}>
+            Creada el {utcDateLabel(created.date)} · saldo inicial {formatAmount(created.initAmount, code)}
+          </Text>
+        ) : (
+          <Text style={[styles.difference, { color: difference === 0 ? colors.textMuted : difference > 0 ? colors.income : colors.danger }]}>
+            {difference === 0
+              ? `Sin cambios vs ${versus}`
+              : `${difference > 0 ? '▲ +' : '▼ −'}${formatAmount(Math.abs(difference), code)} vs ${versus}`}
+          </Text>
+        )}
       </Reveal>
 
       <TileGrid index={1}>
@@ -175,9 +183,18 @@ function WalletStatisticsBody({ data, period, kind, onKind }: BodyProps) {
           format={value => formatAmount(value, code, '', true)}
         />
         <Text style={statStyles.evolutionNote}>
-          Empezó en <Text style={statStyles.evolutionStrong}>{formatAmount(data.previousClosing, code)}</Text> y cerró en{' '}
-          <Text style={statStyles.evolutionStrong}>{formatAmount(data.closingBalance, code)}</Text>. Toca la gráfica para
-          ver cada {data.evolutionInterval === 'MONTH' ? 'mes' : 'día'}.
+          {created ? (
+            <>
+              Se creó el {utcDateLabel(created.date)} con{' '}
+              <Text style={statStyles.evolutionStrong}>{formatAmount(created.initAmount, code)}</Text>
+            </>
+          ) : (
+            <>
+              Empezó en <Text style={statStyles.evolutionStrong}>{formatAmount(data.previousClosing, code)}</Text>
+            </>
+          )}{' '}
+          y cerró en <Text style={statStyles.evolutionStrong}>{formatAmount(data.closingBalance, code)}</Text>. Toca la
+          gráfica para ver cada {unit}.
         </Text>
       </Card>
 
@@ -246,6 +263,7 @@ export default function WalletStatisticsScreen() {
           period={period}
           label={data?.range.label ?? ''}
           canNext={offset < 0}
+          canPrevious={loaded?.canPrevious ?? true}
           onPeriod={changePeriod}
           onPrevious={() => setOffset(current => current - 1)}
           onNext={() => setOffset(current => Math.min(0, current + 1))}
