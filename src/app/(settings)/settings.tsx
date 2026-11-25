@@ -32,7 +32,10 @@ const BACKUP_ICON =
 const MOON_ICON =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.5" d="M21 14.5A9 9 0 0 1 9.5 3a9 9 0 1 0 11.5 11.5Z"/></svg>';
 
-const openCategories = () => router.navigate('/category-settings' as Href);
+const UPDATE_ICON =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4"/><path d="M12 8v5l3 2"/></g></svg>';
+
+const openCategories =() => router.navigate('/category-settings' as Href);
 
 const openExchangeRates = () => router.navigate('/exchange-rates' as Href);
 
@@ -41,6 +44,8 @@ const openBackup = () => router.navigate('/backup' as Href);
 const openAccount = () => router.navigate('/account' as Href);
 
 const openTheme = () => router.navigate('/theme' as Href);
+
+const openUpdate = () => router.navigate('/update' as Href);
 
 type SettingsCardProps = { icon: ReactNode; title: string; detail: string; onPress?: () => void };
 
@@ -114,6 +119,12 @@ export default function SettingsScreen() {
                   onPress={openBackup}
                 />
               )}
+              <SettingsCard
+                icon={<SvgXml xml={UPDATE_ICON} color={colors.textInverse} width={28} height={28} />}
+                title="Actualización"
+                detail="Consulta tu versión y descarga la más reciente"
+                onPress={openUpdate}
+              />
             </Stagger>
           </View>
           {!isLocal && (
