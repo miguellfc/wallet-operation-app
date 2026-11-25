@@ -6,7 +6,9 @@ import { Linking } from 'react-native';
 
 import { dataSource } from '@/lib/data-source';
 
-const LATEST_RELEASE_URL = 'https://api.github.com/repos/miguellfc/wallet-operation-app/releases/latest';
+const RELEASES_URL = 'https://api.github.com/repos/miguellfc/wallet-operation-app/releases?per_page=100';
+
+const TAG_PREFIX = `${dataSource}-v`;
 
 const APK_MIME_TYPE = 'application/vnd.android.package-archive';
 
@@ -27,7 +29,13 @@ export type Release = {
 
 type GithubAsset = { name: string; browser_download_url: string; size: number };
 
-type GithubRelease = { tag_name: string; body: string | null; assets: GithubAsset[] };
+type GithubRelease = {
+  tag_name: string;
+  body: string | null;
+  draft: boolean;
+  prerelease: boolean;
+  assets: GithubAsset[];
+};
 
 export class UpdateDownloadError extends Error {}
 
@@ -48,20 +56,28 @@ export function isNewerVersion(candidate: string, current = currentVersion) {
   return false;
 }
 
-const isVariantApk = (asset: GithubAsset) => {
-  const name = asset.name.toLowerCase();
-  return name.endsWith('.apk') && name.includes(dataSource);
+const isApk = (asset: GithubAsset) => asset.name.toLowerCase().endsWith('.apk');
+
+const variantVersion = (release: GithubRelease) => {
+  const tag = release.tag_name.trim().toLowerCase();
+  return tag.startsWith(TAG_PREFIX) ? tag.slice(TAG_PREFIX.length) : null;
 };
 
 export async function fetchLatestRelease(): Promise<Release | null> {
-  const response = await fetch(LATEST_RELEASE_URL, { headers: { Accept: 'application/vnd.github+json' } });
-  if (response.status === 404) return null;
+  const response = await fetch(RELEASES_URL, { headers: { Accept: 'application/vnd.github+json' } });
   if (!response.ok) throw new Error(`GitHub answered ${response.status}`);
-  const release = (await response.json()) as GithubRelease;
-  const apk = release.assets.find(isVariantApk);
+  const releases = (await response.json()) as GithubRelease[];
+  let latest: { release: GithubRelease; version: string } | null = null;
+  for (const release of releases) {
+    const version = variantVersion(release);
+    if (release.draft || release.prerelease || version === null) continue;
+    if (!latest || isNewerVersion(version, latest.version)) latest = { release, version };
+  }
+  if (!latest) return null;
+  const apk = latest.release.assets.find(isApk);
   return {
-    version: release.tag_name.trim().replace(/^v/i, ''),
-    notes: release.body?.trim() ?? '',
+    version: latest.version,
+    notes: latest.release.body?.trim() ?? '',
     apkUrl: apk?.browser_download_url ?? null,
     size: apk?.size ?? 0,
   };
