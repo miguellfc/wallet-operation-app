@@ -1,14 +1,5 @@
 type DefaultCategory = { name: string; type: 'INCOME' | 'EXPENSE'; color: string; system?: boolean };
 
-export const DEFAULT_WALLET = {
-  name: 'Cash',
-  type: 'GENERAL',
-  initAmount: 0,
-  color: '#50A137',
-  icon: 'CashWalletIcon',
-  excluded: false,
-} as const;
-
 export const LOAN_CATEGORY_NAME = 'Préstamo';
 
 export const ADJUSTMENT_CATEGORY_NAME = 'Ajuste';

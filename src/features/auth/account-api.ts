@@ -3,7 +3,7 @@ import { ApiError } from '@/lib/api';
 import { isLocal } from '@/lib/data-source';
 
 import { authRequest } from './auth-request';
-import { getLocalProfile } from './local-profile';
+import { changeLocalCurrency, getLocalProfile } from './local-profile';
 import { clearSession } from './session';
 
 export type Account = { firstName: string; lastName: string; nickname: string; currency: Currency };
@@ -19,6 +19,11 @@ export async function loadAccount(): Promise<Account> {
 
 export async function updateAccount(changes: AccountChanges) {
   return authRequest<Account>('/users', { method: 'PATCH', body: changes });
+}
+
+export async function changeCurrency(currency: Currency) {
+  if (isLocal) return changeLocalCurrency(currency);
+  return authRequest<Account>('/users/currency', { method: 'PATCH', body: { currency: currency.code, type: currency.type } });
 }
 
 export async function changePassword(currentPassword: string, newPassword: string) {
@@ -45,6 +50,13 @@ export function passwordErrorMessage(error: unknown) {
   if (!(error instanceof ApiError)) return CONNECTION_ERROR;
   if (error.reference === 'INVALID_PASSWORD') return 'La contraseña actual no es correcta.';
   return 'No se pudo cambiar la contraseña. Vuelve a intentarlo.';
+}
+
+export function currencyErrorMessage(error: unknown, code: string) {
+  if (!(error instanceof ApiError)) return CONNECTION_ERROR;
+  if (error.reference === 'EXCHANGE_RATE_REQUIRED') return `Primero crea una tasa de cambio para ${code}.`;
+  if (error.reference === 'CURRENCY_UNCHANGED') return `${code} ya es tu moneda principal.`;
+  return 'No se pudo cambiar la moneda. Vuelve a intentarlo.';
 }
 
 export function sessionErrorMessage(error: unknown) {

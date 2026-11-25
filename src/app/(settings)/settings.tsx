@@ -23,6 +23,9 @@ const GLOWS = [
 const EXCHANGE_ICON =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 8h14m0 0l-4-4m4 4l-4 4M20 16H6m0 0l4-4m-4 4l4 4"/></svg>';
 
+const CURRENCY_ICON =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"><ellipse cx="9" cy="7" rx="6" ry="3"/><path d="M3 7v4c0 1.66 2.69 3 6 3s6-1.34 6-3V7"/><path d="M3 11v4c0 1.66 2.69 3 6 3 1.07 0 2.07-.14 2.94-.39M15 11.5c.32-.03.66-.05 1-.05 3.31 0 6 1.34 6 3s-2.69 3-6 3-6-1.34-6-3"/><path d="M10 14.45v4c0 1.66 2.69 3 6 3s6-1.34 6-3v-4"/></g></svg>';
+
 const CATEGORY_ICON =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><rect width="7" height="7" x="3" y="3" rx="2"/><rect width="7" height="7" x="3" y="14" rx="2"/><rect width="7" height="7" x="14" y="14" rx="2"/><path stroke-linecap="round" d="M17.5 3v7M14 6.5h7"/></g></svg>';
 
@@ -36,6 +39,8 @@ const UPDATE_ICON =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4"/><path d="M12 8v5l3 2"/></g></svg>';
 
 const openCategories =() => router.navigate('/category-settings' as Href);
+
+const openCurrency = () => router.navigate('/currency' as Href);
 
 const openExchangeRates = () => router.navigate('/exchange-rates' as Href);
 
@@ -93,6 +98,12 @@ export default function SettingsScreen() {
                   onPress={openAccount}
                 />
               )}
+              <SettingsCard
+                icon={<SvgXml xml={CURRENCY_ICON} color={colors.textInverse} width={28} height={28} />}
+                title="Moneda principal"
+                detail="Cambia la moneda de tu saldo y tus estadísticas"
+                onPress={openCurrency}
+              />
               <SettingsCard
                 icon={<SvgXml xml={EXCHANGE_ICON} color={colors.textInverse} width={30} height={30} />}
                 title="Tasas de cambio"
