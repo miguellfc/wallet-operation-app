@@ -28,6 +28,7 @@ import { Grow } from '@/components/ui/grow';
 import { Reveal } from '@/components/ui/reveal';
 import { ScreenBackground } from '@/components/ui/screen-background';
 import { Skeleton, SkeletonChart, SkeletonHero, SkeletonRows, SkeletonSummaryPair } from '@/components/ui/skeleton';
+import { PeriodSwipe } from '@/components/statistics/period-swipe';
 import { RevealScrollView } from '@/components/ui/scroll-reveal';
 import { loadStatistics, periodRange, type StatisticsData, type StatsPeriod } from '@/features/statistics/statistics-api';
 import { useThemeName } from '@/features/theme/theme-store';
@@ -254,39 +255,41 @@ export default function StatisticsScreen() {
           onPrevious={() => setOffset(current => current - 1)}
           onNext={() => setOffset(current => Math.min(0, current + 1))}
         />
-        <ReplayOnFocus value={STATS_REPLAY}>
-          {visited.map(item => (
-            <View
-              key={item.key}
-              style={item.key === visible ? styles.body : styles.hidden}
-              pointerEvents={item.key === visible ? 'auto' : 'none'}
-              accessibilityElementsHidden={item.key !== visible}
-              importantForAccessibility={item.key === visible ? 'auto' : 'no-hide-descendants'}>
-              <StatisticsBody
-                data={item}
-                period={item.key.split(':')[0] as StatsPeriod}
-                kind={kind}
-                onKind={setKind}
-              />
-            </View>
-          ))}
-        </ReplayOnFocus>
-        {!visible &&
-          (error ? (
-            <View style={styles.state}>
-              <Text style={styles.stateText} accessibilityLiveRegion="polite">
-                {loadErrorMessage(error)}
-              </Text>
-              <Button label="Reintentar" onPress={retry} />
-            </View>
-          ) : (
-            <Skeleton style={styles.body}>
-              <SkeletonHero />
-              <SkeletonSummaryPair />
-              <SkeletonChart chips={false} />
-              <SkeletonRows count={3} title />
-            </Skeleton>
-          ))}
+        <PeriodSwipe period={period} onPeriod={changePeriod}>
+          <ReplayOnFocus value={STATS_REPLAY}>
+            {visited.map(item => (
+              <View
+                key={item.key}
+                style={item.key === visible ? styles.body : styles.hidden}
+                pointerEvents={item.key === visible ? 'auto' : 'none'}
+                accessibilityElementsHidden={item.key !== visible}
+                importantForAccessibility={item.key === visible ? 'auto' : 'no-hide-descendants'}>
+                <StatisticsBody
+                  data={item}
+                  period={item.key.split(':')[0] as StatsPeriod}
+                  kind={kind}
+                  onKind={setKind}
+                />
+              </View>
+            ))}
+          </ReplayOnFocus>
+          {!visible &&
+            (error ? (
+              <View style={styles.state}>
+                <Text style={styles.stateText} accessibilityLiveRegion="polite">
+                  {loadErrorMessage(error)}
+                </Text>
+                <Button label="Reintentar" onPress={retry} />
+              </View>
+            ) : (
+              <Skeleton style={styles.body}>
+                <SkeletonHero />
+                <SkeletonSummaryPair />
+                <SkeletonChart chips={false} />
+                <SkeletonRows count={3} title />
+              </Skeleton>
+            ))}
+        </PeriodSwipe>
       </RevealScrollView>
     </ScreenBackground>
   );
@@ -312,7 +315,7 @@ const styles = themedStyles(() => ({
   walletBar: { height: '100%', borderRadius: radius.full },
   walletAmount: { ...typography.caption, fontSize: 12, maxWidth: '40%', textAlign: 'right', color: colors.textSecondary },
   body: { gap: 15 },
-  hidden: { position: 'absolute', top: 0, left: spacing.xl, right: spacing.xl, gap: 15, opacity: 0 },
+  hidden: { position: 'absolute', top: 0, left: 0, right: 0, gap: 15, opacity: 0 },
   state: { paddingVertical: spacing.xxl, justifyContent: 'center', gap: spacing.lg },
   stateText: { ...typography.bodyMedium, color: colors.textSecondary, textAlign: 'center' },
 }));
