@@ -3,6 +3,7 @@ import { File, Paths } from 'expo-file-system';
 import { shareAsync } from 'expo-sharing';
 
 import { restoreLocalProfile } from '@/features/auth/local-profile';
+import { refreshCategoryColors } from '@/features/categories/category-colors';
 import { exportBackup, importBackup, InvalidBackupError, parseBackup } from '@/lib/local-db/backup';
 import { runDueRecurrences } from '@/lib/local-db/recurrences';
 
@@ -46,7 +47,7 @@ export async function pickBackup() {
 
 export async function importData(content: string) {
   await importBackup(content);
-  await restoreLocalProfile();
+  await Promise.all([restoreLocalProfile(), refreshCategoryColors()]);
   await runDueRecurrences().catch(() => 0);
 }
 
