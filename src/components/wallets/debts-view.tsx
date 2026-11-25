@@ -1,0 +1,65 @@
+import { router, type Href } from 'expo-router';
+import type { ReactNode } from 'react';
+import { View } from 'react-native';
+
+import { InfoRow } from '@/components/ui/info-row';
+import { Reveal } from '@/components/ui/reveal';
+import { TabScroll } from '@/components/wallets/tab-scroll';
+import { loadDebts, type Debt } from '@/features/wallets/wallets-api';
+import { formatAmount } from '@/lib/format';
+import { useApiData } from '@/lib/use-api-data';
+import { colors, spacing, themedStyles } from '@/theme';
+
+const openDebt = (id: string) =>
+  router.navigate({ pathname: '/debt-detail', params: { id, at: String(Date.now()) } } as Href);
+
+function describe(debt: Debt) {
+  const lent = debt.type === 'LENT';
+  return {
+    title: lent ? `${debt.person} me debe` : `Le debo a ${debt.person}`,
+    detail: debt.description || (lent ? 'Préstamo' : 'Deuda'),
+    icon: lent ? 'me debe' : 'le debo',
+    color: lent ? colors.income : colors.expense,
+    background: lent ? colors.categoryIconIncome : colors.categoryIcon,
+  };
+}
+
+export function DebtsView({ header }: { header?: ReactNode }) {
+  const { data, error, retry, refresh, refreshing } = useApiData(loadDebts);
+
+  return (
+    <TabScroll
+      header={header}
+      loading={!data}
+      error={error}
+      empty={data && data.length === 0 ? 'No tienes deudas pendientes' : undefined}
+      refreshing={refreshing}
+      onRefresh={refresh}
+      onRetry={retry}>
+      <View style={styles.list}>
+        {data?.map((debt, index) => {
+          const row = describe(debt);
+          const amount = formatAmount(debt.pending, debt.currency.code);
+          return (
+            <Reveal key={debt._id} index={index}>
+              <InfoRow
+                icon={row.icon}
+                iconColor={row.color}
+                iconBackground={row.background}
+                title={row.title}
+                detail={row.detail}
+                amount={amount}
+                accessibilityLabel={`${row.title}, ${row.detail}, pendiente ${amount}`}
+                onPress={() => openDebt(debt._id)}
+              />
+            </Reveal>
+          );
+        })}
+      </View>
+    </TabScroll>
+  );
+}
+
+const styles = themedStyles(() => ({
+  list: { gap: spacing.sm },
+}));
