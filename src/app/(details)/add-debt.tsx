@@ -237,7 +237,7 @@ export default function AddDebtScreen() {
       <StickyHeader />
       <RevealScrollView
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+        keyboardAware
         contentContainerStyle={[styles.content, { paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.xxl }]}>
         <Stagger>
           <BackHeader title={editId ? 'Editar deuda' : 'Añadir deuda'} />

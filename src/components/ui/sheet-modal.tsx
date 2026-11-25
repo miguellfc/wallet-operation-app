@@ -2,6 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Modal, Pressable, StyleSheet, View, type LayoutChangeEvent, type StyleProp, type ViewStyle } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import Animated, {
   Easing,
   Extrapolation,
@@ -123,24 +124,35 @@ export function SheetModal({ visible, onClose, style, children }: SheetModalProp
   if (!mounted) return null;
 
   return (
-    <Modal visible transparent animationType="none" statusBarTranslucent onRequestClose={onClose}>
-      <GestureHandlerRootView style={styles.root}>
-        <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, backdropStyle]} />
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Cerrar" />
-        <Animated.View style={[style, sheetStyle]} onLayout={onLayout}>
-          <GestureDetector gesture={pan}>
-            <View style={styles.grabber}>
-              <View style={styles.handle} />
-            </View>
-          </GestureDetector>
-          {children}
-        </Animated.View>
+    <Modal
+      visible
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      navigationBarTranslucent
+      onRequestClose={onClose}>
+      <GestureHandlerRootView style={styles.fill}>
+        {/* The sheet sits on top of the keyboard: padding lifts it, and a tall sheet (80% of the screen) shrinks
+            to the space left instead of going off the top. */}
+        <KeyboardAvoidingView behavior="padding" style={styles.root}>
+          <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, backdropStyle]} />
+          <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Cerrar" />
+          <Animated.View style={[style, sheetStyle]} onLayout={onLayout}>
+            <GestureDetector gesture={pan}>
+              <View style={styles.grabber}>
+                <View style={styles.handle} />
+              </View>
+            </GestureDetector>
+            {children}
+          </Animated.View>
+        </KeyboardAvoidingView>
       </GestureHandlerRootView>
     </Modal>
   );
 }
 
 const styles = themedStyles(() => ({
+  fill: { flex: 1 },
   root: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { backgroundColor: colors.scrim },
   grabber: { alignSelf: 'stretch', alignItems: 'center', paddingVertical: 10, marginVertical: -10 },
