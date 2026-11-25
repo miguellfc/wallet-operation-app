@@ -157,8 +157,10 @@ function useDestination(amount: number | null, from?: FormWallet, to?: FormWalle
 export default function AddOperationScreen() {
   useThemeName();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ edit?: string; at?: string }>();
+  // `wallet` comes from the wallet detail: that wallet is preselected and saving returns to it.
+  const params = useLocalSearchParams<{ edit?: string; at?: string; wallet?: string }>();
   const editId = params.edit;
+  const fromWallet = editId ? undefined : params.wallet;
   const { data, error: loadError, retry } = useApiData(loadOperationForm);
   const loadEditing = useCallback(() => (editId ? loadOperation(editId) : Promise.resolve(null)), [editId]);
   const { data: editingData, error: editError, retry: retryEditing } = useApiData(loadEditing);
@@ -180,7 +182,7 @@ export default function AddOperationScreen() {
   const [pending, setPending] = useState<{ operationId: string; day: string } | null>(null);
   const [opened, setOpened] = useState<string>();
 
-  const request = `${editId ?? ''}:${params.at ?? ''}`;
+  const request = `${editId ?? ''}:${params.at ?? ''}:${fromWallet ?? ''}`;
   if (request !== opened && (!editId || editing)) {
     setOpened(request);
     if (editing) {
@@ -207,6 +209,7 @@ export default function AddOperationScreen() {
       setPending(null);
       setError(null);
     }
+    if (!editing) setWallet(fromWallet);
   }
 
   const debtLocked = !!editing?.debt;
@@ -266,7 +269,11 @@ export default function AddOperationScreen() {
 
   const finish = (day: string) => {
     reset();
-    openOperations(day);
+    if (fromWallet) {
+      router.dismissTo({ pathname: '/wallet-detail', params: { id: fromWallet, at: String(Date.now()) } } as Href);
+    } else {
+      openOperations(day);
+    }
   };
 
   const schedule = async (operationId: string, day: string, draft: RecurrenceDraft) => {
