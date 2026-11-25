@@ -114,6 +114,7 @@ export type WalletDocument = {
   excluded: boolean;
   initAmount: number;
   currency: { code: string; currency: string; symbol: string; type: CurrencyType };
+  createdAt?: string;
 };
 
 export type WalletDetail = {

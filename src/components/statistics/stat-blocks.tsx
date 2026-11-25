@@ -140,12 +140,21 @@ type PeriodNavigatorProps = {
   period: StatsPeriod;
   label: string;
   canNext: boolean;
+  canPrevious?: boolean;
   onPeriod: (period: StatsPeriod) => void;
   onPrevious: () => void;
   onNext: () => void;
 };
 
-export function PeriodNavigator({ period, label, canNext, onPeriod, onPrevious, onNext }: PeriodNavigatorProps) {
+export function PeriodNavigator({
+  period,
+  label,
+  canNext,
+  canPrevious = true,
+  onPeriod,
+  onPrevious,
+  onNext,
+}: PeriodNavigatorProps) {
   return (
     <>
       <FilterChips options={PERIODS} value={period} onChange={onPeriod} />
@@ -153,9 +162,11 @@ export function PeriodNavigator({ period, label, canNext, onPeriod, onPrevious, 
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Periodo anterior"
+          accessibilityState={{ disabled: !canPrevious }}
+          disabled={!canPrevious}
           hitSlop={10}
           onPress={onPrevious}
-          style={({ pressed }) => [styles.arrow, pressed && styles.pressed]}>
+          style={({ pressed }) => [styles.arrow, !canPrevious && styles.off, pressed && styles.pressed]}>
           <Image
             contentFit="contain"
             source={require('@/assets/icons/chevron-down.svg')}
