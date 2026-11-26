@@ -19,7 +19,8 @@ export function HomeHeader({ name, showProfile = true, onProfilePress = openSett
     <View style={styles.header}>
       <View style={styles.greeting}>
         <View style={styles.mark}>
-          <BrandGradient radius={radius.md} x1={0.05} y1={0.62} x2={0.95} y2={0.38} />
+          {/* Figma: Apk-Migue, node 105:539. */}
+          <BrandGradient radius={radius.md} x1={-0.049} y1={1} x2={1.051} y2={0.728} />
           <Image contentFit="contain" source={require('@/assets/icons/logo-mark.svg')} style={styles.markIcon} />
         </View>
         <View>
@@ -54,7 +55,7 @@ const styles = themedStyles(() => ({
     justifyContent: 'center',
     boxShadow: `0px 0px 12px 0px ${colors.shadowGlow}`,
   },
-  markIcon: { width: 20.17, height: 15.58 },
+  markIcon: { width: 18.78, height: 24 },
   overline: { ...typography.labelOverline, color: colors.textAccent },
   name: { ...typography.titleSection, color: colors.textPrimary },
   avatar: {
