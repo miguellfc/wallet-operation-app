@@ -34,7 +34,8 @@ const styles = themedStyles(() => ({
     overflow: 'hidden',
   },
   badge: { position: 'absolute', top: 19, right: 15, width: 78, height: 49.74 },
-  badgeIcon: { position: 'absolute', left: 10, top: 13, width: 30, height: 23 },
+  // The Figma mark (18.78 x 24) at 26 high, centred in the left circle (centre 24.87, 24.87) as in logo.svg.
+  badgeIcon: { position: 'absolute', left: 14.7, top: 11.87, width: 20.35, height: 26 },
   label: {
     fontFamily: fonts.semiBold,
     fontSize: 16,
