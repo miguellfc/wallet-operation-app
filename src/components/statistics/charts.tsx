@@ -3,6 +3,7 @@ import { Pressable, Text, View, type LayoutChangeEvent } from 'react-native';
 import Svg, { Circle, Defs, G, Line, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 
 import { valuesKey } from '@/lib/motion';
+import { smoothAreaPath, smoothPath } from '@/components/statistics/smooth-path';
 import { Grow } from '@/components/ui/grow';
 import { colors, themedStyles, typography } from '@/theme';
 
@@ -34,10 +35,9 @@ export function LineChart({ values, labels, titles, color, format }: LineChartPr
     x: values.length > 1 ? SIDE + index * step : width / 2,
     y: yAt(value),
   }));
-  const line = points.map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x},${point.y}`).join(' ');
-  const first = points[0];
-  const last = points[points.length - 1];
-  const area = last ? `${line} L${last.x},${LINE_BOTTOM} L${first.x},${LINE_BOTTOM} Z` : '';
+  // The same smooth curve as the Flujo Financiero chart on the home screen.
+  const line = smoothPath(points, LINE_TOP, LINE_BOTTOM);
+  const area = smoothAreaPath(points, LINE_TOP, LINE_BOTTOM, LINE_BOTTOM);
   const guides = [high, (high + low) / 2, low];
   const marker = points[selected];
   const tooltipLeft = marker
@@ -70,9 +70,9 @@ export function LineChart({ values, labels, titles, color, format }: LineChartPr
                   />
                 ))}
                 <Path d={area} fill={`url(#${id}-area)`} />
-                <Path d={line} stroke={color} strokeWidth={2.5} fill="none" strokeLinejoin="round" />
-                <Line x1={marker.x} x2={marker.x} y1={marker.y} y2={LINE_BOTTOM} stroke={colors.textMuted} strokeDasharray="3 3" />
-                <Circle cx={marker.x} cy={marker.y} r={5} fill={colors.bgApp} stroke={color} strokeWidth={2.5} />
+                <Path d={line} stroke={color} strokeWidth={3} fill="none" />
+                <Line x1={marker.x} x2={marker.x} y1={marker.y} y2={LINE_BOTTOM} stroke={colors.textMuted} strokeDasharray="4 4" />
+                <Circle cx={marker.x} cy={marker.y} r={8} fill={colors.bgApp} stroke={color} strokeWidth={3} />
               </Svg>
             </Grow>
             {guides.map((value, index) => (

@@ -66,6 +66,7 @@ const toDocument = (row: WalletRow): WalletDocument => ({
   excluded: row.excluded === 1,
   initAmount: row.init_amount,
   currency: currencyOf(row),
+  createdAt: row.created_at,
 });
 
 const snapshotOf = (row: WalletRow): WalletSnapshot => ({

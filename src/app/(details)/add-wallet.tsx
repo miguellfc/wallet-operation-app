@@ -81,7 +81,7 @@ function PickerBox({ label, value, onPress, children }: PickerBoxProps) {
 export default function AddWalletScreen() {
   useThemeName();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ edit?: string; at?: string }>();
+  const params = useLocalSearchParams<{ edit?: string; at?: string; setup?: string }>();
   const editId = params.edit;
   const { data, error: loadError, retry } = useApiData(loadWalletForm);
   const loadEditing = useCallback(() => (editId ? loadWallet(editId) : Promise.resolve(null)), [editId]);
@@ -186,7 +186,7 @@ export default function AddWalletScreen() {
             exchangeRate: rateNeeded ? parsedRate : undefined,
           }),
         });
-        router.navigate({ pathname: '/wallet-detail', params: { id: editing._id, at: String(Date.now()) } } as Href);
+        router.dismissTo({ pathname: '/wallet-detail', params: { id: editing._id, at: String(Date.now()) } } as Href);
         return;
       }
       await createWallet({
@@ -202,7 +202,8 @@ export default function AddWalletScreen() {
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => null);
       reset();
-      router.navigate('/wallets' as Href);
+      if (params.setup && router.canGoBack()) router.back();
+      else router.dismissTo('/wallets' as Href);
     } catch (reason) {
       setError(saveErrorMessage(reason, code));
     } finally {
@@ -215,7 +216,7 @@ export default function AddWalletScreen() {
       <StickyHeader />
       <RevealScrollView
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+        keyboardAware
         contentContainerStyle={[styles.content, { paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.xxl }]}>
         <Stagger>
           <BackHeader title={editId ? 'Editar billetera' : 'Añadir billetera'} />

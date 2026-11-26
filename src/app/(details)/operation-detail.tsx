@@ -139,7 +139,7 @@ export default function OperationDetailScreen() {
         setError(null);
         try {
           await deleteOperation(current._id);
-          router.navigate({ pathname: '/operations', params: { day: dayParam(current.date), at: String(Date.now()) } } as Href);
+          router.dismissTo({ pathname: '/operations', params: { day: dayParam(current.date), at: String(Date.now()) } } as Href);
         } catch (reason) {
           setError(deleteErrorMessage(reason));
         } finally {

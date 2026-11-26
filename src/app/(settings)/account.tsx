@@ -40,9 +40,6 @@ const GLOWS = [
   { left: '80%', top: '72%' },
 ] as const;
 
-const LOCK_ICON =
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 16c0-2.828 0-4.243.879-5.121C3.757 10 5.172 10 8 10h8c2.828 0 4.243 0 5.121.879C22 11.757 22 13.172 22 16s0 4.243-.879 5.121C20.243 22 18.828 22 16 22H8c-2.828 0-4.243 0-5.121-.879C2 20.243 2 18.828 2 16Z"/><path stroke-linecap="round" d="M6 10V8a6 6 0 1 1 12 0v2"/></g></svg>';
-
 const KEY_ICON =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"><circle cx="8" cy="15" r="4"/><path d="M10.85 12.15L19 4m-1 1l2 2m-5 0l2 2"/></g></svg>';
 
@@ -324,7 +321,7 @@ function AccountScreen() {
     <ScreenBackground glows={[...GLOWS]}>
       <RevealScrollView
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+        keyboardAware
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + spacing.xxl }]}>
         <Stagger>
           <BackHeader title="Mi cuenta" />
@@ -346,7 +343,7 @@ function AccountScreen() {
               <View
                 style={styles.profile}
                 accessible
-                accessibilityLabel={`${account.firstName} ${account.lastName}, usuario ${account.nickname}, moneda principal ${account.currency.code}, no se puede cambiar`}>
+                accessibilityLabel={`${account.firstName} ${account.lastName}, usuario ${account.nickname}, moneda principal ${account.currency.code}`}>
                 <View style={styles.initials}>
                   <Text style={styles.initialsLabel}>{initials(account)}</Text>
                 </View>
@@ -357,12 +354,9 @@ function AccountScreen() {
                   <Text style={styles.cardDetail} numberOfLines={1}>
                     @{account.nickname}
                   </Text>
-                  <View style={styles.currencyRow}>
-                    <SvgXml xml={LOCK_ICON} color={colors.textMuted} width={12} height={12} />
-                    <Text style={styles.cardDetail} numberOfLines={1}>
-                      {account.currency.code} · {account.currency.currency}
-                    </Text>
-                  </View>
+                  <Text style={styles.cardDetail} numberOfLines={1}>
+                    {account.currency.code} · {account.currency.currency}
+                  </Text>
                 </View>
               </View>
               <SectionTitle>Datos personales</SectionTitle>
@@ -448,7 +442,6 @@ const styles = themedStyles(() => ({
     justifyContent: 'center',
   },
   initialsLabel: { ...typography.titleSection, color: colors.textOnBrand },
-  currencyRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   sectionTitle: {
     ...typography.bodyMedium,
     fontFamily: typography.titleSection.fontFamily,

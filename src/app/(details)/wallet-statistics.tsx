@@ -1,12 +1,13 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { StickyHeader } from '@/components/home/sticky-header';
 import { BackHeader } from '@/components/settings/back-header';
 import { LineChart } from '@/components/statistics/charts';
+import { PeriodSwipe } from '@/components/statistics/period-swipe';
 import {
   CALENDAR_ICON,
   Card,
@@ -114,6 +115,8 @@ function WalletStatisticsBody({ data, period, kind, onKind }: BodyProps) {
   ];
   const biggest = data.biggestExpense;
   const busiest = data.busiestDay;
+  const created = data.created;
+  const unit = data.evolutionInterval === 'MONTH' ? 'mes' : 'día';
 
   return (
     <>
@@ -133,11 +136,17 @@ function WalletStatisticsBody({ data, period, kind, onKind }: BodyProps) {
           </Text>
           <Text style={styles.code}>{code}</Text>
         </View>
-        <Text style={[styles.difference, { color: difference === 0 ? colors.textMuted : difference > 0 ? colors.income : colors.danger }]}>
-          {difference === 0
-            ? `Sin cambios vs ${versus}`
-            : `${difference > 0 ? '▲ +' : '▼ −'}${formatAmount(Math.abs(difference), code)} vs ${versus}`}
-        </Text>
+        {created ? (
+          <Text style={[styles.difference, { color: colors.textMuted }]}>
+            Creada el {utcDateLabel(created.date)} · saldo inicial {formatAmount(created.initAmount, code)}
+          </Text>
+        ) : (
+          <Text style={[styles.difference, { color: difference === 0 ? colors.textMuted : difference > 0 ? colors.income : colors.danger }]}>
+            {difference === 0
+              ? `Sin cambios vs ${versus}`
+              : `${difference > 0 ? '▲ +' : '▼ −'}${formatAmount(Math.abs(difference), code)} vs ${versus}`}
+          </Text>
+        )}
       </Reveal>
 
       <TileGrid index={1}>
@@ -175,9 +184,18 @@ function WalletStatisticsBody({ data, period, kind, onKind }: BodyProps) {
           format={value => formatAmount(value, code, '', true)}
         />
         <Text style={statStyles.evolutionNote}>
-          Empezó en <Text style={statStyles.evolutionStrong}>{formatAmount(data.previousClosing, code)}</Text> y cerró en{' '}
-          <Text style={statStyles.evolutionStrong}>{formatAmount(data.closingBalance, code)}</Text>. Toca la gráfica para
-          ver cada {data.evolutionInterval === 'MONTH' ? 'mes' : 'día'}.
+          {created ? (
+            <>
+              Se creó el {utcDateLabel(created.date)} con{' '}
+              <Text style={statStyles.evolutionStrong}>{formatAmount(created.initAmount, code)}</Text>
+            </>
+          ) : (
+            <>
+              Empezó en <Text style={statStyles.evolutionStrong}>{formatAmount(data.previousClosing, code)}</Text>
+            </>
+          )}{' '}
+          y cerró en <Text style={statStyles.evolutionStrong}>{formatAmount(data.closingBalance, code)}</Text>. Toca la
+          gráfica para ver cada {unit}.
         </Text>
       </Card>
 
@@ -236,6 +254,11 @@ export default function WalletStatisticsScreen() {
     setOffset(0);
   };
 
+  // The stack's swipe-back starts within min(30% of the width, 120) of the screen edge; the content begins after the
+  // horizontal padding, so the period swipe leaves the rest of that strip to it.
+  const { width } = useWindowDimensions();
+  const swipeBackEdge = Math.max(0, Math.min(width * 0.3, 120) - spacing.xl);
+
   return (
     <ScreenBackground glows={[...GLOWS]}>
       <StickyHeader />
@@ -246,14 +269,15 @@ export default function WalletStatisticsScreen() {
           period={period}
           label={data?.range.label ?? ''}
           canNext={offset < 0}
+          canPrevious={loaded?.canPrevious ?? true}
           onPeriod={changePeriod}
           onPrevious={() => setOffset(current => current - 1)}
           onNext={() => setOffset(current => Math.min(0, current + 1))}
         />
-        {data ? (
-          <WalletStatisticsBody data={data} period={period} kind={kind} onKind={setKind} />
-        ) : (
-          error ? (
+        <PeriodSwipe period={period} onPeriod={changePeriod} edgeInset={swipeBackEdge} style={styles.swipe}>
+          {data ? (
+            <WalletStatisticsBody data={data} period={period} kind={kind} onKind={setKind} />
+          ) : error ? (
             <View style={styles.state}>
               <Text style={styles.stateText} accessibilityLiveRegion="polite">
                 {loadErrorMessage(error)}
@@ -267,8 +291,8 @@ export default function WalletStatisticsScreen() {
               <SkeletonChart chips={false} />
               <SkeletonRows count={3} title />
             </Skeleton>
-          )
-        )}
+          )}
+        </PeriodSwipe>
       </RevealScrollView>
     </ScreenBackground>
   );
@@ -282,6 +306,7 @@ const styles = themedStyles(() => ({
     maxWidth: layout.maxContentWidth,
     alignSelf: 'center',
   },
+  swipe: { gap: 15 },
   hero: {
     minHeight: 161,
     borderRadius: 32,

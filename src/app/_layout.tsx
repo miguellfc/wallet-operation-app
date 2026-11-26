@@ -13,6 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { useReducedMotion } from 'react-native-reanimated';
 
 import { AppLock } from '@/components/lock/app-lock';
@@ -77,19 +78,21 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bgApp }}>
-      <StatusBar style={themeName === 'light' ? 'dark' : 'light'} />
-      <Stack
-        key={themeName}
-        screenOptions={{
-          headerShown: false,
-          animation: reduced ? 'fade' : 'default',
-          cardStyle: { flex: 1, backgroundColor: colors.bgApp },
-        }}>
-        <Stack.Screen name="(settings)" options={swipeBack} />
-        <Stack.Screen name="(details)" options={swipeBack} />
-      </Stack>
-      {isLocal && <AppLock key={`lock-${themeName}`} />}
-      <ConfirmDialogHost key={`dialog-${themeName}`} />
+      <KeyboardProvider statusBarTranslucent navigationBarTranslucent>
+        <StatusBar style={themeName === 'light' ? 'dark' : 'light'} />
+        <Stack
+          key={themeName}
+          screenOptions={{
+            headerShown: false,
+            animation: reduced ? 'fade' : 'default',
+            cardStyle: { flex: 1, backgroundColor: colors.bgApp },
+          }}>
+          <Stack.Screen name="(settings)" options={swipeBack} />
+          <Stack.Screen name="(details)" options={swipeBack} />
+        </Stack>
+        {isLocal && <AppLock key={`lock-${themeName}`} />}
+        <ConfirmDialogHost key={`dialog-${themeName}`} />
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

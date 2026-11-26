@@ -106,8 +106,10 @@ function saveErrorMessage(error: unknown) {
 const RECURRENCE_FAILED =
   'La operación se guardó, pero no se pudo programar la repetición. Vuelve a intentarlo o sigue sin repetición.';
 
+// dismissTo goes back to the screen if it's already in the history instead of stacking a new one on top of the
+// form, so "Atrás" never returns to the form after saving.
 const openOperations = (day: string) =>
-  router.navigate({ pathname: '/operations', params: { day, at: String(Date.now()) } } as Href);
+  router.dismissTo({ pathname: '/operations', params: { day, at: String(Date.now()) } } as Href);
 
 function loadErrorMessage(error: unknown) {
   if (!(error instanceof ApiError)) return 'No se pudo conectar con el servidor. Revisa tu conexión y vuelve a intentarlo.';
@@ -155,8 +157,10 @@ function useDestination(amount: number | null, from?: FormWallet, to?: FormWalle
 export default function AddOperationScreen() {
   useThemeName();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ edit?: string; at?: string }>();
+  // `wallet` comes from the wallet detail: that wallet is preselected and saving returns to it.
+  const params = useLocalSearchParams<{ edit?: string; at?: string; wallet?: string }>();
   const editId = params.edit;
+  const fromWallet = editId ? undefined : params.wallet;
   const { data, error: loadError, retry } = useApiData(loadOperationForm);
   const loadEditing = useCallback(() => (editId ? loadOperation(editId) : Promise.resolve(null)), [editId]);
   const { data: editingData, error: editError, retry: retryEditing } = useApiData(loadEditing);
@@ -178,7 +182,7 @@ export default function AddOperationScreen() {
   const [pending, setPending] = useState<{ operationId: string; day: string } | null>(null);
   const [opened, setOpened] = useState<string>();
 
-  const request = `${editId ?? ''}:${params.at ?? ''}`;
+  const request = `${editId ?? ''}:${params.at ?? ''}:${fromWallet ?? ''}`;
   if (request !== opened && (!editId || editing)) {
     setOpened(request);
     if (editing) {
@@ -205,6 +209,7 @@ export default function AddOperationScreen() {
       setPending(null);
       setError(null);
     }
+    if (!editing) setWallet(fromWallet);
   }
 
   const debtLocked = !!editing?.debt;
@@ -264,7 +269,11 @@ export default function AddOperationScreen() {
 
   const finish = (day: string) => {
     reset();
-    openOperations(day);
+    if (fromWallet) {
+      router.dismissTo({ pathname: '/wallet-detail', params: { id: fromWallet, at: String(Date.now()) } } as Href);
+    } else {
+      openOperations(day);
+    }
   };
 
   const schedule = async (operationId: string, day: string, draft: RecurrenceDraft) => {
@@ -305,7 +314,7 @@ export default function AddOperationScreen() {
           from: type === 'INCOME' ? undefined : wallet,
           to: type === 'INCOME' ? wallet : transfer ? target : undefined,
         });
-        router.navigate({ pathname: '/operation-detail', params: { id: editing._id, at: String(Date.now()) } } as Href);
+        router.dismissTo({ pathname: '/operation-detail', params: { id: editing._id, at: String(Date.now()) } } as Href);
         return;
       }
       const created = await createOperation({
@@ -351,7 +360,7 @@ export default function AddOperationScreen() {
       <StickyHeader />
       <RevealScrollView
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+        keyboardAware
         contentContainerStyle={[styles.content, { paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.xxl }]}>
         <Stagger>
           <BackHeader title={editId ? 'Editar operación' : 'Añadir operación'} />

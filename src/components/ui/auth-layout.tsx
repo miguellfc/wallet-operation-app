@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import type { PropsWithChildren } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ui/screen-background';
@@ -25,31 +26,32 @@ export function AuthLayout({ title, footerPrompt, footerAction, onFooterPress, c
   const insets = useSafeAreaInsets();
   return (
     <ScreenBackground glows={[...GLOWS]}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'web' ? undefined : 'padding'}>
-        <ScrollView
-          contentContainerStyle={[
-            styles.scroll,
-            { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + 62 },
-          ]}
-          keyboardShouldPersistTaps="handled">
-          <View style={styles.spacer} />
-          <View style={styles.hero}>
-            <Image contentFit="contain" source={require('@/assets/icons/logo.svg')} style={styles.logo} accessibilityLabel="Cashen" />
-            <Text style={styles.title} accessibilityRole="header">
-              {title}
+      {/* Scrolls the focused field above the keyboard on Android as well as iOS. */}
+      <KeyboardAwareScrollView
+        style={styles.flex}
+        bottomOffset={24}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + 62 },
+        ]}
+        keyboardShouldPersistTaps="handled">
+        <View style={styles.spacer} />
+        <View style={styles.hero}>
+          <Image contentFit="contain" source={require('@/assets/icons/logo.svg')} style={styles.logo} accessibilityLabel="Cashen" />
+          <Text style={styles.title} accessibilityRole="header">
+            {title}
+          </Text>
+        </View>
+        {children}
+        <View style={styles.spacer} />
+        {footerAction && (
+          <Pressable accessibilityRole="link" onPress={onFooterPress} style={styles.footer}>
+            <Text style={styles.footerText}>
+              {footerPrompt} <Text style={styles.footerLink}>{footerAction}</Text>
             </Text>
-          </View>
-          {children}
-          <View style={styles.spacer} />
-          {footerAction && (
-            <Pressable accessibilityRole="link" onPress={onFooterPress} style={styles.footer}>
-              <Text style={styles.footerText}>
-                {footerPrompt} <Text style={styles.footerLink}>{footerAction}</Text>
-              </Text>
-            </Pressable>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+          </Pressable>
+        )}
+      </KeyboardAwareScrollView>
     </ScreenBackground>
   );
 }

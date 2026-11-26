@@ -16,12 +16,13 @@ export function monthLabel(isoDate: string) {
   return MONTHS[new Date(isoDate).getUTCMonth()];
 }
 
-type Interval = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
+type Interval = 'HOUR' | 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
 
 const SHORT_WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 export function periodLabel(isoDate: string, interval: Interval) {
   const date = new Date(isoDate);
+  if (interval === 'HOUR') return `${date.getUTCHours()}h`;
   if (interval === 'DAY') return SHORT_WEEKDAYS[date.getUTCDay()];
   if (interval === 'WEEK') return `${date.getUTCDate()}/${date.getUTCMonth() + 1}`;
   if (interval === 'MONTH') return MONTHS[date.getUTCMonth()];
@@ -35,6 +36,10 @@ export function utcDateLabel(isoDate: string) {
 
 export function periodTitle(isoDate: string, interval: Interval) {
   const date = new Date(isoDate);
+  if (interval === 'HOUR') {
+    const hour = date.getUTCHours();
+    return `${utcDateLabel(isoDate)}, ${hour}:00–${hour + 1}:00`;
+  }
   if (interval === 'DAY') return utcDateLabel(isoDate);
   if (interval === 'WEEK') return `Semana del ${utcDateLabel(isoDate)}`;
   if (interval === 'MONTH') return `${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;

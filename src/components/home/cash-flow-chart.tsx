@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import { valuesKey } from '@/lib/motion';
+import { smoothAreaPath, smoothPath, type ChartPoint } from '@/components/statistics/smooth-path';
 import { FilterChips } from '@/components/ui/filter-chips';
 import { Grow } from '@/components/ui/grow';
 import { Skeleton, SkeletonBars } from '@/components/ui/skeleton';
@@ -10,7 +11,7 @@ import type { CashFlowData, CashFlowInterval, CashFlowPeriod } from '@/features/
 import { formatAmount, periodLabel, periodTitle } from '@/lib/format';
 import { colors, radius, spacing, themedStyles, typography } from '@/theme';
 
-type Point = { x: number; y: number };
+type Point = ChartPoint;
 
 const CHART_HEIGHT = 211;
 const TOP = 56;
@@ -18,29 +19,9 @@ const BOTTOM = CHART_HEIGHT - 10;
 const SIDE = 11;
 const TOOLTIP_WIDTH = 150;
 
-const clampY = (y: number) => Math.min(Math.max(y, TOP), BOTTOM);
+const linePath = (points: Point[]) => smoothPath(points, TOP, BOTTOM);
 
-function smoothPath(points: Point[]) {
-  if (points.length === 0) return '';
-  let path = `M${points[0].x},${points[0].y}`;
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i - 1] ?? points[i];
-    const p1 = points[i];
-    const p2 = points[i + 1];
-    const p3 = points[i + 2] ?? p2;
-    const c1 = { x: p1.x + (p2.x - p0.x) / 6, y: clampY(p1.y + (p2.y - p0.y) / 6) };
-    const c2 = { x: p2.x - (p3.x - p1.x) / 6, y: clampY(p2.y - (p3.y - p1.y) / 6) };
-    path += ` C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`;
-  }
-  return path;
-}
-
-function areaPath(points: Point[]) {
-  if (points.length === 0) return '';
-  const first = points[0];
-  const last = points[points.length - 1];
-  return `${smoothPath(points)} L${last.x},${CHART_HEIGHT} L${first.x},${CHART_HEIGHT} Z`;
-}
+const areaPath = (points: Point[]) => smoothAreaPath(points, TOP, BOTTOM, CHART_HEIGHT);
 
 const INTERVALS: { value: CashFlowInterval; label: string }[] = [
   { value: 'DAY', label: 'Día' },
@@ -68,7 +49,7 @@ export function CashFlowChart({ data, interval, currencyCode, onIntervalChange }
         <LegendItem color={colors.expense} label="Gastos" />
       </View>
       {data ? (
-        <Chart key={data.interval} periods={data.periods} interval={data.interval} currencyCode={currencyCode} />
+        <Chart key={data.interval} data={data} currencyCode={currencyCode} />
       ) : (
         <Skeleton style={styles.loading}>
           <SkeletonBars height={CHART_HEIGHT} />
@@ -78,9 +59,10 @@ export function CashFlowChart({ data, interval, currencyCode, onIntervalChange }
   );
 }
 
-type ChartProps = { periods: CashFlowPeriod[]; interval: CashFlowInterval; currencyCode: string };
+type ChartProps = { data: CashFlowData; currencyCode: string };
 
-function Chart({ periods, interval, currencyCode }: ChartProps) {
+function Chart({ data, currencyCode }: ChartProps) {
+  const { periods, grouping } = data;
   const id = useId();
   const [width, setWidth] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
@@ -105,7 +87,7 @@ function Chart({ periods, interval, currencyCode }: ChartProps) {
       <View style={styles.chart} onLayout={onLayout}>
         {width > 0 && periods.length > 0 && (
           <>
-            <Grow key={`${interval}:${valuesKey(periods.flatMap(period => [period.income, period.expense]))}`}>
+            <Grow key={`${data.interval}:${valuesKey(periods.flatMap(period => [period.income, period.expense]))}`}>
               <Svg width={width} height={CHART_HEIGHT}>
                 <Defs>
                   <LinearGradient id={`${id}-income`} x1={0} y1={0} x2={0} y2={1}>
@@ -119,8 +101,8 @@ function Chart({ periods, interval, currencyCode }: ChartProps) {
                 </Defs>
                 <Path d={areaPath(expense)} fill={`url(#${id}-expense)`} />
                 <Path d={areaPath(income)} fill={`url(#${id}-income)`} />
-                <Path d={smoothPath(expense)} stroke={colors.expense} strokeWidth={3} fill="none" />
-                <Path d={smoothPath(income)} stroke={colors.income} strokeWidth={3} fill="none" />
+                <Path d={linePath(expense)} stroke={colors.expense} strokeWidth={3} fill="none" />
+                <Path d={linePath(income)} stroke={colors.income} strokeWidth={3} fill="none" />
                 <Line
                   x1={markerX}
                   x2={markerX}
@@ -146,7 +128,7 @@ function Chart({ periods, interval, currencyCode }: ChartProps) {
                     key={period.period}
                     style={styles.hit}
                     accessibilityRole="button"
-                    accessibilityLabel={`${periodTitle(period.period, interval)}: ingresos ${formatAmount(period.income, currencyCode)}, gastos ${formatAmount(period.expense, currencyCode)}`}
+                    accessibilityLabel={`${periodTitle(period.period, grouping)}: ingresos ${formatAmount(period.income, currencyCode)}, gastos ${formatAmount(period.expense, currencyCode)}`}
                     onPress={() => setPicked(index)}
                   />
                 ))}
@@ -161,7 +143,7 @@ function Chart({ periods, interval, currencyCode }: ChartProps) {
             <Text
               key={period.period}
               style={[styles.axisLabel, { left: Math.min(Math.max(xAt(index) - 16, 0), width - 32) }]}>
-              {periodLabel(period.period, interval)}
+              {periodLabel(period.period, grouping)}
             </Text>
           ))}
       </View>

@@ -57,11 +57,13 @@ const toUtcInstant = (date: Date) =>
     Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes()),
   ).toISOString();
 
+// dismissTo goes back to the screen if it's already in the history instead of stacking a new one on top of the
+// form, so "Atrás" never returns to the form after saving.
 const openDebts = () =>
-  router.navigate({ pathname: '/wallets', params: { section: 'DEBTS', at: String(Date.now()) } } as Href);
+  router.dismissTo({ pathname: '/wallets', params: { section: 'DEBTS', at: String(Date.now()) } } as Href);
 
 const openDebt = (id: string) =>
-  router.navigate({ pathname: '/debt-detail', params: { id, at: String(Date.now()) } } as Href);
+  router.dismissTo({ pathname: '/debt-detail', params: { id, at: String(Date.now()) } } as Href);
 
 const fromUtcWallTime = (iso: string) => {
   const date = new Date(iso);
@@ -235,7 +237,7 @@ export default function AddDebtScreen() {
       <StickyHeader />
       <RevealScrollView
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+        keyboardAware
         contentContainerStyle={[styles.content, { paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.xxl }]}>
         <Stagger>
           <BackHeader title={editId ? 'Editar deuda' : 'Añadir deuda'} />

@@ -1,7 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import type { Currency } from '@/features/currencies/currency-api';
-import type { CashFlowInterval, CashFlowPeriod, CategoryTotal } from '@/features/home/home-api';
+import type { CashFlowPeriod, CategoryTotal, SeriesInterval } from '@/features/home/home-api';
 import type {
   BalancePoint,
   CategoryComparison,
@@ -30,7 +30,9 @@ type FlowRow = {
 
 const DAY_MS = 86_400_000;
 
-function startOfInterval(iso: string, interval: CashFlowInterval) {
+const HOUR_MS = 3_600_000;
+
+function startOfInterval(iso: string, interval: SeriesInterval) {
   const date = new Date(iso);
   const year = date.getUTCFullYear();
   const month = date.getUTCMonth();
@@ -38,17 +40,19 @@ function startOfInterval(iso: string, interval: CashFlowInterval) {
   if (interval === 'YEAR') return Date.UTC(year, 0, 1);
   if (interval === 'MONTH') return Date.UTC(year, month, 1);
   if (interval === 'WEEK') return Date.UTC(year, month, day - ((date.getUTCDay() + 6) % 7));
+  if (interval === 'HOUR') return Date.UTC(year, month, day, date.getUTCHours());
   return Date.UTC(year, month, day);
 }
 
-function nextPeriod(time: number, interval: CashFlowInterval) {
+function nextPeriod(time: number, interval: SeriesInterval) {
   const date = new Date(time);
   if (interval === 'YEAR') return Date.UTC(date.getUTCFullYear() + 1, 0, 1);
   if (interval === 'MONTH') return Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1);
+  if (interval === 'HOUR') return time + HOUR_MS;
   return time + (interval === 'WEEK' ? 7 : 1) * DAY_MS;
 }
 
-function densify(periods: Set<number>, interval: CashFlowInterval) {
+function densify(periods: Set<number>, interval: SeriesInterval) {
   const sorted = [...periods].sort((a, b) => a - b);
   if (sorted.length === 0) return [];
   const all: number[] = [];
@@ -58,7 +62,7 @@ function densify(periods: Set<number>, interval: CashFlowInterval) {
   return all;
 }
 
-function rangePeriods({ from, to }: Range, interval: CashFlowInterval) {
+function rangePeriods({ from, to }: Range, interval: SeriesInterval) {
   return [...(from ? [startOfInterval(from, interval)] : []), startOfInterval(to, interval)];
 }
 
@@ -118,7 +122,7 @@ export async function localCategoryTotals(range: Range): Promise<CategoryTotal[]
   return [...groups.values()].map(group => ({ ...group, total: round(group.total) })).sort(byTypeThenTotal);
 }
 
-export async function localCashFlow(range: Range, interval: CashFlowInterval): Promise<CashFlowPeriod[]> {
+export async function localCashFlow(range: Range, interval: SeriesInterval): Promise<CashFlowPeriod[]> {
   const { db, round } = await context();
   const rows = await incomeExpenseRows(db, [range]);
   const sums = new Map<number, { income: number; expense: number }>();
@@ -142,7 +146,7 @@ export async function localCashFlow(range: Range, interval: CashFlowInterval): P
   });
 }
 
-export async function localBalanceEvolution(range: Range, interval: CashFlowInterval): Promise<BalancePoint[]> {
+export async function localBalanceEvolution(range: Range, interval: SeriesInterval): Promise<BalancePoint[]> {
   const { db, round } = await context();
   const rows = await db.getAllAsync<{ date: string; amount: number }>(
     `SELECT moves.date, moves.amount FROM (

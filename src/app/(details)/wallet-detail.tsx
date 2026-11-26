@@ -38,6 +38,9 @@ const GLOWS = [
   { left: '30%', top: '62%' },
 ] as const;
 
+const PLUS_ICON =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>';
+
 const PEN_ICON =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"><path d="M4 22H20"/><path d="M13.8881 3.66293L14.6296 2.92142C15.8581 1.69286 17.85 1.69286 19.0786 2.92142C20.3071 4.14999 20.3071 6.14188 19.0786 7.37044L18.3371 8.11195M13.8881 3.66293C13.8881 3.66293 13.9807 5.23862 15.3711 6.62894C16.7614 8.01926 18.3371 8.11195 18.3371 8.11195M13.8881 3.66293L7.07106 10.4799C6.60933 10.9416 6.37846 11.1725 6.17992 11.4271C5.94571 11.7273 5.74491 12.0522 5.58107 12.396C5.44219 12.6874 5.33894 12.9972 5.13245 13.6167L4.25745 16.2417M4.25745 16.2417L4.04356 16.8833C3.94194 17.1882 4.02128 17.5243 4.2485 17.7515C4.47573 17.9787 4.81182 18.0581 5.11667 17.9564L5.75834 17.7426L8.38334 16.8675C9.00282 16.6611 9.31256 16.5578 9.60398 16.4189C9.94775 16.2551 10.2727 16.0543 10.5729 15.8201C10.8275 15.6215 11.0584 15.3907 11.5201 14.9289L18.3371 8.11195M5.75834 17.7426L4.25745 16.2417"/></g></svg>';
 
@@ -65,11 +68,16 @@ const openWallet = (walletId: string) =>
 const editWallet = (walletId: string) =>
   router.navigate({ pathname: '/add-wallet', params: { edit: walletId, at: stamp() } } as Href);
 
+const addOperation = (walletId: string) =>
+  router.navigate({ pathname: '/add-operation', params: { wallet: walletId, at: stamp() } } as Href);
+
 const openStatistics = (walletId: string) =>
   router.navigate({ pathname: '/wallet-statistics', params: { id: walletId, at: stamp() } } as Href);
 
+// After a delete: dismissTo closes this detail instead of stacking the list on top of it, so "Atrás" never
+// returns to something that no longer exists.
 const openWallets = () =>
-  router.navigate({ pathname: '/wallets', params: { section: 'WALLETS', at: stamp() } } as Href);
+  router.dismissTo({ pathname: '/wallets', params: { section: 'WALLETS', at: stamp() } } as Href);
 
 const openOperation = (operationId: string) =>
   router.navigate({ pathname: '/operation-detail', params: { id: operationId, at: stamp() } } as Href);
@@ -310,6 +318,13 @@ export default function WalletDetailScreen() {
                   <View style={styles.actions}>
                     <Button label="Reajustar saldo" onPress={() => setAdjusting(true)} />
                     <View style={styles.iconActions}>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Añadir operación en esta billetera"
+                        onPress={() => addOperation(id)}
+                        style={({ pressed }) => [styles.round, pressed && styles.pressed]}>
+                        <SvgXml xml={PLUS_ICON} color={textOn(colors.brand)} width={22} height={22} />
+                      </Pressable>
                       <Pressable
                         accessibilityRole="button"
                         accessibilityLabel="Editar billetera"
